@@ -45,7 +45,7 @@
         "groups": [
       {
         "group": "API documentation",
-        "pages": ["api-reference/introduction", "api-reference/runway-gen3"]
+        "pages": ["api-reference/introduction", "api-reference/runway-gen3", "api-reference/veo-3-1"]
       },
           {
             "group": "Endpoint examples",
