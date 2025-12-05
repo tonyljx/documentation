@@ -1,13 +1,13 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Wizzx AI",
   "colors": {
     "primary": "#f97316",
     "light": "#fb923c",
     "dark": "#c2410c"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/logo/logo.png",
   "navigation": {
     "tabs": [
       {
@@ -77,8 +77,8 @@
     }
   },
   "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
+    "light": "/logo/logo.png",
+    "dark": "/logo/logo.png"
   },
   "navbar": {
     "links": [
