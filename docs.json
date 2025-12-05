@@ -50,6 +50,8 @@
           {
             "group": "Endpoint examples",
             "pages": [
+              "api-reference/endpoint/submit-veo3",
+              "api-reference/endpoint/task-status",
               "api-reference/endpoint/get",
               "api-reference/endpoint/create",
               "api-reference/endpoint/delete",

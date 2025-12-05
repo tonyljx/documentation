@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "https://api.example.com",
+      "url": "https://api.wizzx.ai",
       "description": "Replace with your deployed host"
     }
   ],

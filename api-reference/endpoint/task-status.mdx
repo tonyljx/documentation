@@ -1,0 +1,20 @@
+---
+title: "查询任务状态"
+description: "POST 轮询 Veo 3.1 生成任务状态"
+openapi: "POST /api/v1/task/status"
+---
+
+## 查询任务
+
+- 传 `task_id` 查询状态；需携带 `Authorization: Bearer <your_api_key>`。
+- 返回 `status`（PROCESSING/SUCCEEDED/FAILED），成功时附带 `result_urls`。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/status \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task_id": "local-task-id"
+  }'
+```
+
