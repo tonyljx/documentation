@@ -43,10 +43,10 @@
       {
         "tab": "API reference",
         "groups": [
-          {
-            "group": "API documentation",
-            "pages": ["api-reference/introduction"]
-          },
+      {
+        "group": "API documentation",
+        "pages": ["api-reference/introduction", "api-reference/runway-gen3"]
+      },
           {
             "group": "Endpoint examples",
             "pages": [
