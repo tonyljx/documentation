@@ -1,0 +1,37 @@
+---
+title: "Submit Flux Kontext Max task"
+description: "POST Flux Kontext Max 高质量文生图任务"
+openapi: "POST /api/v1/task/submit/flux-kontext-max"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`；可选 `aspect_ratio`、`input_image`、`input_image_2`、`input_image_3`、`input_image_4`、`output_format`、`prompt_upsampling`、`safety_tolerance`、`seed`、`webhook_url`、`webhook_secret`。
+- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-kontext-max \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene mountain landscape with a crystal clear lake",
+    "aspect_ratio": "21:9",
+    "output_format": "png",
+    "safety_tolerance": 2,
+    "prompt_upsampling": true
+  }'
+```
+
+<Note>
+- **费用计算**：基础费用 20-28 积分，取决于宽高比和参考图数量
+  - 1:1 宽高比：20 积分
+  - 16:9/9:16：25 积分
+  - 21:9/9:21：28 积分
+  - 多参考图（2+ 张）：每张额外 +5 积分
+- **质量差异**：Max 版本提供更高质量输出，速度略慢但效果更好
+- **宽高比**：支持 21:9 到 9:21 之间，格式为 `width:height`（如 "16:9", "1:1", "9:16"）
+- **参考图**：最多支持 4 张参考图（实验性功能）
+- **输出格式**：支持 `jpeg` 和 `png`，默认 `png`
+- **安全容忍度**：0-6 之间，0 最严格，6 最宽松，默认 2
+</Note>

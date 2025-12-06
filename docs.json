@@ -48,13 +48,16 @@
             "pages": [
               "api-reference/introduction",
               "api-reference/runway-gen3",
-              "api-reference/veo-3-1"
+              "api-reference/veo-3-1",
+              "api-reference/flux-kontext"
             ]
           },
           {
             "group": "Endpoint examples",
             "pages": [
               "api-reference/endpoint/submit-veo3",
+              "api-reference/endpoint/submit-flux-kontext-pro",
+              "api-reference/endpoint/submit-flux-kontext-max",
               "api-reference/endpoint/task-status"
             ]
           }
