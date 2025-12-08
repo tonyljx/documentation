@@ -1,0 +1,182 @@
+---
+title: "Kling AI 图生视频 API"
+description: "Kling Image2Video 提交、查询、参数规则与积分定价"
+---
+
+## 概览
+
+- 通过 `POST /api/v1/task/submit/kling-ai` 提交图生视频任务，返回 `task_id` 以供轮询。
+- 支持 `std` 与 `pro` 两种模式，时长 5s 或 10s，需提供首帧 `image` 或尾帧 `image_tail`（二选一）。
+- 提供镜头控制、静态/动态笔刷、尾帧控制等高级能力，默认 CFG 自由度 `0.5`。
+- 状态查询统一使用 `POST /api/v1/task/status`。
+
+## 认证
+
+- Header：`Authorization: Bearer <your_api_key>`
+- 网关会校验并注入用户身份，无需额外参数。
+
+## 提交任务
+
+接口：`POST /api/v1/task/submit/kling-ai`，`Content-Type: application/json`
+
+### 必填参数
+
+- `prompt` (string)：正向提示词，≤ 2500 字符。
+- `mode` (string)：生成模式，`std`（标准）或 `pro`（高品质）。
+- `duration` (int)：视频时长，`5` 或 `10`（秒）。
+- `image` (string)：参考图像 URL/Base64；`image` 与 `image_tail` 至少二选一。
+
+### 可选参数
+
+- `model_name` (string)：模型版本，`kling-v1` / `kling-v1-5` / `kling-v1-6` / `kling-v2-master` / `kling-v2-1` / `kling-v2-1-master`，默认 `kling-v1`。
+- `image_tail` (string)：尾帧控制图（URL/Base64）。与 `dynamic_masks` / `static_mask` / `camera_control` 互斥。
+- `negative_prompt` (string)：负向提示词，≤ 2500 字符。
+- `cfg_scale` (float)：提示词自由度，范围 [0, 1]，默认 `0.5`（值越大越贴合提示词）。
+- `static_mask` (string)：静态笔刷区域（URL/Base64），与 `image_tail`、`camera_control` 互斥，长宽比需与输入图一致。
+- `dynamic_masks` (array)：动态笔刷列表（最多 6 组），每组包含 `mask` 与 `trajectories`（5s 长度不超过 77 个点，坐标原点为左下角）。
+- `camera_control` (object)：镜头控制。`type` 取值 `simple` / `down_back` / `forward_up` / `right_turn_forward` / `left_turn_forward`。当 `type` 为 `simple` 时需提供 `config`，6 个参数只能有 1 个非零（`horizontal` / `vertical` / `pan` / `tilt` / `roll` / `zoom`，范围 -10~10）。
+- `callback_url` (string)：回调通知 URL。
+- `external_task_id` (string)：自定义任务 ID。
+
+<Warning>
+  资源要求：图片格式 jpg/jpeg/png，大小 ≤10MB，宽高 ≥300px，宽高比 1:2.5 ~ 2.5:1。`image` 与 `image_tail` 至少提供一个。
+</Warning>
+
+### 请求示例（基础图生视频）
+
+```bash
+curl -X POST https://<host>/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "宇航员站起身走了",
+    "mode": "std",
+    "duration": 5,
+    "image": "https://example.com/astronaut.jpg",
+    "cfg_scale": 0.5
+  }'
+```
+
+### 请求示例（高品质模式 + 镜头控制）
+
+```bash
+curl -X POST https://<host>/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "主角在森林中漫步",
+    "mode": "pro",
+    "duration": 10,
+    "image": "https://example.com/forest.jpg",
+    "model_name": "kling-v2-master",
+    "camera_control": {
+      "type": "forward_up"
+    }
+  }'
+```
+
+### 请求示例（动态笔刷轨迹）
+
+```bash
+curl -X POST https://<host>/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "宇航员站起身走了",
+    "mode": "std",
+    "duration": 5,
+    "image": "https://example.com/astronaut.jpg",
+    "dynamic_masks": [
+      {
+        "mask": "https://example.com/mask1.png",
+        "trajectories": [
+          {"x": 279, "y": 219},
+          {"x": 417, "y": 65}
+        ]
+      }
+    ]
+  }'
+```
+
+### 成功响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "local-task-id",
+    "provider_task_id": "kling_task_abcdef123456",
+    "model_key": "kling-ai",
+    "provider_key": "kling-ai"
+  }
+}
+```
+
+## 任务查询
+
+- 接口：`POST /api/v1/task/status`
+- Body：
+
+```json
+{
+  "task_id": "local-task-id"
+}
+```
+
+### 查询响应示例
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "local-task-id",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.example.com/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+状态值：`PROCESSING`（生成中）、`SUCCEEDED`（生成完成，可使用 `result_urls`）、`FAILED`（生成失败，`error` 内含下游错误）。
+
+## 参数速览（必填/可选）
+
+| 参数 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `prompt` | string | 是 | - | 正向文本提示词（≤2500字符） |
+| `mode` | string | 是 | - | `std` 或 `pro` |
+| `duration` | int | 是 | - | 5 或 10 秒 |
+| `image` | string | 是* | - | 参考图像（URL或Base64） |
+| `model_name` | string | 否 | kling-v1 | 模型版本 |
+| `image_tail` | string | 否 | - | 尾帧控制图像 |
+| `negative_prompt` | string | 否 | - | 负向提示词（≤2500字符） |
+| `cfg_scale` | float | 否 | 0.5 | 自由度 [0, 1] |
+| `static_mask` | string | 否 | - | 静态笔刷区域 |
+| `dynamic_masks` | array | 否 | - | 动态笔刷列表（最多6组） |
+| `camera_control` | object | 否 | - | 镜头运动控制 |
+| `callback_url` | string | 否 | - | 回调通知地址 |
+| `external_task_id` | string | 否 | - | 自定义任务ID |
+
+*注：`image` 与 `image_tail` 至少二选一
+
+## 积分与定价
+
+| 模式 | 时长 | 积分 |
+|------|------|------|
+| std | 5s | 10 |
+| std | 10s | 20 |
+| pro | 5s | 20 |
+| pro | 10s | 40 |
+
+**定价公式**：`基础积分 10 × 模式倍率 (std=1, pro=2) × 时长倍率 (5s=1, 10s=2)`
+
+## 常见问题
+
+- **是否需要回调 URL？** 不需要，直接轮询 `task/status` 接口即可。
+- **如何使用镜头控制？** 通过 `camera_control` 设置运镜类型；`simple` 类型需在 `config` 中仅设置 1 个非零参数。
+- **动态笔刷与静态笔刷区别？** `static_mask` 固定区域；`dynamic_masks` 还能提供轨迹点以控制运动路径。
+- **image_tail 有什么作用？** 指定尾帧画面，与 `image` 搭配可控首尾帧。
+- **如何选择模型版本？** `kling-v1` 稳定基础；`kling-v1-5/1-6` 迭代增强；`kling-v2-master/v2-1` 系列为最新高质量，优先推荐。
+- **生成视频保留多久？** 为安全起见，视频保存 30 天，请及时转存。

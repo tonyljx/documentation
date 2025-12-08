@@ -3,7 +3,7 @@
   "info": {
     "title": "Wizzx AI API",
     "version": "1.0.0",
-    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Seedance Pro Fast video generation, and Flux Kontext image generation.\nAuthentication: Bearer API key in `Authorization` header."
+    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, and Flux Kontext image generation.\nAuthentication: Bearer API key in `Authorization` header."
   },
   "servers": [
     {
@@ -79,6 +79,50 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SeedanceSubmitResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "422": {
+            "description": "Validation error"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/kling-ai": {
+      "post": {
+        "summary": "Submit Kling AI image-to-video task",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KlingSubmitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KlingSubmitResponse"
                 }
               }
             }
@@ -511,6 +555,261 @@
                 "type": "string"
               }
             }
+          }
+        }
+      },
+      "KlingSubmitRequest": {
+        "type": "object",
+        "required": [
+          "prompt",
+          "mode",
+          "duration"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt describing the video content.",
+            "maxLength": 2500
+          },
+          "mode": {
+            "type": "string",
+            "description": "Generation mode. 'std' for standard quality, 'pro' for professional quality.",
+            "enum": [
+              "std",
+              "pro"
+            ]
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Video duration in seconds.",
+            "enum": [
+              5,
+              10
+            ]
+          },
+          "image": {
+            "type": "string",
+            "description": "Reference image URL or base64. At least one of 'image' or 'image_tail' is required."
+          },
+          "model_name": {
+            "type": "string",
+            "description": "Kling model version.",
+            "enum": [
+              "kling-v1",
+              "kling-v1-5",
+              "kling-v1-6",
+              "kling-v2-master",
+              "kling-v2-1",
+              "kling-v2-1-master"
+            ],
+            "default": "kling-v1"
+          },
+          "image_tail": {
+            "type": "string",
+            "description": "Tail frame control image (URL or base64). Mutually exclusive with dynamic_masks/static_mask and camera_control."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "description": "Negative text prompt to avoid certain elements.",
+            "maxLength": 2500
+          },
+          "cfg_scale": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "CFG scale controlling how closely to follow the prompt. Higher = stricter adherence.",
+            "default": 0.5
+          },
+          "static_mask": {
+            "type": "string",
+            "description": "Static brush mask image (URL or base64). Mutually exclusive with image_tail and camera_control."
+          },
+          "dynamic_masks": {
+            "type": "array",
+            "description": "Dynamic brush configurations with masks and trajectories. Max 6 groups.",
+            "maxItems": 6,
+            "items": {
+              "$ref": "#/components/schemas/DynamicMask"
+            }
+          },
+          "camera_control": {
+            "$ref": "#/components/schemas/CameraControl"
+          },
+          "callback_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Callback URL for task status updates."
+          },
+          "external_task_id": {
+            "type": "string",
+            "description": "Custom task ID for tracking."
+          }
+        }
+      },
+      "DynamicMask": {
+        "type": "object",
+        "required": [
+          "mask",
+          "trajectories"
+        ],
+        "properties": {
+          "mask": {
+            "type": "string",
+            "description": "Mask image URL or base64."
+          },
+          "trajectories": {
+            "type": "array",
+            "description": "Motion trajectory coordinates (2-77 points for 5s video).",
+            "minItems": 2,
+            "maxItems": 77,
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryPoint"
+            }
+          }
+        }
+      },
+      "TrajectoryPoint": {
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "properties": {
+          "x": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "X coordinate (pixels from bottom-left origin)."
+          },
+          "y": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Y coordinate (pixels from bottom-left origin)."
+          }
+        }
+      },
+      "CameraControl": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Camera movement type.",
+            "enum": [
+              "simple",
+              "down_back",
+              "forward_up",
+              "right_turn_forward",
+              "left_turn_forward"
+            ]
+          },
+          "config": {
+            "$ref": "#/components/schemas/CameraControlConfig"
+          }
+        }
+      },
+      "CameraControlConfig": {
+        "type": "object",
+        "description": "Camera control configuration. Required when type is 'simple'. Exactly one parameter must be non-zero.",
+        "properties": {
+          "horizontal": {
+            "type": "number",
+            "format": "float",
+            "minimum": -10,
+            "maximum": 10,
+            "description": "Horizontal pan (-10 to 10)."
+          },
+          "vertical": {
+            "type": "number",
+            "format": "float",
+            "minimum": -10,
+            "maximum": 10,
+            "description": "Vertical pan (-10 to 10)."
+          },
+          "pan": {
+            "type": "number",
+            "format": "float",
+            "minimum": -10,
+            "maximum": 10,
+            "description": "Horizontal rotation (-10 to 10)."
+          },
+          "tilt": {
+            "type": "number",
+            "format": "float",
+            "minimum": -10,
+            "maximum": 10,
+            "description": "Vertical rotation (-10 to 10)."
+          },
+          "roll": {
+            "type": "number",
+            "format": "float",
+            "minimum": -10,
+            "maximum": 10,
+            "description": "Roll rotation (-10 to 10)."
+          },
+          "zoom": {
+            "type": "number",
+            "format": "float",
+            "minimum": -10,
+            "maximum": 10,
+            "description": "Zoom (-10 to 10)."
+          }
+        }
+      },
+      "KlingSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Local task id."
+              },
+              "provider_task_id": {
+                "type": "string",
+                "description": "Downstream Kling task id."
+              },
+              "model_key": {
+                "type": "string",
+                "example": "kling-ai"
+              },
+              "provider_key": {
+                "type": "string",
+                "example": "kling-ai"
+              }
+            }
+          }
+        }
+      },
+      "CreditPricing": {
+        "type": "object",
+        "description": "Credit pricing for Kling AI",
+        "properties": {
+          "std_5s": {
+            "type": "integer",
+            "example": 10
+          },
+          "std_10s": {
+            "type": "integer",
+            "example": 20
+          },
+          "pro_5s": {
+            "type": "integer",
+            "example": 20
+          },
+          "pro_10s": {
+            "type": "integer",
+            "example": 40
           }
         }
       },
