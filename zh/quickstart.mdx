@@ -1,0 +1,47 @@
+---
+title: "快速上手"
+description: "几分钟内完成环境准备、预览与发布"
+---
+
+## 三步启动
+
+### 第一步：准备环境
+
+<AccordionGroup>
+  <Accordion icon="copy" title="获取代码">
+    克隆或下载你的文档仓库，确保仓库中已有 `docs.json`。
+  </Accordion>
+  <Accordion icon="rectangle-terminal" title="安装与预览">
+    1. 安装 CLI：`npm i -g mint`  
+    2. 进入项目根目录运行：`mint dev`  
+    3. 打开 `http://localhost:3000` 查看实时预览。
+  </Accordion>
+</AccordionGroup>
+
+### 第二步：提交并部署
+
+<AccordionGroup>
+  <Accordion icon="github" title="关联 GitHub 应用">
+    在 Mintlify 控制台安装 GitHub 应用，推送后会自动构建并部署。
+  </Accordion>
+  <Accordion icon="palette" title="品牌配置">
+    更新 `docs.json` 的 `name` 与 `colors`，保持与品牌一致。
+  </Accordion>
+</AccordionGroup>
+
+### 第三步：上线
+
+<Accordion icon="rocket" title="发布">
+  提交并推送代码，等待自动部署完成后即可对外访问。
+</Accordion>
+
+## 下一步
+
+<CardGroup cols={2}>
+  <Card title="中文开发指南" icon="rectangle-terminal" href="/zh/development">
+    查看端口切换、CLI 版本管理等常见操作。
+  </Card>
+  <Card title="配置参考（英文）" icon="gear" href="/essentials/settings">
+    参考完整配置项并按需翻译。
+  </Card>
+</CardGroup>

@@ -1,0 +1,39 @@
+---
+title: "Submit Flux Kontext Pro task"
+description: "POST Flux Kontext Pro 文生图任务"
+openapi: "POST /api/v1/task/submit/flux-kontext-pro"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`；可选 `aspect_ratio`、`image_urls`（最多 4 张）、`output_format`、`prompt_upsampling`、`safety_tolerance`、`seed`、`webhook_url`、`webhook_secret`。
+- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- **Breaking**：`input_image`/`input_image_2`/`_3`/`_4` 已废弃，请改用 `image_urls` 数组。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-kontext-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "aspect_ratio": "16:9",
+    "image_urls": [
+      "https://example.com/reference1.jpg"
+    ],
+    "output_format": "png",
+    "safety_tolerance": 2
+  }'
+```
+
+<Note>
+- **费用计算**：基础费用 15-20 积分，取决于宽高比和参考图数量
+  - 1:1 宽高比：15 积分
+  - 16:9/9:16：18 积分
+  - 21:9/9:21：20 积分
+  - 多参考图（2+ 张）：每张额外 +3 积分
+- **宽高比**：支持 21:9 到 9:21 之间，格式为 `width:height`（如 "16:9", "1:1", "9:16"）
+- **参考图**：最多支持 4 张参考图（实验性功能）
+- **输出格式**：支持 `jpeg` 和 `png`，默认 `png`
+- **安全容忍度**：0-6 之间，0 最严格，6 最宽松，默认 2
+</Note>

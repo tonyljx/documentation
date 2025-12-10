@@ -9,65 +9,117 @@
   },
   "favicon": "/logo/logo.png",
   "navigation": {
-    "tabs": [
+    "languages": [
       {
-        "tab": "Guides",
-        "groups": [
+        "language": "en",
+        "default": true,
+        "tabs": [
           {
-            "group": "Getting started",
-            "pages": ["index", "quickstart", "development"]
-          },
-          {
-            "group": "Customization",
-            "pages": ["essentials/settings", "essentials/navigation"]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Getting started",
+                "pages": ["index", "quickstart", "development"]
+              },
+              {
+                "group": "Customization",
+                "pages": ["essentials/settings", "essentials/navigation"]
+              },
+              {
+                "group": "Writing content",
+                "pages": [
+                  "essentials/markdown",
+                  "essentials/code",
+                  "essentials/images",
+                  "essentials/reusable-snippets"
+                ]
+              },
+              {
+                "group": "AI tools",
+                "pages": [
+                  "ai-tools/cursor",
+                  "ai-tools/claude-code",
+                  "ai-tools/windsurf"
+                ]
+              }
             ]
           },
           {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+            "tab": "API reference",
+            "groups": [
+              {
+                "group": "API documentation",
+                "pages": [
+                  "api-reference/introduction",
+                  "api-reference/runway-gen3",
+                  "api-reference/veo-3-1",
+                  "api-reference/kling-ai",
+                  "api-reference/seedance-pro-fast",
+                  "api-reference/flux-kontext",
+                  "api-reference/seedream",
+                  "api-reference/nano-banana-pro"
+                ]
+              },
+              {
+                "group": "Endpoint examples",
+                "pages": [
+                  "api-reference/endpoint/submit-veo3",
+                  "api-reference/endpoint/submit-kling-ai",
+                  "api-reference/endpoint/submit-seedance-pro-fast",
+                  "api-reference/endpoint/submit-flux-kontext-pro",
+                  "api-reference/endpoint/submit-flux-kontext-max",
+                  "api-reference/endpoint/submit-seedream-4",
+                  "api-reference/endpoint/submit-seedream-4-5",
+                  "api-reference/endpoint/submit-nano-banana-pro",
+                  "api-reference/endpoint/task-status"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
+        "language": "zh",
+        "tabs": [
           {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction",
-              "api-reference/runway-gen3",
-              "api-reference/veo-3-1",
-              "api-reference/kling-ai",
-              "api-reference/seedance-pro-fast",
-              "api-reference/flux-kontext",
-              "api-reference/seedream",
-              "api-reference/nano-banana-pro"
+            "tab": "指南",
+            "groups": [
+              {
+                "group": "快速开始",
+                "pages": ["zh/index", "zh/quickstart", "zh/development"]
+              }
             ]
           },
           {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/submit-veo3",
-              "api-reference/endpoint/submit-kling-ai",
-              "api-reference/endpoint/submit-seedance-pro-fast",
-              "api-reference/endpoint/submit-flux-kontext-pro",
-              "api-reference/endpoint/submit-flux-kontext-max",
-              "api-reference/endpoint/submit-seedream-4",
-              "api-reference/endpoint/submit-seedream-4-5",
-              "api-reference/endpoint/submit-nano-banana-pro",
-              "api-reference/endpoint/task-status"
+            "tab": "API 参考",
+            "groups": [
+              {
+                "group": "API 文档",
+                "pages": [
+                  "zh/api-reference/introduction",
+                  "zh/api-reference/runway-gen3",
+                  "zh/api-reference/veo-3-1",
+                  "zh/api-reference/kling-ai",
+                  "zh/api-reference/seedance-pro-fast",
+                  "zh/api-reference/flux-kontext",
+                  "zh/api-reference/seedream",
+                  "zh/api-reference/nano-banana-pro"
+                ]
+              },
+              {
+                "group": "接口示例",
+                "pages": [
+                  "zh/api-reference/endpoint/submit-veo3",
+                  "zh/api-reference/endpoint/submit-kling-ai",
+                  "zh/api-reference/endpoint/submit-seedance-pro-fast",
+                  "zh/api-reference/endpoint/submit-flux-kontext-pro",
+                  "zh/api-reference/endpoint/submit-flux-kontext-max",
+                  "zh/api-reference/endpoint/submit-seedream-4",
+                  "zh/api-reference/endpoint/submit-seedream-4-5",
+                  "zh/api-reference/endpoint/submit-nano-banana-pro",
+                  "zh/api-reference/endpoint/task-status"
+                ]
+              }
             ]
           }
         ]

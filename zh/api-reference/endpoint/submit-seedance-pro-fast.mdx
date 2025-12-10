@@ -1,0 +1,31 @@
+---
+title: "Submit Seedance Pro Fast task"
+description: "POST Seedance Pro Fast text/image-to-video 任务"
+openapi: "POST /api/v1/task/submit/seedance-pro-fast"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`、`mode`；`img2video` 模式必填 `input_image_url`。
+- 可选 `duration`、`resolution`、`aspect_ratio`、`seed`、`watermark`、`camera_fixed`。
+- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A cat playing piano in a cozy living room",
+    "mode": "text2video",
+    "duration": 5,
+    "resolution": "480p",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+<Note>
+- `text2video` 模式不需要 `input_image_url`
+- `img2video` 模式必须提供 `input_image_url`，图片要求：jpeg/png/webp/bmp/tiff/gif 格式，宽高比 0.4-2.5，短边 `>300px`，长边 `<6000px`，大小 `<30MB`
+- 固定 24fps，不可调整
+</Note>

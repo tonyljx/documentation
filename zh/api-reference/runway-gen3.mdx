@@ -1,0 +1,97 @@
+---
+title: "Runway Gen-3 视频生成 API"
+description: "如何提交 Runway Gen-3 视频任务、请求 schema、返回格式与轮询方式"
+---
+
+## 概览
+
+- 通过 Kie.ai 代理调用 Runway Gen-3，支持文本驱动 (`text2video`) 和图片驱动 (`img2video`) 两种模式。
+- 所有请求均创建异步视频任务；响应会返回 `task_id` 供后续轮询。
+
+## 接口速览
+
+- `POST /v1/video/runway-gen3`：提交生成任务。
+- `GET /v1/video/runway-gen3/{task_id}`：根据 `task_id` 轮询进度与结果。
+
+> 根据部署路径调整前缀（示例使用 `/v1`）。所有请求需携带 `Authorization: Bearer <token>`。
+
+## 请求 schema（POST）
+
+字段 | 说明 | 约束/默认
+-| - | -
+`prompt` | 文本提示词 | 必填
+`mode` | 生成模式 | 必填，`text2video`/`img2video`
+`input_image_url` | 模板图 URL | `img2video` 必填，合法 URL
+`duration` | 时长（秒） | 可选，默认 5；仅支持 5 或 10
+`resolution` | 分辨率 | 可选，默认 `720p`；仅 `720p`/`1080p`，10 秒不支持 1080p
+`fps` | 帧率 | 可选，默认 24；`24`/`30`/`60`
+`aspect_ratio` | 画幅 | 可选，`16:9`/`9:16`/`1:1`（留空由后端判断）
+
+### 提交示例
+
+```bash
+curl -X POST https://api.wizzx.ai/v1/video/runway-gen3 \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "a cinematic drone flythrough of a neon city",
+    "mode": "text2video",
+    "duration": 5,
+    "resolution": "720p",
+    "fps": 24,
+    "aspect_ratio": "16:9"
+  }'
+```
+
+## 返回格式
+
+提交成功时：
+
+```json
+{
+  "task_id": "rw_123",
+  "status": "queued",
+  "credits": 5,
+  "duration": 5,
+  "resolution": "720p",
+  "mode": "text2video"
+}
+```
+
+状态字段通常为 `queued` | `processing` | `succeeded` | `failed`。
+
+## 轮询与结果获取
+
+使用 `GET /v1/video/runway-gen3/{task_id}` 间隔查询（建议 2-5s）：
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  https://api.wizzx.ai/v1/video/runway-gen3/rw_123
+```
+
+成功示例：
+
+```json
+{
+  "task_id": "rw_123",
+  "status": "succeeded",
+  "result": {
+    "video_url": "https://cdn.example.com/rw_123.mp4",
+    "cover_image_url": "https://cdn.example.com/rw_123.jpg"
+  },
+  "duration": 5,
+  "resolution": "720p",
+  "mode": "text2video"
+}
+```
+
+失败时返回 `status: failed` 与 `error` 描述。
+
+## 计费规则（参考）
+
+- 5s 720p：5 积分
+- 5s 1080p：10 积分
+- 10s 720p：5 积分
+- 10s 1080p：不支持
+
+> 计费依据提交时的时长与分辨率；若超出限制会直接校验报错。

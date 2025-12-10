@@ -1,0 +1,28 @@
+---
+title: "Submit Veo 3.1 task"
+description: "POST Veo 3.1 text/image-to-video任务"
+openapi: "POST /api/v1/task/submit/veo3"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`；可选 `image_urls`、`generation_type`、`model`、`aspect_ratio`、`seeds`、`enable_translation`、`watermark`。
+- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A dog running through a neon city at night",
+    "model": "veo3_fast",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+<Note>
+- `TEXT_2_VIDEO` 不传 `image_urls`；参考图最多 2 张（`REFERENCE_2_VIDEO` 最多 3 张且 16:9、`veo3_fast`）。
+- 已弃用 `callBackUrl`，统一用轮询查询。
+</Note>
+

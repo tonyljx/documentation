@@ -1,0 +1,72 @@
+---
+title: "本地开发"
+description: "使用 Mintlify CLI 预览与校验文档"
+---
+
+<Info>
+  **前置要求**  
+  - Node.js 19+  
+  - 仓库内已存在 `docs.json`
+</Info>
+
+## 运行预览
+
+<Steps>
+<Step title="安装 CLI">
+
+```bash
+npm i -g mint
+```
+</Step>
+
+<Step title="启动本地服务">
+
+```bash
+mint dev
+```
+
+默认访问 `http://localhost:3000`。
+</Step>
+</Steps>
+
+### 自定义端口
+
+使用 `--port` 指定端口，例如：
+
+```bash
+mint dev --port 3333
+```
+
+端口被占用时，CLI 会自动尝试下一个可用端口。
+
+### 更新 CLI 版本
+
+若本地预览与线上不一致，执行：
+
+```bash
+mint update
+```
+
+### 链接校验
+
+检测站内链接是否有效：
+
+```bash
+mint broken-links
+```
+
+### 故障排查
+
+<AccordionGroup>
+  <Accordion title='缺少 "sharp" 模块'>
+    1. 卸载 CLI：`npm remove -g mint`  
+    2. 升级到 Node.js 19+  
+    3. 重新安装 CLI：`npm i -g mint`
+  </Accordion>
+
+  <Accordion title="遇到未知错误">
+    删除 `~/.mintlify` 目录后重试 `mint dev`。
+  </Accordion>
+</AccordionGroup>
+
+如需查看 CLI 更新记录，请访问 [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions)。
