@@ -51,7 +51,9 @@
               "api-reference/veo-3-1",
               "api-reference/kling-ai",
               "api-reference/seedance-pro-fast",
-              "api-reference/flux-kontext"
+              "api-reference/flux-kontext",
+              "api-reference/seedream",
+              "api-reference/nano-banana-pro"
             ]
           },
           {
@@ -62,6 +64,9 @@
               "api-reference/endpoint/submit-seedance-pro-fast",
               "api-reference/endpoint/submit-flux-kontext-pro",
               "api-reference/endpoint/submit-flux-kontext-max",
+              "api-reference/endpoint/submit-seedream-4",
+              "api-reference/endpoint/submit-seedream-4-5",
+              "api-reference/endpoint/submit-nano-banana-pro",
               "api-reference/endpoint/task-status"
             ]
           }

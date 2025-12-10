@@ -1,0 +1,34 @@
+---
+title: "Submit Nano Banana Pro task"
+description: "POST Nano Banana Pro 文生图/图生图任务"
+openapi: "POST /api/v1/task/submit/nano-banana-pro"
+---
+
+## 提交任务
+
+- Header：`Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`；可选 `image_urls`（最多 8 张，30MB/张）、`aspect_ratio`、`resolution`、`output_format`。
+- 异步返回 `task_id` 与扣费 `credits_deducted`，使用 `/api/v1/task/status` 轮询结果。
+- **Breaking**：`image_input` 已废弃，请改用 `image_urls` 数组字段。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A beautiful sunset over the ocean",
+    "image_urls": [
+      "https://example.com/reference1.jpg",
+      "https://example.com/reference2.jpg"
+    ],
+    "aspect_ratio": "16:9",
+    "resolution": "2K",
+    "output_format": "png"
+  }'
+```
+
+<Note>
+- 画幅：`1:1`、`2:3`、`3:2`、`3:4`、`4:3`、`4:5`、`5:4`、`9:16`、`16:9`、`21:9`、`auto`，默认 `1:1`。
+- 分辨率与积分：`1K/2K = 10 积分`，`4K = 20 积分`。
+- 输出格式：`png` / `jpg`，默认 `png`。
+</Note>

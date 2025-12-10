@@ -7,8 +7,9 @@ openapi: "POST /api/v1/task/submit/flux-kontext-pro"
 ## 提交任务
 
 - 传 `Authorization: Bearer <your_api_key>`。
-- 必填 `prompt`；可选 `aspect_ratio`、`input_image`、`input_image_2`、`input_image_3`、`input_image_4`、`output_format`、`prompt_upsampling`、`safety_tolerance`、`seed`、`webhook_url`、`webhook_secret`。
+- 必填 `prompt`；可选 `aspect_ratio`、`image_urls`（最多 4 张）、`output_format`、`prompt_upsampling`、`safety_tolerance`、`seed`、`webhook_url`、`webhook_secret`。
 - 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- **Breaking**：`input_image`/`input_image_2`/`_3`/`_4` 已废弃，请改用 `image_urls` 数组。
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-kontext-pro \
@@ -17,6 +18,9 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-kontext-pro \
   -d '{
     "prompt": "A futuristic city at night with neon lights",
     "aspect_ratio": "16:9",
+    "image_urls": [
+      "https://example.com/reference1.jpg"
+    ],
     "output_format": "png",
     "safety_tolerance": 2
   }'

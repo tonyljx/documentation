@@ -3,7 +3,7 @@
   "info": {
     "title": "Wizzx AI API",
     "version": "1.0.0",
-    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, and Flux Kontext image generation.\nAuthentication: Bearer API key in `Authorization` header."
+    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, Flux Kontext image generation, Nano Banana Pro image generation, and Seedream 4.0/4.5 image generation.\nAuthentication: Bearer API key in `Authorization` header."
   },
   "servers": [
     {
@@ -186,7 +186,7 @@
     "/api/v1/task/submit/flux-kontext-pro": {
       "post": {
         "summary": "Submit Flux Kontext Pro image task",
-        "description": "Submit an image generation task using Flux Kontext Pro model. Costs 15-20 credits depending on parameters.",
+        "description": "Submit an image generation task using Flux Kontext Pro model. Costs 15-20 credits depending on parameters. Uses image_urls array for multi-reference (max 4).",
         "security": [
           {
             "bearerAuth": []
@@ -234,7 +234,7 @@
     "/api/v1/task/submit/flux-kontext-max": {
       "post": {
         "summary": "Submit Flux Kontext Max image task",
-        "description": "Submit an image generation task using Flux Kontext Max model (premium quality). Costs 20-28 credits depending on parameters.",
+        "description": "Submit an image generation task using Flux Kontext Max model (premium quality). Costs 20-28 credits depending on parameters. Uses image_urls array for multi-reference (max 4).",
         "security": [
           {
             "bearerAuth": []
@@ -257,6 +257,150 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FluxKontextSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "404": {
+            "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/nano-banana-pro": {
+      "post": {
+        "summary": "Submit Nano Banana Pro image task",
+        "description": "Submit an image generation task using Nano Banana Pro model. Supports text-to-image and multi-reference image input (image_urls array). Costs 10-20 credits depending on resolution.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NanoBananaProSubmitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NanoBananaProSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "404": {
+            "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/seedream-4": {
+      "post": {
+        "summary": "Submit Seedream 4.0 image task",
+        "description": "Submit an image generation task using Seedream 4.0 model. Supports multi-image fusion (image_urls), batch generation, aspect ratios, and resolutions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedreamSubmitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedreamSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "404": {
+            "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/seedream-4.5": {
+      "post": {
+        "summary": "Submit Seedream 4.5 image task",
+        "description": "Submit an image generation task using Seedream 4.5 model (higher quality). Supports multi-image fusion (image_urls), batch generation, aspect ratios, and resolutions.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SeedreamSubmitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedreamSubmitResponse"
                 }
               }
             }
@@ -525,10 +669,15 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 0
+            "example": 200
           },
           "msg": {
-            "type": "string"
+            "type": "string",
+            "description": "Legacy message field."
+          },
+          "message": {
+            "type": "string",
+            "description": "Message field (preferred)."
           },
           "data": {
             "type": "object",
@@ -538,7 +687,12 @@
               },
               "status": {
                 "type": "string",
+                "description": "Task status.",
                 "enum": [
+                  "pending",
+                  "processing",
+                  "succeeded",
+                  "failed",
                   "PROCESSING",
                   "SUCCEEDED",
                   "FAILED"
@@ -546,13 +700,19 @@
               },
               "result_urls": {
                 "type": "array",
+                "description": "URLs to generated assets when succeeded.",
                 "items": {
                   "type": "string",
                   "format": "uri"
                 }
               },
               "error": {
-                "type": "string"
+                "type": "string",
+                "description": "Legacy error message field."
+              },
+              "error_message": {
+                "type": "string",
+                "description": "Error details when status is failed."
               }
             }
           }
@@ -829,25 +989,18 @@
             "description": "Aspect ratio of the image between 21:9 and 9:21. Format: width:height (e.g., '16:9', '1:1', '9:16'). Common ratios: 1:1, 4:3, 3:2, 16:9, 9:16, 21:9, 9:21.",
             "example": "16:9"
           },
-          "input_image": {
-            "type": "string",
-            "description": "Base64 encoded image or URL to use with Kontext for reference.",
-            "example": "https://example.com/image.jpg"
-          },
-          "input_image_2": {
-            "type": "string",
-            "description": "Second reference image (experimental multi-reference feature).",
-            "example": "https://example.com/image2.jpg"
-          },
-          "input_image_3": {
-            "type": "string",
-            "description": "Third reference image (experimental multi-reference feature).",
-            "example": "https://example.com/image3.jpg"
-          },
-          "input_image_4": {
-            "type": "string",
-            "description": "Fourth reference image (experimental multi-reference feature).",
-            "example": "https://example.com/image4.jpg"
+          "image_urls": {
+            "type": "array",
+            "description": "Array of reference image URLs (max 4). JPEG/PNG/WebP, up to 30MB each. Replaces deprecated input_image fields.",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 4,
+            "example": [
+              "https://example.com/ref1.jpg",
+              "https://example.com/ref2.jpg"
+            ]
           },
           "output_format": {
             "type": "string",
@@ -920,6 +1073,225 @@
               "credits_deducted": {
                 "type": "integer",
                 "description": "Number of credits deducted for this task.",
+                "example": 15
+              }
+            }
+          }
+        }
+      },
+      "NanoBananaProSubmitRequest": {
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt for image generation (max 10000 characters).",
+            "maxLength": 10000,
+            "example": "A beautiful sunset over the ocean with vibrant colors"
+          },
+          "image_urls": {
+            "type": "array",
+            "description": "Array of input image URLs (max 8 images, max 30MB each). Replaces deprecated image_input field.",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 8,
+            "example": [
+              "https://example.com/reference1.jpg",
+              "https://example.com/reference2.jpg"
+            ]
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "description": "Aspect ratio of the generated image.",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9",
+              "auto"
+            ],
+            "default": "1:1",
+            "example": "16:9"
+          },
+          "resolution": {
+            "type": "string",
+            "description": "Resolution of the generated image. Higher resolution costs more credits.",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K",
+            "example": "2K"
+          },
+          "output_format": {
+            "type": "string",
+            "description": "Output format for the generated image.",
+            "enum": [
+              "png",
+              "jpg"
+            ],
+            "default": "png",
+            "example": "png"
+          }
+        }
+      },
+      "NanoBananaProSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Local task ID for tracking.",
+                "example": "task_123456789"
+              },
+              "status": {
+                "type": "string",
+                "description": "Initial task status.",
+                "enum": [
+                  "pending",
+                  "processing",
+                  "succeeded",
+                  "failed"
+                ],
+                "example": "pending"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Number of credits deducted for this task. 1K/2K = 10 credits, 4K = 20 credits.",
+                "example": 10
+              }
+            }
+          }
+        }
+      },
+      "SeedreamSubmitRequest": {
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt for image generation.",
+            "example": "A beautiful sunset over the ocean"
+          },
+          "image_urls": {
+            "type": "array",
+            "description": "Array of input image URLs for image fusion (max 14 images). JPEG/PNG/WebP, up to 30MB each.",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 14,
+            "example": [
+              "https://example.com/reference1.jpg",
+              "https://example.com/reference2.jpg"
+            ]
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "description": "Aspect ratio for output image.",
+            "enum": [
+              "1:1",
+              "4:3",
+              "3:4",
+              "16:9",
+              "9:16",
+              "3:2",
+              "2:3",
+              "21:9"
+            ],
+            "example": "16:9"
+          },
+          "resolution": {
+            "type": "string",
+            "description": "Resolution of the generated image (replaces deprecated size field).",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "2K",
+            "example": "2K"
+          },
+          "batch_size": {
+            "type": "integer",
+            "description": "Number of images to generate (1-15). Constraint: input images + batch_size <= 15.",
+            "minimum": 1,
+            "maximum": 15,
+            "default": 1,
+            "example": 1
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Random seed for reproducibility (-1 for random). Range [-1, 2147483647].",
+            "minimum": -1,
+            "maximum": 2147483647,
+            "default": -1,
+            "example": 42
+          },
+          "watermark": {
+            "type": "boolean",
+            "description": "Whether to add watermark to output images.",
+            "default": false,
+            "example": false
+          }
+        }
+      },
+      "SeedreamSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Local task ID for tracking.",
+                "example": "task_123456789"
+              },
+              "status": {
+                "type": "string",
+                "description": "Initial task status.",
+                "enum": [
+                  "pending",
+                  "processing",
+                  "succeeded",
+                  "failed"
+                ],
+                "example": "pending"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Credits deducted for this task (depends on resolution, input images, and batch size).",
                 "example": 15
               }
             }
