@@ -1,59 +1,56 @@
 ---
-title: "Seedream 4.0/4.5 图像生成 API"
-description: "ByteDance Seedream 4.0 与 4.5 文生图/多图融合参数、计费、迁移说明"
+title: "Seedream 4.0/4.5 Image API"
+description: "ByteDance Seedream 4.0 & 4.5 text-to-image / multi-image fusion parameters, pricing, and migration"
 ---
 
-## 概览
+## Overview
 
-- 模型：Seedream 4.0（`seedream-4`）与 Seedream 4.5（`seedream-4.5`），质量 4.5 更高，速度略慢。
-- 能力：文生图、多图融合（最多 14 张）、批量生成（最多 15 张输出）。
-- 分辨率：`1K` / `2K` / `4K`（默认 `2K`）；新增 `aspect_ratio` 控制画幅。
-- 计费：基础积分按分辨率，输入图与批量输出按张收费；总输入图 + 输出张数 ≤ 15。
-- 接口：`POST /api/v1/task/submit/seedream-4` 与 `/seedream-4.5`，查询统一用 `/api/v1/task/status`。
+- Models: Seedream 4.0 (`seedream-4`) and Seedream 4.5 (`seedream-4.5`); 4.5 is higher quality, slightly slower.
+- Capabilities: text-to-image, multi-image fusion (up to 14 refs), batch output (up to 15 images).
+- Resolution: `1K` / `2K` / `4K` (default `2K`); `aspect_ratio` added for framing.
+- Pricing: base by resolution; input refs and batch outputs billed per image; total input+output ≤ 15.
+- Submit: `POST https://api.wizzx.ai/api/v1/task/submit/seedream-4` or `/seedream-4.5`; status via `/api/v1/task/status`.
 
 <Warning>
-  **Breaking Change（2025-12-10）**：`size` 字段已统一为 `resolution`，新增
-  `aspect_ratio`。请尽快迁移以避免校验失败。
+  **Breaking Change (2025-12-10):** `size` replaced by `resolution`; new `aspect_ratio` field. Update clients to avoid validation errors.
 </Warning>
 
-### 认证
-
-请求头加入：
+### Auth
 
 ```bash
 Authorization: Bearer <your_api_key>
 ```
 
-### 模型对比
+### Model comparison
 
-| 特性           | Seedream 4.0 | Seedream 4.5   |
-| -------------- | ------------ | -------------- |
-| 模型 ID        | `seedream-4` | `seedream-4.5` |
-| 质量           | 高           | 更高           |
-| 速度           | 快           | 稍慢但质量更好 |
-| 基础积分（2K） | 15           | 15             |
+| Feature         | Seedream 4.0  | Seedream 4.5  |
+| --------------- | ------------- | ------------- |
+| Model ID        | `seedream-4`  | `seedream-4.5`|
+| Quality         | High          | Higher        |
+| Speed           | Faster        | Slightly slower |
+| Base credits (2K)| 15           | 15            |
 
-### 提交任务
+### Submit job
 
-接口：`POST /api/v1/task/submit/seedream-4` 或 `/seedream-4.5`，`Content-Type: application/json`
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/seedream-4` or `/seedream-4.5`, `Content-Type: application/json`
 
-| 字段           | 类型            | 必填 | 默认/限制  | 说明                               |
-| -------------- | --------------- | ---- | ---------- | ---------------------------------- |
-| `prompt`       | string          | 是   | -          | 文本提示词                         |
-| `image_urls`   | `array<string>` | 否   | 最多 14 张 | 多图融合参考图（JPEG/PNG/WebP）    |
-| `aspect_ratio` | string          | 否   | -          | 画幅比例，见下方列表               |
-| `resolution`   | string          | 否   | `2K`       | `1K` / `2K` / `4K`                 |
-| `batch_size`   | int             | 否   | 1          | 输出张数 1-15；与输入图总和 ≤15    |
-| `seed`         | int             | 否   | -1         | -1 表示随机，范围 [-1, 2147483647] |
-| `watermark`    | bool            | 否   | false      | 是否添加水印                       |
+| Field           | Type            | Required | Default/Limit          | Description                                  |
+| --------------- | --------------- | -------- | ---------------------- | -------------------------------------------- |
+| `prompt`        | string          | Yes      | -                      | Text prompt                                  |
+| `image_urls`    | `array<string>` | No       | Max 14                 | Fusion refs (JPEG/PNG/WebP)                  |
+| `aspect_ratio`  | string          | No       | -                      | Ratios: `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `21:9` |
+| `resolution`    | string          | No       | `2K`                   | `1K` / `2K` / `4K`                           |
+| `batch_size`    | int             | No       | 1                      | Output count 1-15; input+output ≤15          |
+| `seed`          | int             | No       | -1                     | -1 random, range [-1, 2147483647]            |
+| `watermark`     | bool            | No       | false                  | Add watermark                                |
 
 <Note>
-  - 宽高比选项：`1:1`、`4:3`、`3:4`、`16:9`、`9:16`、`3:2`、`2:3`、`21:9`。Seedream 会在 prompt 末尾自动追加比例提示。
-  - 约束：`输入图片数量 + 输出图片数量 <= 15`，超出将校验失败。
-  - 计费：分辨率 1K=10 积分，2K=15 积分，4K=25 积分；每张输入图 +5 积分；每张额外输出图 +15 积分。
+  - Aspect ratios appended to prompt (e.g., `16:9` → 2560x1440).  
+  - Constraint: `input images + batch_size <= 15`; else validation fails.  
+  - Pricing: 1K=10 credits, 2K=15, 4K=25; each input ref +5 credits; each extra output +15 credits.
 </Note>
 
-### 请求示例（文生图，Seedream 4.0）
+### Example (text-to-image, Seedream 4.0)
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
@@ -66,7 +63,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
   }'
 ```
 
-### 请求示例（高画质文生图，Seedream 4.5）
+### Example (high quality, Seedream 4.5)
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
@@ -79,7 +76,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
   }'
 ```
 
-### 请求示例（多图融合）
+### Example (multi-image fusion)
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
@@ -97,7 +94,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
   }'
 ```
 
-### 请求示例（批量生成）
+### Example (batch generation)
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
@@ -111,7 +108,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
   }'
 ```
 
-### 成功响应
+### Success response
 
 ```json
 {
@@ -125,9 +122,9 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 }
 ```
 
-### 任务查询
+### Query status
 
-接口：`POST /api/v1/task/status`
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
@@ -135,11 +132,11 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 }
 ```
 
-状态值：`pending` → `processing` → `succeeded`（返回 `result_urls`）或 `failed`（查看 `error_message`）。
+Statuses: `pending` → `processing` → `succeeded` (with `result_urls`) or `failed` (see `error_message`).
 
-### 迁移指引（size → resolution + aspect_ratio）
+### Migration (size → resolution + aspect_ratio)
 
-旧版（已废弃）：
+Old (deprecated):
 
 ```json
 {
@@ -148,7 +145,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 }
 ```
 
-新版（当前）：
+New:
 
 ```json
 {
@@ -158,16 +155,11 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 }
 ```
 
-### 技术说明
+### Best practices
 
-- 画幅实现：Seedream 会在 prompt 末尾追加 `aspect_ratio: <ratio>` 文本，自动匹配对应像素尺寸（如 `16:9` → 2560x1440）。
-- 同步转异步：Seedream 原生同步（约 6-7 秒），平台会自动包装为异步任务，提交后返回 `task_id`，轮询 `/task/status` 获取结果。
-
-### 最佳实践
-
-- 分辨率：草稿用 `1K`/`2K`，定稿用 `4K`。
-- 画幅：`1:1` 社媒头像/封面，`16:9` 横屏，`9:16` 竖屏，`21:9` 电影感宽屏。
-- 批量：用 `batch_size` 生成变体，记得确保输入 + 输出张数 ≤ 15。
-- 多图融合：控制在 1-3 张核心参考图，超过 8 张时注意风格一致性与尺寸；每张 +5 积分。
-- 种子：固定 seed 可复现，-1 或省略则随机。
-- 水印：默认关闭，合规场景可开启。
+- Resolution: iterate with `1K/2K`, finalize with `4K`.
+- Aspect ratio: `1:1` social/cover, `16:9` landscape, `9:16` portrait, `21:9` cinematic.
+- Batch: use `batch_size` for variations; ensure input + output ≤ 15.
+- Fusion: keep 1-3 core refs; each ref adds cost (+5 credits).
+- Seeds: fixed seed to reproduce; -1/random for variety.
+- Watermark: off by default; enable for compliance when needed.

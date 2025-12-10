@@ -1,15 +1,15 @@
 ---
 title: "Submit Seedream 4.5 task"
-description: "POST Seedream 4.5 高质量文生图/多图融合任务"
+description: "POST Seedream 4.5 high-quality text-to-image / fusion"
 openapi: "POST /api/v1/task/submit/seedream-4.5"
 ---
 
-## 提交任务
+## Submit task
 
-- Header：`Authorization: Bearer <your_api_key>`。
-- 必填 `prompt`；可选 `image_urls`（最多 14 张）、`aspect_ratio`、`resolution` (`1K`/`2K`/`4K`)、`batch_size` (1-15，总图数≤15)、`seed`、`watermark`。
-- **Breaking**：`size` 已废弃，请使用 `resolution`，并可添加 `aspect_ratio` 控制画幅。
-- 异步返回 `task_id`、`credits_deducted`，用 `/api/v1/task/status` 轮询。
+- Header: `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`. Optional: `image_urls` (max 14), `aspect_ratio`, `resolution` (`1K`/`2K`/`4K`), `batch_size` (1-15, total images ≤15), `seed`, `watermark`.
+- **Breaking:** `size` deprecated; use `resolution` plus `aspect_ratio`.
+- Returns `task_id`, `credits_deducted`; poll `/api/v1/task/status`.
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
@@ -25,8 +25,8 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
 ```
 
 <Note>
-- 分辨率计费：1K=10、2K=15、4K=25 积分。
-- 多图融合：每张输入图 +5 积分；`image_urls` 最多 14 张。
-- 批量输出：每张额外输出图 +15 积分，`输入图数量 + batch_size <= 15`。
-- 4.5 质量更高，速度略慢，适合精品输出。
+- Pricing: 1K=10, 2K=15, 4K=25 credits.  
+- Fusion: each input ref +5 credits; `image_urls` max 14.  
+- Batch: each extra output +15 credits; `input count + batch_size <= 15`.  
+- 4.5 offers higher quality, slightly slower; use for premium outputs.
 </Note>

@@ -1,15 +1,15 @@
 ---
 title: "Submit Seedance Pro Fast task"
-description: "POST Seedance Pro Fast text/image-to-video 任务"
+description: "POST Seedance Pro Fast text/image-to-video submission"
 openapi: "POST /api/v1/task/submit/seedance-pro-fast"
 ---
 
-## 提交任务
+## Submit task
 
-- 传 `Authorization: Bearer <your_api_key>`。
-- 必填 `prompt`、`mode`；`img2video` 模式必填 `input_image_url`。
-- 可选 `duration`、`resolution`、`aspect_ratio`、`seed`、`watermark`、`camera_fixed`。
-- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`, `mode`; `img2video` requires `input_image_url`.
+- Optional: `duration`, `resolution`, `aspect_ratio`, `seed`, `watermark`, `camera_fixed`.
+- Async `task_id`; poll `/api/v1/task/status`.
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
@@ -25,7 +25,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 ```
 
 <Note>
-- `text2video` 模式不需要 `input_image_url`
-- `img2video` 模式必须提供 `input_image_url`，图片要求：jpeg/png/webp/bmp/tiff/gif 格式，宽高比 0.4-2.5，短边 `>300px`，长边 `<6000px`，大小 `<30MB`
-- 固定 24fps，不可调整
+- `text2video`: no `input_image_url`.  
+- `img2video`: `input_image_url` required; images jpeg/png/webp/bmp/tiff/gif, aspect 0.4-2.5, short side >300px, long side &lt;6000px, size &lt;30MB.  
+- Fixed 24fps.
 </Note>

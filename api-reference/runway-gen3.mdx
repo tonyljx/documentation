@@ -1,33 +1,33 @@
 ---
-title: "Runway Gen-3 视频生成 API"
-description: "如何提交 Runway Gen-3 视频任务、请求 schema、返回格式与轮询方式"
+title: "Runway Gen-3 Video API"
+description: "How to submit Runway Gen-3 video jobs, request schema, responses, and polling"
 ---
 
-## 概览
+## Overview
 
-- 通过 Kie.ai 代理调用 Runway Gen-3，支持文本驱动 (`text2video`) 和图片驱动 (`img2video`) 两种模式。
-- 所有请求均创建异步视频任务；响应会返回 `task_id` 供后续轮询。
+- Proxy to Runway Gen-3 via Kie.ai; supports `text2video` and `img2video`.
+- Every request creates an async video job; response returns `task_id` for polling.
 
-## 接口速览
+## Endpoints
 
-- `POST /v1/video/runway-gen3`：提交生成任务。
-- `GET /v1/video/runway-gen3/{task_id}`：根据 `task_id` 轮询进度与结果。
+- `POST https://api.wizzx.ai/v1/video/runway-gen3` — submit a generation job.
+- `GET https://api.wizzx.ai/v1/video/runway-gen3/{task_id}` — poll job status/result.
 
-> 根据部署路径调整前缀（示例使用 `/v1`）。所有请求需携带 `Authorization: Bearer <token>`。
+> Add your own prefix if needed; always send `Authorization: Bearer <token>`.
 
-## 请求 schema（POST）
+## Request schema (POST)
 
-字段 | 说明 | 约束/默认
+Field | Description | Rules / Default
 -| - | -
-`prompt` | 文本提示词 | 必填
-`mode` | 生成模式 | 必填，`text2video`/`img2video`
-`input_image_url` | 模板图 URL | `img2video` 必填，合法 URL
-`duration` | 时长（秒） | 可选，默认 5；仅支持 5 或 10
-`resolution` | 分辨率 | 可选，默认 `720p`；仅 `720p`/`1080p`，10 秒不支持 1080p
-`fps` | 帧率 | 可选，默认 24；`24`/`30`/`60`
-`aspect_ratio` | 画幅 | 可选，`16:9`/`9:16`/`1:1`（留空由后端判断）
+`prompt` | Text prompt | Required
+`mode` | Generation mode | Required: `text2video` or `img2video`
+`input_image_url` | Reference image URL | Required for `img2video`, valid URL
+`duration` | Seconds | Optional, default 5; allowed 5 or 10
+`resolution` | Resolution | Optional, default `720p`; `720p` or `1080p` (10s does not support 1080p)
+`fps` | Frame rate | Optional, default 24; `24`/`30`/`60`
+`aspect_ratio` | Aspect ratio | Optional, `16:9`/`9:16`/`1:1` (empty = auto)
 
-### 提交示例
+### Submit example
 
 ```bash
 curl -X POST https://api.wizzx.ai/v1/video/runway-gen3 \
@@ -43,9 +43,9 @@ curl -X POST https://api.wizzx.ai/v1/video/runway-gen3 \
   }'
 ```
 
-## 返回格式
+## Response format
 
-提交成功时：
+On success:
 
 ```json
 {
@@ -58,18 +58,18 @@ curl -X POST https://api.wizzx.ai/v1/video/runway-gen3 \
 }
 ```
 
-状态字段通常为 `queued` | `processing` | `succeeded` | `failed`。
+Status values: `queued` | `processing` | `succeeded` | `failed`.
 
-## 轮询与结果获取
+## Polling for results
 
-使用 `GET /v1/video/runway-gen3/{task_id}` 间隔查询（建议 2-5s）：
+Use `GET /v1/video/runway-gen3/{task_id}` (poll every 2-5s):
 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
   https://api.wizzx.ai/v1/video/runway-gen3/rw_123
 ```
 
-成功示例：
+Success example:
 
 ```json
 {
@@ -85,13 +85,13 @@ curl -H "Authorization: Bearer $TOKEN" \
 }
 ```
 
-失败时返回 `status: failed` 与 `error` 描述。
+On failure: `status: failed` with `error`.
 
-## 计费规则（参考）
+## Pricing (reference)
 
-- 5s 720p：5 积分
-- 5s 1080p：10 积分
-- 10s 720p：5 积分
-- 10s 1080p：不支持
+- 5s 720p: 5 credits
+- 5s 1080p: 10 credits
+- 10s 720p: 5 credits
+- 10s 1080p: not supported
 
-> 计费依据提交时的时长与分辨率；若超出限制会直接校验报错。
+> Charges depend on submitted duration and resolution; invalid combos fail validation.

@@ -1,14 +1,14 @@
 ---
 title: "Submit Veo 3.1 task"
-description: "POST Veo 3.1 text/image-to-video任务"
+description: "POST Veo 3.1 text/image-to-video submission"
 openapi: "POST /api/v1/task/submit/veo3"
 ---
 
-## 提交任务
+## Submit task
 
-- 传 `Authorization: Bearer <your_api_key>`。
-- 必填 `prompt`；可选 `image_urls`、`generation_type`、`model`、`aspect_ratio`、`seeds`、`enable_translation`、`watermark`。
-- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`. Optional: `image_urls`, `generation_type`, `model`, `aspect_ratio`, `seeds`, `enable_translation`, `watermark`.
+- Returns `task_id`; poll `/api/v1/task/status`.
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
@@ -22,7 +22,6 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 ```
 
 <Note>
-- `TEXT_2_VIDEO` 不传 `image_urls`；参考图最多 2 张（`REFERENCE_2_VIDEO` 最多 3 张且 16:9、`veo3_fast`）。
-- 已弃用 `callBackUrl`，统一用轮询查询。
+- `TEXT_2_VIDEO` must not include `image_urls`; other modes allow up to 2 refs (`REFERENCE_2_VIDEO` up to 3, 16:9, `veo3_fast`).
+- `callBackUrl` is deprecated; use polling.
 </Note>
-

@@ -1,51 +1,47 @@
 ---
-title: "Seedance Pro Fast 视频生成 API"
-description: "Wizzx 平台上的 Seedance Pro Fast Text2Video / Image2Video 提交与查询说明"
+title: "Seedance Pro Fast Video API"
+description: "Wizzx Seedance Pro Fast Text2Video / Image2Video submission and polling"
 ---
 
-## 快速上手
+## Quick start
 
-- 品牌：Wizzx（第三方 API 聚合），统一使用 `Authorization: Bearer <your_api_key>`.
-- 提交生成：`POST /api/v1/task/submit/seedance-pro-fast`，异步返回 `task_id`。
-- 轮询状态：`POST /api/v1/task/status`，传入 `task_id` 获取结果或错误。
-- 支持 `text2video` 和 `img2video` 两种模式。
-- 固定 24fps，支持 5 秒或 10 秒时长，480p/720p/1080p 分辨率。
+- Platform: Wizzx gateway; use `Authorization: Bearer <your_api_key>`.
+- Submit: `POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast` (async `task_id`).
+- Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id`.
+- Modes: `text2video`, `img2video`.
+- Fixed 24fps; duration 5s or 10s; resolutions 480p/720p/1080p.
 
-### 认证
-
-所有请求需携带：
+### Auth
 
 ```bash
 Authorization: Bearer <your_api_key>
 ```
 
-Wizzx 网关会校验并注入身份，无需额外参数。
+### Submit job
 
-### 提交任务
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast`, `Content-Type: application/json`
 
-接口：`POST /api/v1/task/submit/seedance-pro-fast`，`Content-Type: application/json`
-
-| 字段 | 类型 | 说明 | 默认/规则 |
+| Field | Type | Description | Default/Rules |
 | --- | --- | --- | --- |
-| `prompt` | string | 视频描述 | **必填** |
-| `mode` | string | 生成模式 | **必填**，`text2video` 或 `img2video` |
-| `input_image_url` | string | 输入图片 URL | `img2video` 模式**必填** |
-| `duration` | int | 视频时长（秒） | `5` 或 `10`，默认 `5` |
-| `resolution` | string | 视频分辨率 | `480p` / `720p` / `1080p`，默认 `480p` |
-| `aspect_ratio` | string | 宽高比 | `16:9` / `4:3` / `1:1` / `3:4` / `9:16` / `21:9` / `adaptive`，text2video 默认 `16:9`，img2video 默认 `adaptive` |
-| `seed` | int | 随机种子 | `-1` 表示随机，范围 [-1, 4294967295] |
-| `watermark` | bool | 是否添加水印 | 默认 `false` |
-| `camera_fixed` | bool | 是否固定镜头 | 默认 `false` |
+| `prompt` | string | Video description | **Required** |
+| `mode` | string | `text2video` or `img2video` | **Required** |
+| `input_image_url` | string | Image URL | Required for `img2video` |
+| `duration` | int | Seconds | `5` or `10`, default `5` |
+| `resolution` | string | `480p` / `720p` / `1080p` | Default `480p` |
+| `aspect_ratio` | string | `16:9` / `4:3` / `1:1` / `3:4` / `9:16` / `21:9` / `adaptive` | text2video default `16:9`; img2video default `adaptive` |
+| `seed` | int | RNG seed | `-1` random, range [-1, 4294967295] |
+| `watermark` | bool | Add watermark | Default `false` |
+| `camera_fixed` | bool | Lock camera | Default `false` |
 
 <Warning>
-  **图片要求**（img2video 模式）：
-  - 格式：jpeg/png/webp/bmp/tiff/gif
-  - 宽高比：0.4-2.5
-  - 短边 `>300px`，长边 `<6000px`
-  - 大小 `<30MB`
+  **Image requirements (img2video)**  
+  - Formats: jpeg/png/webp/bmp/tiff/gif  
+  - Aspect ratio: 0.4-2.5  
+  - Short side \>300px, long side \<6000px  
+  - Size \<30MB
 </Warning>
 
-#### 请求示例（Text2Video）
+#### Example: Text2Video
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
@@ -60,7 +56,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
   }'
 ```
 
-#### 请求示例（Image2Video）
+#### Example: Image2Video
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
@@ -76,7 +72,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
   }'
 ```
 
-成功响应示例：
+Success response:
 
 ```json
 {
@@ -90,11 +86,9 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 }
 ```
 
-### 任务查询
+### Query status
 
-接口：`POST /api/v1/task/status`
-
-请求体：
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
@@ -102,7 +96,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 }
 ```
 
-响应示例：
+Response example:
 
 ```json
 {
@@ -118,33 +112,4 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 }
 ```
 
-状态值：`PROCESSING`（生成中）、`SUCCEEDED`（可用 `result_urls`）、`FAILED`（查看 `error`）。
-
-### 计费详情
-
-| 分辨率 | 时长 | 积分 |
-|--------|------|------|
-| 480p | 5s | 5 |
-| 480p | 10s | 10 |
-| 720p | 5s | 10 |
-| 720p | 10s | 20 |
-| 1080p | 5s | 20 |
-| 1080p | 10s | 40 |
-
-### 参数速览与规则
-
-- **必填**：`prompt`、`mode`
-- **条件必填**：`input_image_url`（img2video 模式）
-- **可选**：`duration`、`resolution`、`aspect_ratio`、`seed`、`watermark`、`camera_fixed`
-- **规则提示**：
-  - `text2video` 模式不需要 `input_image_url`
-  - `img2video` 模式必须提供 `input_image_url`
-  - `adaptive` 宽高比会根据输入图片自动选择最佳比例
-
-### 常见问题
-
-- **需要回调吗？** 不需要，使用 `task/status` 轮询。
-- **如何复现结果？** 传入 `seed` 参数，相同 seed + 相同参数会生成相似结果。
-- **img2video 模式下宽高比如何处理？** 默认 `adaptive` 会根据输入图片自动选择最佳宽高比，也可以手动指定，系统会自动裁剪。
-- **fps 能否调整？** Seedance Pro Fast 固定 24fps，不可调整。
-- **固定镜头有什么用？** 启用 `camera_fixed` 后，镜头位置保持不变，适合需要稳定画面的场景。
+Status values: `PROCESSING`, `SUCCEEDED`, `FAILED`.

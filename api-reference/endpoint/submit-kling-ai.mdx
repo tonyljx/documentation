@@ -1,23 +1,23 @@
 ---
 title: "Submit Kling AI task"
-description: "POST Kling 图生视频提交示例，含必填/可选字段与回调说明"
+description: "POST Kling Image2Video submission with required/optional fields"
 openapi: "POST /api/v1/task/submit/kling-ai"
 ---
 
-## 提交任务
+## Submit task
 
-- 传 `Authorization: Bearer <your_api_key>`。
-- 必填 `prompt`、`mode` (`std`/`pro`)、`duration` (`5`/`10`)；`image` 与 `image_tail` 至少提供一个。
-- 可选：`model_name`、`negative_prompt`、`cfg_scale`、`static_mask`、`dynamic_masks`、`camera_control`、`callback_url`、`external_task_id`。
-- `image_tail` 与 `dynamic_masks`/`static_mask`/`camera_control` 互斥；图片需 jpg/jpeg/png，≤10MB，宽高 ≥300px，宽高比 1:2.5~2.5:1。
-- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`, `mode` (`std`/`pro`), `duration` (`5`/`10`), and at least one of `image` or `image_tail`.
+- Optional: `model_name`, `negative_prompt`, `cfg_scale`, `static_mask`, `dynamic_masks`, `camera_control`, `callback_url`, `external_task_id`.
+- `image_tail` is mutually exclusive with `dynamic_masks` / `static_mask` / `camera_control`. Images must be jpg/jpeg/png, ≤10MB, min 300px side, aspect 1:2.5–2.5:1.
+- Async `task_id`; poll `/api/v1/task/status`.
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "主角在森林中漫步",
+    "prompt": "The main character walks through a forest",
     "mode": "pro",
     "duration": 10,
     "image": "https://example.com/forest.jpg",
@@ -29,6 +29,6 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 ```
 
 <Note>
-- 动态笔刷：`dynamic_masks` 最多 6 组，5s 轨迹长度 ≤77 点，坐标原点为左下角。
-- 镜头控制：`camera_control.type = simple` 时 `config` 六项仅能有 1 个非零（范围 -10~10）。
+- `dynamic_masks`: up to 6 sets; 5s trajectories ≤77 points; origin bottom-left.
+- `camera_control.type = simple`: only one non-zero config param (`horizontal`/`vertical`/`pan`/`tilt`/`roll`/`zoom`, range -10~10).
 </Note>
