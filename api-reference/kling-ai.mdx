@@ -1,14 +1,15 @@
 ---
 title: "Kling AI Image-to-Video API"
-description: "Submit, query, parameters, and pricing for Kling Image2Video"
+description: "Unified Kling image-to-video submit/query with quality_mode and image_urls"
 ---
 
 ## Overview
 
-- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, get `task_id` for polling.
-- Modes `std` / `pro`, duration 5s or 10s; provide `image` or `image_tail` (at least one).
-- Supports camera control, static/dynamic masks, tail-frame control; default `cfg_scale` 0.5.
-- Status via `POST https://api.wizzx.ai/api/v1/task/status`.
+- **Breaking change (2025-12-10)**: `mode` → `quality_mode`; `image` → `image_urls` (array, 1 image); new `type` field (must be `image-to-video`).
+- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
+- Required: `prompt`, `type="image-to-video"`, `image_urls` (1), `quality_mode` (`std`/`pro`), `duration` (5/10s).
+- Optional controls: model version, negative prompt, cfg scale, tail frame, static/dynamic masks, camera control, callback, external task id.
+- Mutual exclusion: only one of `image_tail`, `dynamic_masks/static_mask`, `camera_control` can be used.
 
 ## Auth
 
@@ -20,26 +21,36 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, `Content-Type
 
 ### Required
 
-- `prompt` (string): positive prompt, ≤2500 chars.
-- `mode` (string): `std` or `pro`.
-- `duration` (int): `5` or `10` seconds.
-- `image` (string): reference image URL/Base64; `image` or `image_tail` required.
+| Field | Type | Notes |
+|------|------|------|
+| `prompt` | string | Positive prompt, ≤2500 chars |
+| `type` | string | Generation type, **must be** `image-to-video` |
+| `image_urls` | []string | Reference image URLs, **exactly 1** image |
+| `quality_mode` | string | Quality mode: `std` (standard) or `pro` (professional) |
+| `duration` | int | Video length: `5` or `10` seconds |
 
 ### Optional
 
-- `model_name` (string): `kling-v1` / `kling-v1-5` / `kling-v1-6` / `kling-v2-master` / `kling-v2-1` / `kling-v2-1-master` (default `kling-v1`).
-- `image_tail` (string): tail frame (URL/Base64). Mutually exclusive with `dynamic_masks` / `static_mask` / `camera_control`.
-- `negative_prompt` (string): ≤2500 chars.
-- `cfg_scale` (float): [0,1], default `0.5` (higher = closer to prompt).
-- `static_mask` (string): static mask (URL/Base64), exclusive with `image_tail`/`camera_control`, must match aspect ratio.
-- `dynamic_masks` (array): up to 6 masks; each has `mask` and `trajectories` (≤77 points for 5s; origin bottom-left).
-- `camera_control` (object): camera motion. `type` = `simple` / `down_back` / `forward_up` / `right_turn_forward` / `left_turn_forward`. For `simple`, `config` has 6 params and only one can be non-zero (`horizontal`/`vertical`/`pan`/`tilt`/`roll`/`zoom`, range -10~10).
-- `callback_url` (string): optional webhook.
-- `external_task_id` (string): optional custom ID.
+| Field | Type | Default | Notes |
+|------|------|--------|------|
+| `model_name` | string | `kling-v1` | Versions: `kling-v1`, `kling-v1-5`, `kling-v1-6`, `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`, `kling-v2-5-turbo` |
+| `image_tail` | string | - | Tail-frame control image URL; exclusive with brushes/camera |
+| `negative_prompt` | string | - | ≤2500 chars |
+| `cfg_scale` | float | 0.5 | Range [0, 1]; higher = closer to prompt |
+| `static_mask` | string | - | Static brush mask URL |
+| `dynamic_masks` | array | - | Up to 6 groups; each has `mask` + `trajectories` |
+| `camera_control` | object | - | Camera motion; see details below |
+| `callback_url` | string | - | Optional webhook |
+| `external_task_id` | string | - | Custom task ID |
 
 <Warning>
-  Images: jpg/jpeg/png, ≤10MB, width/height ≥300px, aspect ratio 1:2.5 ~ 2.5:1. Provide at least one of `image` or `image_tail`.
+  Assets: jpg/jpeg/png, ≤10MB, width/height ≥300px, aspect ratio 1:2.5 ~ 2.5:1. `image_tail`, `dynamic_masks/static_mask`, and `camera_control` are mutually exclusive feature sets.
 </Warning>
+
+### Model versions
+
+- `kling-v1`, `kling-v1-5`, `kling-v1-6`: base/iterative versions
+- `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`, `kling-v2-5-turbo`: high-quality versions (recommended)
 
 ### Example: basic image-to-video
 
@@ -49,9 +60,10 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "An astronaut stands up and walks away",
-    "mode": "std",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/astronaut.jpg"],
+    "quality_mode": "std",
     "duration": 5,
-    "image": "https://example.com/astronaut.jpg",
     "cfg_scale": 0.5
   }'
 ```
@@ -64,9 +76,10 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "The main character walks through a forest",
-    "mode": "pro",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/forest.jpg"],
+    "quality_mode": "pro",
     "duration": 10,
-    "image": "https://example.com/forest.jpg",
     "model_name": "kling-v2-master",
     "camera_control": {
       "type": "forward_up"
@@ -82,9 +95,10 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "An astronaut stands up and walks away",
-    "mode": "std",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/astronaut.jpg"],
+    "quality_mode": "std",
     "duration": 5,
-    "image": "https://example.com/astronaut.jpg",
     "dynamic_masks": [
       {
         "mask": "https://example.com/mask1.png",
@@ -138,27 +152,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 }
 ```
 
-Status: `PROCESSING`, `SUCCEEDED` (use `result_urls`), `FAILED` (see `error`).
+Status: `PROCESSING` (submitted/processing), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
 
-## Parameters at a glance
+## Camera control
 
-| Param | Type | Required | Default | Notes |
-|------|------|---------|---------|------|
-| `prompt` | string | yes | - | ≤2500 chars |
-| `mode` | string | yes | - | `std` or `pro` |
-| `duration` | int | yes | - | 5 or 10 seconds |
-| `image` | string | yes* | - | URL/Base64 |
-| `model_name` | string | no | kling-v1 | Version |
-| `image_tail` | string | no | - | Tail frame |
-| `negative_prompt` | string | no | - | ≤2500 chars |
-| `cfg_scale` | float | no | 0.5 | [0,1] |
-| `static_mask` | string | no | - | Static brush |
-| `dynamic_masks` | array | no | - | Up to 6 |
-| `camera_control` | object | no | - | Camera motion |
-| `callback_url` | string | no | - | Webhook |
-| `external_task_id` | string | no | - | Custom ID |
+| type | Description |
+|------|------|
+| `simple` | Use `config` with one non-zero: `horizontal`/`vertical`/`pan`/`tilt`/`roll`/`zoom` (range -10 to 10) |
+| `down_back` | Camera tilts down and moves back |
+| `forward_up` | Camera moves forward and tilts up |
+| `right_turn_forward` | Rotate right then move forward |
+| `left_turn_forward` | Rotate left then move forward |
 
-*Provide `image` or `image_tail` at minimum.
+<Warning>
+  `simple` mode: only one of the six `config` parameters can be non-zero.
+</Warning>
 
 ## Pricing
 
@@ -173,9 +181,8 @@ Status: `PROCESSING`, `SUCCEEDED` (use `result_urls`), `FAILED` (see `error`).
 
 ## FAQ
 
-- Callback required? No, poll `task/status`.
-- Camera control? Use `camera_control`; for `simple`, only 1 non-zero config param.
-- Dynamic vs static masks? `static_mask` is fixed; `dynamic_masks` include trajectories.
-- `image_tail`? Controls tail frame; combine with `image` for first/last control.
-- Model choice? `kling-v1` baseline; `v1-5/1-6` improved; `v2-*` latest/high quality.
-- Retention? Videos stored 30 days; please archive promptly.
+- Why `mode` renamed to `quality_mode`? To avoid conflict with new `type`. `type` is the generation category; `quality_mode` is quality level (`std`/`pro`).
+- Does Kling support text-to-video? No, `type` must be `image-to-video`.
+- How to use camera control? Set `camera_control` with a supported `type`; `simple` uses `config` with exactly one non-zero field.
+- Dynamic vs static masks? `static_mask` sets a fixed region; `dynamic_masks` add trajectory points for motion control.
+- How long are videos retained? 30 days; please archive promptly.

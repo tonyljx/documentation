@@ -2,8 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Wizzx AI API",
-    "version": "1.0.0",
-    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, Flux Kontext image generation, Nano Banana Pro image generation, and Seedream 4.0/4.5 image generation.\nAuthentication: Bearer API key in `Authorization` header."
+    "version": "1.1.0",
+    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, Flux Kontext image generation, Nano Banana Pro image generation, and Seedream 4.0/4.5 image generation.\n**Breaking Changes (2025-12-10)**: Kling `mode`→`quality_mode` + `image`→`image_urls` (array); Veo `generation_type`→`type` with new enums; Seedance `mode`→`type` + `input_image_url`→`image_urls`.\nAuthentication: Bearer API key in `Authorization` header."
   },
   "servers": [
     {
@@ -26,6 +26,45 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/Veo3SubmitRequest"
+              },
+              "examples": {
+                "text2video": {
+                  "summary": "文生视频",
+                  "value": {
+                    "prompt": "A dog running through a neon city at night",
+                    "type": "text-to-video",
+                    "aspect_ratio": "16:9",
+                    "model": "veo3_fast",
+                    "seeds": 12345
+                  }
+                },
+                "image2video": {
+                  "summary": "首尾帧生成",
+                  "value": {
+                    "prompt": "Make the scene dynamic while keeping the character consistent",
+                    "type": "image-to-video",
+                    "image_urls": [
+                      "https://example.com/frame1.jpg",
+                      "https://example.com/frame2.jpg"
+                    ],
+                    "aspect_ratio": "9:16"
+                  }
+                },
+                "reference2video": {
+                  "summary": "参考图生成",
+                  "value": {
+                    "prompt": "Product turntable style, soft studio light",
+                    "type": "reference-to-video",
+                    "image_urls": [
+                      "https://example.com/ref1.jpg",
+                      "https://example.com/ref2.jpg",
+                      "https://example.com/ref3.jpg"
+                    ],
+                    "model": "veo3_fast",
+                    "aspect_ratio": "16:9",
+                    "enable_translation": true
+                  }
+                }
               }
             }
           }
@@ -41,11 +80,14 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error"
+          },
           "401": {
             "description": "Unauthorized"
           },
-          "422": {
-            "description": "Validation error"
+          "402": {
+            "description": "Insufficient credits"
           },
           "500": {
             "description": "Server error"
@@ -56,7 +98,6 @@
     "/api/v1/task/submit/seedance-pro-fast": {
       "post": {
         "summary": "Submit Seedance Pro Fast video task",
-        "description": "Submit a video generation task using Seedance Pro Fast model. Supports text2video and img2video modes. Costs 5-40 credits depending on resolution and duration.",
         "security": [
           {
             "bearerAuth": []
@@ -68,6 +109,31 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SeedanceSubmitRequest"
+              },
+              "examples": {
+                "text2video": {
+                  "summary": "文生视频",
+                  "value": {
+                    "prompt": "A cat playing piano in a cozy living room",
+                    "type": "text-to-video",
+                    "duration": 5,
+                    "resolution": "480p",
+                    "aspect_ratio": "16:9"
+                  }
+                },
+                "image2video": {
+                  "summary": "图生视频",
+                  "value": {
+                    "prompt": "Make the character walk forward gracefully",
+                    "type": "image-to-video",
+                    "image_urls": [
+                      "https://example.com/character.jpg"
+                    ],
+                    "duration": 10,
+                    "resolution": "720p",
+                    "aspect_ratio": "adaptive"
+                  }
+                }
               }
             }
           }
@@ -83,14 +149,14 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error"
+          },
           "401": {
             "description": "Unauthorized"
           },
           "402": {
             "description": "Insufficient credits"
-          },
-          "422": {
-            "description": "Validation error"
           },
           "500": {
             "description": "Server error"
@@ -112,6 +178,37 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/KlingSubmitRequest"
+              },
+              "examples": {
+                "basic": {
+                  "summary": "基础图生视频",
+                  "value": {
+                    "prompt": "宇航员站起身走了",
+                    "type": "image-to-video",
+                    "image_urls": [
+                      "https://example.com/astronaut.jpg"
+                    ],
+                    "quality_mode": "std",
+                    "duration": 5,
+                    "cfg_scale": 0.5
+                  }
+                },
+                "pro_with_camera": {
+                  "summary": "高品质 + 镜头控制",
+                  "value": {
+                    "prompt": "主角在森林中漫步",
+                    "type": "image-to-video",
+                    "image_urls": [
+                      "https://example.com/forest.jpg"
+                    ],
+                    "quality_mode": "pro",
+                    "duration": 10,
+                    "model_name": "kling-v2-master",
+                    "camera_control": {
+                      "type": "forward_up"
+                    }
+                  }
+                }
               }
             }
           }
@@ -127,14 +224,14 @@
               }
             }
           },
+          "400": {
+            "description": "Validation error"
+          },
           "401": {
             "description": "Unauthorized"
           },
           "402": {
             "description": "Insufficient credits"
-          },
-          "422": {
-            "description": "Validation error"
           },
           "500": {
             "description": "Server error"
@@ -441,11 +538,20 @@
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt describing the video."
+            "description": "Text prompt describing the video to generate."
+          },
+          "type": {
+            "type": "string",
+            "description": "Generation type (unified field). Defaults based on image_urls presence.",
+            "enum": [
+              "text-to-video",
+              "image-to-video",
+              "reference-to-video"
+            ]
           },
           "image_urls": {
             "type": "array",
-            "description": "Image URLs. 1-2 for first/last frames, 1-3 for REFERENCE_2_VIDEO.",
+            "description": "Image URL array. 1-2 for first/last frames (image-to-video), 1-3 for reference images (reference-to-video).",
             "items": {
               "type": "string",
               "format": "uri"
@@ -453,18 +559,9 @@
             "minItems": 1,
             "maxItems": 3
           },
-          "generation_type": {
-            "type": "string",
-            "description": "Generation mode. Defaults based on image_urls presence.",
-            "enum": [
-              "TEXT_2_VIDEO",
-              "FIRST_AND_LAST_FRAMES_2_VIDEO",
-              "REFERENCE_2_VIDEO"
-            ]
-          },
           "model": {
             "type": "string",
-            "description": "Model choice.",
+            "description": "Model choice. reference-to-video requires veo3_fast.",
             "enum": [
               "veo3",
               "veo3_fast"
@@ -473,6 +570,7 @@
           },
           "aspect_ratio": {
             "type": "string",
+            "description": "Output aspect ratio. reference-to-video requires 16:9.",
             "enum": [
               "16:9",
               "9:16",
@@ -494,7 +592,7 @@
           },
           "watermark": {
             "type": "string",
-            "description": "Watermark text."
+            "description": "Custom watermark text."
           }
         }
       },
@@ -517,7 +615,7 @@
               },
               "provider_task_id": {
                 "type": "string",
-                "description": "Downstream Kie task id."
+                "description": "Downstream Veo task id."
               },
               "model_key": {
                 "type": "string",
@@ -535,28 +633,29 @@
         "type": "object",
         "required": [
           "prompt",
-          "mode"
+          "type"
         ],
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt describing the video to generate.",
-            "example": "A cat playing piano in a cozy living room"
+            "description": "Text prompt describing the video to generate."
           },
-          "mode": {
+          "type": {
             "type": "string",
-            "description": "Generation mode.",
+            "description": "Generation type (unified field).",
             "enum": [
-              "text2video",
-              "img2video"
-            ],
-            "example": "text2video"
+              "text-to-video",
+              "image-to-video"
+            ]
           },
-          "input_image_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "Input image URL for img2video mode. Required when mode is img2video. Image requirements: jpeg/png/webp/bmp/tiff/gif format, aspect ratio 0.4-2.5, short edge >300px, long edge <6000px, size <30MB.",
-            "example": "https://example.com/character.jpg"
+          "image_urls": {
+            "type": "array",
+            "description": "Input image URL array (unified field). Required for image-to-video, max 1 image.",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 1
           },
           "duration": {
             "type": "integer",
@@ -565,8 +664,7 @@
               5,
               10
             ],
-            "default": 5,
-            "example": 5
+            "default": 5
           },
           "resolution": {
             "type": "string",
@@ -576,12 +674,11 @@
               "720p",
               "1080p"
             ],
-            "default": "480p",
-            "example": "480p"
+            "default": "480p"
           },
           "aspect_ratio": {
             "type": "string",
-            "description": "Output video aspect ratio. Default is 16:9 for text2video and adaptive for img2video.",
+            "description": "Output video aspect ratio. Defaults to 16:9 for text-to-video, adaptive for image-to-video.",
             "enum": [
               "16:9",
               "4:3",
@@ -591,8 +688,7 @@
               "21:9",
               "adaptive"
             ],
-            "default": "16:9",
-            "example": "16:9"
+            "default": "16:9"
           },
           "seed": {
             "type": "integer",
@@ -600,20 +696,17 @@
             "minimum": -1,
             "maximum": 4294967295,
             "description": "Random seed for reproducibility. -1 for random.",
-            "default": -1,
-            "example": -1
+            "default": -1
           },
           "watermark": {
             "type": "boolean",
             "description": "Whether to add watermark to output video.",
-            "default": false,
-            "example": false
+            "default": false
           },
           "camera_fixed": {
             "type": "boolean",
             "description": "Whether to fix the camera position.",
-            "default": false,
-            "example": false
+            "default": false
           }
         }
       },
@@ -632,13 +725,11 @@
             "properties": {
               "task_id": {
                 "type": "string",
-                "description": "Local task id.",
-                "example": "local-task-id"
+                "description": "Local task id."
               },
               "provider_task_id": {
                 "type": "string",
-                "description": "Downstream Seedance task id.",
-                "example": "seedance_task_abcdef123456"
+                "description": "Downstream Seedance task id."
               },
               "model_key": {
                 "type": "string",
@@ -669,15 +760,10 @@
         "properties": {
           "code": {
             "type": "integer",
-            "example": 200
+            "example": 0
           },
           "msg": {
-            "type": "string",
-            "description": "Legacy message field."
-          },
-          "message": {
-            "type": "string",
-            "description": "Message field (preferred)."
+            "type": "string"
           },
           "data": {
             "type": "object",
@@ -687,12 +773,7 @@
               },
               "status": {
                 "type": "string",
-                "description": "Task status.",
                 "enum": [
-                  "pending",
-                  "processing",
-                  "succeeded",
-                  "failed",
                   "PROCESSING",
                   "SUCCEEDED",
                   "FAILED"
@@ -700,19 +781,13 @@
               },
               "result_urls": {
                 "type": "array",
-                "description": "URLs to generated assets when succeeded.",
                 "items": {
                   "type": "string",
                   "format": "uri"
                 }
               },
               "error": {
-                "type": "string",
-                "description": "Legacy error message field."
-              },
-              "error_message": {
-                "type": "string",
-                "description": "Error details when status is failed."
+                "type": "string"
               }
             }
           }
@@ -722,7 +797,9 @@
         "type": "object",
         "required": [
           "prompt",
-          "mode",
+          "type",
+          "image_urls",
+          "quality_mode",
           "duration"
         ],
         "properties": {
@@ -731,9 +808,26 @@
             "description": "Text prompt describing the video content.",
             "maxLength": 2500
           },
-          "mode": {
+          "type": {
             "type": "string",
-            "description": "Generation mode. 'std' for standard quality, 'pro' for professional quality.",
+            "description": "Generation type (unified field). Kling only supports image-to-video.",
+            "enum": [
+              "image-to-video"
+            ]
+          },
+          "image_urls": {
+            "type": "array",
+            "description": "Reference image URL array (unified field). Must provide exactly 1 image.",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "quality_mode": {
+            "type": "string",
+            "description": "Quality mode. 'std' for standard, 'pro' for professional quality. (Renamed from 'mode' to avoid conflict with 'type')",
             "enum": [
               "std",
               "pro"
@@ -747,10 +841,6 @@
               10
             ]
           },
-          "image": {
-            "type": "string",
-            "description": "Reference image URL or base64. At least one of 'image' or 'image_tail' is required."
-          },
           "model_name": {
             "type": "string",
             "description": "Kling model version.",
@@ -760,13 +850,14 @@
               "kling-v1-6",
               "kling-v2-master",
               "kling-v2-1",
-              "kling-v2-1-master"
+              "kling-v2-1-master",
+              "kling-v2-5-turbo"
             ],
             "default": "kling-v1"
           },
           "image_tail": {
             "type": "string",
-            "description": "Tail frame control image (URL or base64). Mutually exclusive with dynamic_masks/static_mask and camera_control."
+            "description": "Tail frame control image URL. Mutually exclusive with dynamic_masks/static_mask and camera_control."
           },
           "negative_prompt": {
             "type": "string",
@@ -778,16 +869,16 @@
             "format": "float",
             "minimum": 0,
             "maximum": 1,
-            "description": "CFG scale controlling how closely to follow the prompt. Higher = stricter adherence.",
+            "description": "CFG scale controlling how closely to follow the prompt.",
             "default": 0.5
           },
           "static_mask": {
             "type": "string",
-            "description": "Static brush mask image (URL or base64). Mutually exclusive with image_tail and camera_control."
+            "description": "Static brush mask image URL. Mutually exclusive with image_tail and camera_control."
           },
           "dynamic_masks": {
             "type": "array",
-            "description": "Dynamic brush configurations with masks and trajectories. Max 6 groups.",
+            "description": "Dynamic brush configurations with masks and trajectories. Max 6 groups. Mutually exclusive with image_tail and camera_control.",
             "maxItems": 6,
             "items": {
               "$ref": "#/components/schemas/DynamicMask"
@@ -816,7 +907,7 @@
         "properties": {
           "mask": {
             "type": "string",
-            "description": "Mask image URL or base64."
+            "description": "Mask image URL."
           },
           "trajectories": {
             "type": "array",
@@ -850,6 +941,7 @@
       },
       "CameraControl": {
         "type": "object",
+        "description": "Camera movement configuration. Mutually exclusive with image_tail and dynamic_masks/static_mask.",
         "required": [
           "type"
         ],
@@ -876,45 +968,39 @@
         "properties": {
           "horizontal": {
             "type": "number",
-            "format": "float",
             "minimum": -10,
             "maximum": 10,
-            "description": "Horizontal pan (-10 to 10)."
+            "description": "Horizontal pan."
           },
           "vertical": {
             "type": "number",
-            "format": "float",
             "minimum": -10,
             "maximum": 10,
-            "description": "Vertical pan (-10 to 10)."
+            "description": "Vertical pan."
           },
           "pan": {
             "type": "number",
-            "format": "float",
             "minimum": -10,
             "maximum": 10,
-            "description": "Horizontal rotation (-10 to 10)."
+            "description": "Horizontal rotation."
           },
           "tilt": {
             "type": "number",
-            "format": "float",
             "minimum": -10,
             "maximum": 10,
-            "description": "Vertical rotation (-10 to 10)."
+            "description": "Vertical rotation."
           },
           "roll": {
             "type": "number",
-            "format": "float",
             "minimum": -10,
             "maximum": 10,
-            "description": "Roll rotation (-10 to 10)."
+            "description": "Roll rotation."
           },
           "zoom": {
             "type": "number",
-            "format": "float",
             "minimum": -10,
             "maximum": 10,
-            "description": "Zoom (-10 to 10)."
+            "description": "Zoom."
           }
         }
       },
@@ -953,7 +1039,7 @@
       },
       "CreditPricing": {
         "type": "object",
-        "description": "Credit pricing for Kling AI",
+        "description": "Credit pricing for Kling AI (based on quality_mode and duration)",
         "properties": {
           "std_5s": {
             "type": "integer",
