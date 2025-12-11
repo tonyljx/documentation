@@ -1,0 +1,29 @@
+---
+title: "Submit Virtual Try-On task"
+description: "POST Virtual Try-On submission with human and cloth images"
+openapi: "POST /api/v1/task/submit/virtual-try-on"
+---
+
+## Submit task
+
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `human_image`, `cloth_image`.
+- Optional: `model_name` (`kolors-virtual-try-on-v1` default; `kolors-virtual-try-on-v1-5` for stitched top+bottom) and `prompt`.
+- Assets: jpg/jpeg/png, ≤10MB, width/height ≥300px; accept Base64 or accessible image URL.
+- Response returns `task_id`; poll `/api/v1/task/status` for `PROCESSING`/`SUCCEEDED`/`FAILED`.
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "human_image": "https://example.com/person.jpg",
+    "cloth_image": "https://example.com/shirt.jpg",
+    "model_name": "kolors-virtual-try-on-v1"
+  }'
+```
+
+<Note>
+- For `kolors-virtual-try-on-v1-5`, stitch top and bottom garments into one image; repeated top+top or bottom+bottom fails.
+- Clear frontal person photos and white-background garment shots yield better try-on quality.
+</Note>

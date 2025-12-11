@@ -1,0 +1,29 @@
+---
+title: "Submit Virtual Try-On task"
+description: "虚拟试穿任务提交示例，包含必填/可选字段与图片要求"
+openapi: "POST /api/v1/task/submit/virtual-try-on"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填：`human_image`、`cloth_image`。
+- 可选：`model_name`（默认 `kolors-virtual-try-on-v1`，`kolors-virtual-try-on-v1-5` 支持上装+下装拼接）、`prompt`。
+- 图片：jpg/jpeg/png，≤10MB，宽高 ≥300px；支持 Base64 或可访问的图片 URL。
+- 异步返回 `task_id`，轮询 `/api/v1/task/status`，状态为 `PROCESSING` / `SUCCEEDED` / `FAILED`。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "human_image": "https://example.com/person.jpg",
+    "cloth_image": "https://example.com/shirt.jpg",
+    "model_name": "kolors-virtual-try-on-v1"
+  }'
+```
+
+<Note>
+- 使用 `kolors-virtual-try-on-v1-5` 时，将上装与下装白底图拼接为一张；上装+上装或下装+下装会失败。
+- 建议用清晰的正面人物图与白底商品图提升试穿效果。
+</Note>

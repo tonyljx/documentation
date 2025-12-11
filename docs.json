@@ -55,6 +55,7 @@
                   "api-reference/veo-3-1",
                   "api-reference/kling-ai",
                   "api-reference/seedance-pro-fast",
+                  "api-reference/virtual-try-on",
                   "api-reference/flux-kontext",
                   "api-reference/seedream",
                   "api-reference/nano-banana-pro"
@@ -71,6 +72,7 @@
                   "api-reference/endpoint/submit-seedream-4",
                   "api-reference/endpoint/submit-seedream-4-5",
                   "api-reference/endpoint/submit-nano-banana-pro",
+                  "api-reference/endpoint/submit-virtual-try-on",
                   "api-reference/endpoint/task-status"
                 ]
               }
@@ -101,6 +103,7 @@
                   "zh/api-reference/veo-3-1",
                   "zh/api-reference/kling-ai",
                   "zh/api-reference/seedance-pro-fast",
+                  "zh/api-reference/virtual-try-on",
                   "zh/api-reference/flux-kontext",
                   "zh/api-reference/seedream",
                   "zh/api-reference/nano-banana-pro"
@@ -117,6 +120,7 @@
                   "zh/api-reference/endpoint/submit-seedream-4",
                   "zh/api-reference/endpoint/submit-seedream-4-5",
                   "zh/api-reference/endpoint/submit-nano-banana-pro",
+                  "zh/api-reference/endpoint/submit-virtual-try-on",
                   "zh/api-reference/endpoint/task-status"
                 ]
               }

@@ -3,7 +3,7 @@
   "info": {
     "title": "Wizzx AI API",
     "version": "1.1.0",
-    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, Flux Kontext image generation, Nano Banana Pro image generation, and Seedream 4.0/4.5 image generation.\n**Breaking Changes (2025-12-10)**: Kling `mode`→`quality_mode` + `image`→`image_urls` (array); Veo `generation_type`→`type` with new enums; Seedance `mode`→`type` + `input_image_url`→`image_urls`.\nAuthentication: Bearer API key in `Authorization` header."
+    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, Flux Kontext image generation, Nano Banana Pro image generation, Seedream 4.0/4.5 image generation, Kolors Virtual Try-On.\n**Breaking Changes (2025-12-10)**: Kling `mode`\u2192`quality_mode` + `image`\u2192`image_urls` (array); Veo `generation_type`\u2192`type` with new enums; Seedance `mode`\u2192`type` + `input_image_url`\u2192`image_urls`.\nAuthentication: Bearer API key in `Authorization` header."
   },
   "servers": [
     {
@@ -29,7 +29,7 @@
               },
               "examples": {
                 "text2video": {
-                  "summary": "文生视频",
+                  "summary": "\u6587\u751f\u89c6\u9891",
                   "value": {
                     "prompt": "A dog running through a neon city at night",
                     "type": "text-to-video",
@@ -39,7 +39,7 @@
                   }
                 },
                 "image2video": {
-                  "summary": "首尾帧生成",
+                  "summary": "\u9996\u5c3e\u5e27\u751f\u6210",
                   "value": {
                     "prompt": "Make the scene dynamic while keeping the character consistent",
                     "type": "image-to-video",
@@ -51,7 +51,7 @@
                   }
                 },
                 "reference2video": {
-                  "summary": "参考图生成",
+                  "summary": "\u53c2\u8003\u56fe\u751f\u6210",
                   "value": {
                     "prompt": "Product turntable style, soft studio light",
                     "type": "reference-to-video",
@@ -112,7 +112,7 @@
               },
               "examples": {
                 "text2video": {
-                  "summary": "文生视频",
+                  "summary": "\u6587\u751f\u89c6\u9891",
                   "value": {
                     "prompt": "A cat playing piano in a cozy living room",
                     "type": "text-to-video",
@@ -122,7 +122,7 @@
                   }
                 },
                 "image2video": {
-                  "summary": "图生视频",
+                  "summary": "\u56fe\u751f\u89c6\u9891",
                   "value": {
                     "prompt": "Make the character walk forward gracefully",
                     "type": "image-to-video",
@@ -181,9 +181,9 @@
               },
               "examples": {
                 "basic": {
-                  "summary": "基础图生视频",
+                  "summary": "\u57fa\u7840\u56fe\u751f\u89c6\u9891",
                   "value": {
-                    "prompt": "宇航员站起身走了",
+                    "prompt": "\u5b87\u822a\u5458\u7ad9\u8d77\u8eab\u8d70\u4e86",
                     "type": "image-to-video",
                     "image_urls": [
                       "https://example.com/astronaut.jpg"
@@ -194,9 +194,9 @@
                   }
                 },
                 "pro_with_camera": {
-                  "summary": "高品质 + 镜头控制",
+                  "summary": "\u9ad8\u54c1\u8d28 + \u955c\u5934\u63a7\u5236",
                   "value": {
-                    "prompt": "主角在森林中漫步",
+                    "prompt": "\u4e3b\u89d2\u5728\u68ee\u6797\u4e2d\u6f2b\u6b65",
                     "type": "image-to-video",
                     "image_urls": [
                       "https://example.com/forest.jpg"
@@ -513,6 +513,68 @@
           },
           "404": {
             "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/virtual-try-on": {
+      "post": {
+        "summary": "Submit Virtual Try-On task",
+        "description": "Submit virtual try-on task to compose garment and human images.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VirtualTryOnSubmitRequest"
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Basic single garment",
+                  "value": {
+                    "human_image": "https://example.com/person.jpg",
+                    "cloth_image": "https://example.com/shirt.jpg"
+                  }
+                },
+                "v1_5_combo": {
+                  "summary": "v1-5 stitched top+bottom",
+                  "value": {
+                    "model_name": "kolors-virtual-try-on-v1-5",
+                    "human_image": "https://example.com/person.jpg",
+                    "cloth_image": "https://example.com/outfit_combo.jpg"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VirtualTryOnSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error - missing required fields or invalid format"
+          },
+          "401": {
+            "description": "Unauthorized - invalid or expired API key"
+          },
+          "402": {
+            "description": "Insufficient credits"
           },
           "500": {
             "description": "Server error"
@@ -1379,6 +1441,71 @@
                 "type": "integer",
                 "description": "Credits deducted for this task (depends on resolution, input images, and batch size).",
                 "example": 15
+              }
+            }
+          }
+        }
+      },
+      "VirtualTryOnSubmitRequest": {
+        "type": "object",
+        "required": [
+          "human_image",
+          "cloth_image"
+        ],
+        "properties": {
+          "human_image": {
+            "type": "string",
+            "description": "Human image (Base64 or accessible URL). jpg/jpeg/png, up to 10MB, width/height at least 300px.",
+            "example": "https://example.com/person.jpg"
+          },
+          "cloth_image": {
+            "type": "string",
+            "description": "Garment image. Supports top/bottom/one-piece. Base64 or accessible URL. jpg/jpeg/png, up to 10MB, width/height at least 300px. v1-5 supports stitched top+bottom.",
+            "example": "https://example.com/shirt.jpg"
+          },
+          "model_name": {
+            "type": "string",
+            "description": "Model version. v1 = single garment; v1-5 supports stitched top+bottom.",
+            "enum": [
+              "kolors-virtual-try-on-v1",
+              "kolors-virtual-try-on-v1-5"
+            ],
+            "default": "kolors-virtual-try-on-v1"
+          },
+          "prompt": {
+            "type": "string",
+            "description": "Optional prompt for compatibility."
+          }
+        }
+      },
+      "VirtualTryOnSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Local task id"
+              },
+              "provider_task_id": {
+                "type": "string",
+                "description": "Downstream Kolors task id"
+              },
+              "model_key": {
+                "type": "string",
+                "example": "virtual-try-on"
+              },
+              "provider_key": {
+                "type": "string",
+                "example": "virtual-try-on"
               }
             }
           }

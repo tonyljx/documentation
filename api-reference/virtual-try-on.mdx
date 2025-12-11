@@ -1,0 +1,161 @@
+---
+title: "Virtual Try-On API"
+description: "Kolors virtual try-on submit/query, models, asset rules, and pricing"
+---
+
+## Overview
+
+- Kolors virtual try-on blends a cloth image with a human photo to render a dressed result.
+- Submit: `POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on` → returns `task_id`.
+- Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id` to fetch results.
+- Required inputs: `human_image` + `cloth_image`; optional: `model_name` (default `kolors-virtual-try-on-v1`) and `prompt` (compatibility).
+- Models: `kolors-virtual-try-on-v1` for single garments; `kolors-virtual-try-on-v1-5` supports stitched top+bottom combos.
+
+## Auth
+
+Add header:
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on`, `Content-Type: application/json`
+
+### Required
+
+| Field | Type | Notes |
+|------|------|------|
+| `human_image` | string | Human image (Base64 string or publicly reachable URL) |
+| `cloth_image` | string | Garment image (Base64 string or publicly reachable URL) |
+
+### Optional
+
+| Field | Type | Default | Notes |
+|------|------|--------|------|
+| `model_name` | string | `kolors-virtual-try-on-v1` | Model version: `kolors-virtual-try-on-v1` (single garment) or `kolors-virtual-try-on-v1-5` (top+bottom combo) |
+| `prompt` | string | - | Optional text prompt for compatibility |
+
+<Warning>
+  **Image requirements**
+  - Formats: .jpg / .jpeg / .png
+  - Max size: 10MB; width/height ≥300px
+  - Inputs: Base64 or accessible image URL
+</Warning>
+
+### Model versions
+
+| model_name | Description |
+|------------|-------------|
+| `kolors-virtual-try-on-v1` | Base version for a single garment input |
+| `kolors-virtual-try-on-v1-5` | Enhanced version that supports stitched top+bottom inputs |
+
+### v1-5 outfit combinations
+
+| Input type | Result |
+|----------|----------|
+| Single garment (top / bottom / one-piece) | Generates the try-on for that item |
+| Stitched top+bottom image | Generates combined top+bottom try-on |
+| Top+top | Fails |
+| Bottom+bottom | Fails |
+| One-piece+one-piece | Fails |
+| Top+one-piece | Fails |
+| Bottom+one-piece | Fails |
+
+### Example: single garment (v1)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "human_image": "https://example.com/person.jpg",
+    "cloth_image": "https://example.com/shirt.jpg"
+  }'
+```
+
+### Example: stitched top+bottom (v1-5)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model_name": "kolors-virtual-try-on-v1-5",
+    "human_image": "https://example.com/person.jpg",
+    "cloth_image": "https://example.com/outfit_combo.jpg"
+  }'
+```
+
+### Success response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "local-task-id",
+    "provider_task_id": "kolors_task_abcdef123456",
+    "model_key": "virtual-try-on",
+    "provider_key": "virtual-try-on"
+  }
+}
+```
+
+## Query status
+
+- Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+- Body:
+
+```json
+{
+  "task_id": "local-task-id"
+}
+```
+
+### Status response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "local-task-id",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.example.com/try-on-result.png"
+    ],
+    "error": ""
+  }
+}
+```
+
+| Status | Description |
+|------|------|
+| `PROCESSING` | Task submitted/processing |
+| `SUCCEEDED` | Generation finished; use `result_urls` |
+| `FAILED` | Generation failed; `error` contains details |
+
+## Pricing
+
+| Action | Credits |
+|------|------|
+| Virtual try-on | 6 |
+
+Each virtual try-on task deducts 6 credits.
+
+## FAQ
+
+- Supported garments? Tops, bottoms, one-piece; v1-5 accepts stitched top+bottom combos.
+- Person image guidance? Use a clear frontal full/half-body photo with simple background.
+- Multiple garments per call? One garment image per request; stitch top+bottom into one image for v1-5.
+- Result retention? Outputs are cleared after 30 days; save externally in time.
+- Tips for best quality? Use high-res, well-lit person photos; white-background product shots; keep the garment fully visible.
+
+## Error codes
+
+| HTTP status | Description |
+|-------------|-------------|
+| 400 | Validation error (missing required fields or invalid format) |
+| 401 | Unauthorized (invalid/expired API key) |
+| 402 | Insufficient credits |
+| 500 | Internal server error |

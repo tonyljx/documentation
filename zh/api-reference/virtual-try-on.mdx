@@ -1,0 +1,161 @@
+---
+title: "虚拟试穿 API"
+description: "Kolors 虚拟试穿提交/查询、模型版本、图片要求与计费"
+---
+
+## 概览
+
+- Kolors 虚拟试穿将服饰图与人物图合成生成穿着效果。
+- 提交：`POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on` 返回 `task_id`。
+- 轮询：`POST https://api.wizzx.ai/api/v1/task/status` 携带 `task_id` 获取结果。
+- 必填：`human_image` + `cloth_image`；可选：`model_name`（默认 `kolors-virtual-try-on-v1`）、`prompt`（兼容字段）。
+- 模型：`kolors-virtual-try-on-v1` 支持单件；`kolors-virtual-try-on-v1-5` 支持上装+下装拼接输入。
+
+## 认证
+
+请求头加入：
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on`，`Content-Type: application/json`
+
+### 必填参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `human_image` | string | 人物图片，Base64 或可访问 URL |
+| `cloth_image` | string | 服饰图片，Base64 或可访问 URL |
+
+### 可选参数
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `model_name` | string | `kolors-virtual-try-on-v1` | 模型版本：`kolors-virtual-try-on-v1`（单件）或 `kolors-virtual-try-on-v1-5`（上装+下装组合） |
+| `prompt` | string | - | 兼容用提示词，可留空 |
+
+<Warning>
+  **图片要求**
+  - 格式：.jpg / .jpeg / .png
+  - 大小：≤10MB；宽高 ≥300px
+  - 输入：Base64 字符串或可访问的图片 URL
+</Warning>
+
+### 模型版本
+
+| model_name | 说明 |
+|------------|------|
+| `kolors-virtual-try-on-v1` | 基础版，单件服饰输入 |
+| `kolors-virtual-try-on-v1-5` | 进阶版，支持上装+下装拼接输入 |
+
+### v1-5 组合规则
+
+| 输入类型 | 结果 |
+|----------|------|
+| 单件服饰（上装/下装/连体） | 生成对应单品试穿图 |
+| 上装+下装拼接图 | 生成上装+下装试穿图 |
+| 上装+上装 | 生成失败 |
+| 下装+下装 | 生成失败 |
+| 连体+连体 | 生成失败 |
+| 上装+连体 | 生成失败 |
+| 下装+连体 | 生成失败 |
+
+### 请求示例（单件试穿）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "human_image": "https://example.com/person.jpg",
+    "cloth_image": "https://example.com/shirt.jpg"
+  }'
+```
+
+### 请求示例（v1-5 上装+下装拼接）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model_name": "kolors-virtual-try-on-v1-5",
+    "human_image": "https://example.com/person.jpg",
+    "cloth_image": "https://example.com/outfit_combo.jpg"
+  }'
+```
+
+### 成功响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "local-task-id",
+    "provider_task_id": "kolors_task_abcdef123456",
+    "model_key": "virtual-try-on",
+    "provider_key": "virtual-try-on"
+  }
+}
+```
+
+## 查询任务状态
+
+- 接口：`POST https://api.wizzx.ai/api/v1/task/status`
+- Body：
+
+```json
+{
+  "task_id": "local-task-id"
+}
+```
+
+### 查询响应示例
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "local-task-id",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.example.com/try-on-result.png"
+    ],
+    "error": ""
+  }
+}
+```
+
+| 状态 | 说明 |
+|------|------|
+| `PROCESSING` | 生成中（submitted 或 processing） |
+| `SUCCEEDED` | 生成完成，可用 `result_urls` |
+| `FAILED` | 生成失败，`error` 包含原因 |
+
+## 积分计费
+
+| 操作 | 积分 |
+|------|------|
+| 虚拟试穿 | 6 |
+
+单次虚拟试穿固定消耗 6 积分。
+
+## 常见问题
+
+- 支持哪些服饰？上装、下装、连体装；v1-5 还支持上装+下装拼接输入。
+- 人物图要求？建议清晰的正面全身/半身照，背景简洁。
+- 能否一次多件？单次仅处理一张服饰图；v1-5 可将上装+下装拼成一张再上传。
+- 结果保存多久？生成图会在 30 天后清理，请及时转存。
+- 如何提升效果？使用高清、光线好的照片；服饰用白底商品/平铺图，确保服装完整展示。
+
+## 错误码
+
+| HTTP 状态码 | 说明 |
+|-------------|------|
+| 400 | 参数校验错误（缺少必填或格式错误） |
+| 401 | 未授权（API Key 无效或过期） |
+| 402 | 积分不足 |
+| 500 | 服务器内部错误 |
