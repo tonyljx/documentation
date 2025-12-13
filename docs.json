@@ -85,24 +85,31 @@
         "language": "zh",
         "tabs": [
           {
-            "tab": "API 参考",
+            "tab": "指南",
             "groups": [
+              {
+                "group": "快速开始",
+                "pages": ["zh/index"]
+              },
               {
                 "group": "API 文档",
                 "pages": [
-                  "zh/api-reference/introduction",
-                  "zh/api-reference/pricing",
-                  "zh/api-reference/runway-gen3",
-                  "zh/api-reference/veo-3-1",
-                  "zh/api-reference/kling-ai",
-                  "zh/api-reference/seedance-pro-fast",
-                  "zh/api-reference/virtual-try-on",
-                  "zh/api-reference/flux-kontext",
-                  "zh/api-reference/flux-pro-1-1",
-                  "zh/api-reference/seedream",
-                  "zh/api-reference/nano-banana-pro"
+                  "zh/models/runway-gen3",
+                  "zh/models/veo-3-1",
+                  "zh/models/kling-ai",
+                  "zh/models/seedance-pro-fast",
+                  "zh/models/virtual-try-on",
+                  "zh/models/flux-kontext",
+                  "zh/models/flux-pro-1-1",
+                  "zh/models/seedream",
+                  "zh/models/nano-banana-pro"
                 ]
-              },
+              }
+            ]
+          },
+          {
+            "tab": "API 参考",
+            "groups": [
               {
                 "group": "接口示例",
                 "pages": [
@@ -117,15 +124,6 @@
                   "zh/api-reference/endpoint/submit-virtual-try-on",
                   "zh/api-reference/endpoint/task-status"
                 ]
-              }
-            ]
-          },
-          {
-            "tab": "指南",
-            "groups": [
-              {
-                "group": "快速开始",
-                "pages": ["zh/index", "zh/quickstart", "zh/development"]
               }
             ]
           }
