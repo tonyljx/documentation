@@ -22,21 +22,25 @@
                 "pages": ["index"]
               },
               {
-                "group": "API documentation",
+                "group": "Video Generation",
                 "pages": [
-                  "models/runway-gen3",
                   "models/veo-3-1",
                   "models/kling-ai",
                   "models/seedance-pro-fast",
-                  "models/virtual-try-on",
+                  "models/runway-gen3"
+                ]
+              },
+              {
+                "group": "Image Generation",
+                "pages": [
                   "models/flux-kontext",
                   "models/flux-pro-1-1",
                   "models/flux-2",
                   "models/seedream",
-                  "models/nano-banana-pro"
+                  "models/nano-banana-pro",
+                  "models/virtual-try-on"
                 ]
               },
-
               {
                 "group": "Customization",
                 "pages": ["essentials/settings", "essentials/navigation"]
@@ -95,18 +99,23 @@
                 "pages": ["zh/index"]
               },
               {
-                "group": "API 文档",
+                "group": "视频生成",
                 "pages": [
-                  "zh/models/runway-gen3",
                   "zh/models/veo-3-1",
                   "zh/models/kling-ai",
                   "zh/models/seedance-pro-fast",
-                  "zh/models/virtual-try-on",
+                  "zh/models/runway-gen3"
+                ]
+              },
+              {
+                "group": "图像生成",
+                "pages": [
                   "zh/models/flux-kontext",
                   "zh/models/flux-pro-1-1",
                   "zh/models/flux-2",
                   "zh/models/seedream",
-                  "zh/models/nano-banana-pro"
+                  "zh/models/nano-banana-pro",
+                  "zh/models/virtual-try-on"
                 ]
               }
             ]
