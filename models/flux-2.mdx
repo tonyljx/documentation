@@ -1,0 +1,197 @@
+---
+title: "Flux 2 Image API"
+description: "Wizzx Flux 2 Pro and Flux 2 Flex text-to-image and image-to-image generation"
+---
+
+## Quick start
+
+- Platform: Wizzx gateway; use `Authorization: Bearer <your_api_key>`.
+- Submit: `POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro` or `/flux-2-flex`, async `task_id`.
+- Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id`.
+- Models: Flux 2 Pro (fast generation), Flux 2 Flex (fine-tuned control).
+
+### Auth
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+### Model comparison
+
+| Feature | Flux 2 Pro | Flux 2 Flex |
+|---------|------------|-------------|
+| Text-to-Image | 20 credits | 40 credits |
+| Image-to-Image | 35 credits | 75 credits |
+| Max Input Images | 8 | 8 |
+| Prompt Upsampling | No | Yes |
+| Guidance Control | No | Yes (1.5-10) |
+| Steps Control | No | Yes (1-50) |
+| Use Case | Fast generation | Fine-tuned control |
+
+### Pricing
+
+| Mode | Flux 2 Pro | Flux 2 Flex |
+|------|------------|-------------|
+| Text-to-Image | 20 credits | 40 credits |
+| Image-to-Image | 35 credits | 75 credits |
+
+### Submit job (Flux 2 Pro)
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro`, `Content-Type: application/json`
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `prompt` | string | Yes | - | Image description |
+| `image_urls` | array | No | - | Input image URLs for image-to-image (max 8) |
+| `width` | int | No | - | Output width in pixels (min 64, must be used with height) |
+| `height` | int | No | - | Output height in pixels (min 64, must be used with width) |
+| `output_format` | string | No | `jpeg` | `jpeg` / `png` |
+| `safety_tolerance` | int | No | `2` | Safety level 0-5 (0 strictest) |
+| `seed` | int | No | - | Seed for reproducibility |
+
+**Dimension constraints:** Aspect ratio must be between 9:21 (portrait) and 21:9 (landscape).
+
+#### Example (Text-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "width": 1920,
+    "height": 1080,
+    "output_format": "png"
+  }'
+```
+
+#### Example (Image-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Transform this into a watercolor painting",
+    "image_urls": ["https://example.com/source.jpg"],
+    "width": 1024,
+    "height": 1024,
+    "output_format": "png"
+  }'
+```
+
+### Submit job (Flux 2 Flex)
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex`, `Content-Type: application/json`
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `prompt` | string | Yes | - | Image description |
+| `image_urls` | array | No | - | Input image URLs for image-to-image (max 8) |
+| `width` | int | No | - | Output width in pixels (min 64, must be used with height) |
+| `height` | int | No | - | Output height in pixels (min 64, must be used with width) |
+| `prompt_upsampling` | bool | No | `true` | Enable prompt upsampling |
+| `guidance` | float | No | `5` | Guidance scale 1.5-10 (higher = more prompt adherence) |
+| `steps` | int | No | `50` | Generation steps 1-50 (higher = more detailed) |
+| `output_format` | string | No | `jpeg` | `jpeg` / `png` |
+| `safety_tolerance` | int | No | `2` | Safety level 0-5 (0 strictest) |
+| `seed` | int | No | - | Seed for reproducibility |
+
+#### Example (Fine-tuned control)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene mountain landscape with a crystal clear lake",
+    "width": 1920,
+    "height": 1080,
+    "prompt_upsampling": true,
+    "guidance": 7.5,
+    "steps": 50,
+    "output_format": "png"
+  }'
+```
+
+#### Example (Multi-reference blending)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Blend these images into a surreal dreamscape",
+    "image_urls": [
+      "https://example.com/img1.jpg",
+      "https://example.com/img2.jpg",
+      "https://example.com/img3.jpg"
+    ],
+    "width": 1024,
+    "height": 1024,
+    "guidance": 5.0,
+    "steps": 40,
+    "output_format": "png"
+  }'
+```
+
+Success response:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 20
+  }
+}
+```
+
+### Query status
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+Response (succeeded):
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
+  }
+}
+```
+
+Statuses: `pending`, `processing`, `succeeded`, `failed`.
+
+### Best practices
+
+1. **Dimension selection:**
+   - Use 1024x1024 for square images
+   - Use 1920x1080 for landscape images
+   - Use 1080x1920 for portrait images
+   - Keep aspect ratio between 9:21 and 21:9
+
+2. **Model choice:**
+   - Use **Pro** for quick, cost-effective generation
+   - Use **Flex** when you need fine control over guidance and steps
+
+3. **Guidance parameter (Flex only):**
+   - Lower values (1.5-3): More creative, less prompt adherence
+   - Medium values (4-6): Balanced results (default: 5)
+   - Higher values (7-10): Strict prompt adherence, may reduce realism
+
+4. **Steps parameter (Flex only):**
+   - Lower values (1-20): Faster but less detailed
+   - Higher values (30-50): More detailed but slower (default: 50)

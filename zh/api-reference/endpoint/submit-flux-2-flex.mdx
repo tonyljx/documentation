@@ -1,0 +1,39 @@
+---
+title: "Submit Flux 2 Flex task"
+description: "POST Flux 2 Flex 精细控制的文生图和图生图任务"
+openapi: "POST /api/v1/task/submit/flux-2-flex"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`；可选 `image_urls`（最多 8 张）、`width`、`height`、`prompt_upsampling`、`guidance`、`steps`、`output_format`、`safety_tolerance`、`seed`。
+- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- 费用：40 积分（文生图）、75 积分（图生图）。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene mountain landscape with a crystal clear lake",
+    "width": 1920,
+    "height": 1080,
+    "prompt_upsampling": true,
+    "guidance": 7.5,
+    "steps": 50,
+    "output_format": "png"
+  }'
+```
+
+<Note>
+- **费用计算**：40 积分（文生图）、75 积分（图生图，含 1 张以上输入图片）
+- **尺寸要求**：`width` 和 `height` 必须同时提供，最小 64 像素
+- **宽高比**：必须在 9:21（竖图）到 21:9（横图）之间
+- **输入图片**：图生图模式最多支持 8 张参考图
+- **提示词上采样**：增强提示词以获得更有创意的生成结果（默认：true）
+- **Guidance**：1.5-10，值越高越遵循提示词但真实感降低（默认：5）
+- **Steps**：1-50，值越高越精细但越慢（默认：50）
+- **输出格式**：支持 `jpeg`/`png`（默认 `jpeg`）
+- **安全容忍度**：0-5 之间，0 最严格，5 最宽松，默认 2
+</Note>

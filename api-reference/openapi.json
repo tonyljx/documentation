@@ -520,6 +520,154 @@
         }
       }
     },
+    "/api/v1/task/submit/flux-2-pro": {
+      "post": {
+        "summary": "Submit Flux 2 Pro image task",
+        "description": "Submit an image generation task using Flux 2 Pro model. Supports text-to-image and image-to-image (up to 8 reference images). Costs 20 credits (text-to-image) or 35 credits (image-to-image).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flux2ProRequest"
+              },
+              "examples": {
+                "text-to-image": {
+                  "summary": "Text-to-image generation",
+                  "value": {
+                    "prompt": "A futuristic city at night with neon lights",
+                    "width": 1920,
+                    "height": 1080,
+                    "output_format": "png",
+                    "safety_tolerance": 2
+                  }
+                },
+                "image-to-image": {
+                  "summary": "Image-to-image transformation",
+                  "value": {
+                    "prompt": "Transform this into a watercolor painting",
+                    "image_urls": ["https://example.com/source.jpg"],
+                    "width": 1024,
+                    "height": 1024,
+                    "output_format": "png"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flux2SubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "404": {
+            "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/flux-2-flex": {
+      "post": {
+        "summary": "Submit Flux 2 Flex image task",
+        "description": "Submit an image generation task using Flux 2 Flex model with fine-tuned control over guidance and steps. Supports text-to-image and image-to-image (up to 8 reference images). Costs 40 credits (text-to-image) or 75 credits (image-to-image).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Flux2FlexRequest"
+              },
+              "examples": {
+                "text-to-image": {
+                  "summary": "Text-to-image with fine control",
+                  "value": {
+                    "prompt": "A serene mountain landscape with a crystal clear lake",
+                    "width": 1920,
+                    "height": 1080,
+                    "prompt_upsampling": true,
+                    "guidance": 7.5,
+                    "steps": 50,
+                    "output_format": "png"
+                  }
+                },
+                "image-to-image-multi": {
+                  "summary": "Multi-reference image blending",
+                  "value": {
+                    "prompt": "Blend these images into a surreal dreamscape",
+                    "image_urls": [
+                      "https://example.com/img1.jpg",
+                      "https://example.com/img2.jpg",
+                      "https://example.com/img3.jpg"
+                    ],
+                    "width": 1024,
+                    "height": 1024,
+                    "guidance": 5.0,
+                    "steps": 40,
+                    "output_format": "png"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Flux2SubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "404": {
+            "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/v1/task/submit/virtual-try-on": {
       "post": {
         "summary": "Submit Virtual Try-On task",
@@ -1441,6 +1589,155 @@
                 "type": "integer",
                 "description": "Credits deducted for this task (depends on resolution, input images, and batch size).",
                 "example": 15
+              }
+            }
+          }
+        }
+      },
+      "Flux2ProRequest": {
+        "type": "object",
+        "required": ["prompt"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt for image generation.",
+            "example": "A beautiful sunset over the ocean"
+          },
+          "image_urls": {
+            "type": "array",
+            "description": "Array of input image URLs for image-to-image generation (max 8).",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 8,
+            "example": ["https://example.com/source.jpg"]
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 64,
+            "description": "Output width in pixels (must be used with height)."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 64,
+            "description": "Output height in pixels (must be used with width)."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["jpeg", "png"],
+            "default": "jpeg",
+            "description": "Output image format."
+          },
+          "safety_tolerance": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5,
+            "default": 2,
+            "description": "Safety tolerance level (0=strictest, 5=most permissive)."
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Seed for reproducibility."
+          }
+        }
+      },
+      "Flux2FlexRequest": {
+        "type": "object",
+        "required": ["prompt"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt for image generation.",
+            "example": "A beautiful sunset over the ocean"
+          },
+          "image_urls": {
+            "type": "array",
+            "description": "Array of input image URLs for image-to-image generation (max 8).",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 8,
+            "example": ["https://example.com/source.jpg"]
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 64,
+            "description": "Output width in pixels (must be used with height)."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 64,
+            "description": "Output height in pixels (must be used with width)."
+          },
+          "prompt_upsampling": {
+            "type": "boolean",
+            "default": true,
+            "description": "Enable prompt upsampling for enhanced generation."
+          },
+          "guidance": {
+            "type": "number",
+            "minimum": 1.5,
+            "maximum": 10,
+            "default": 5,
+            "description": "Guidance scale. Higher values improve prompt adherence at cost of realism."
+          },
+          "steps": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50,
+            "default": 50,
+            "description": "Number of generation steps. Higher values produce more detailed images."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": ["jpeg", "png"],
+            "default": "jpeg",
+            "description": "Output image format."
+          },
+          "safety_tolerance": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5,
+            "default": 2,
+            "description": "Safety tolerance level (0=strictest, 5=most permissive)."
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Seed for reproducibility."
+          }
+        }
+      },
+      "Flux2SubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Local task ID for tracking.",
+                "example": "task_123456789"
+              },
+              "status": {
+                "type": "string",
+                "description": "Initial task status.",
+                "enum": ["pending", "processing", "succeeded", "failed"],
+                "example": "pending"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Number of credits deducted for this task.",
+                "example": 20
               }
             }
           }

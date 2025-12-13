@@ -1,0 +1,197 @@
+---
+title: "Flux 2 图像生成 API"
+description: "Wizzx Flux 2 Pro 和 Flux 2 Flex 文生图及图生图"
+---
+
+## 快速上手
+
+- 品牌：Wizzx（第三方 API 聚合），统一使用 `Authorization: Bearer <your_api_key>`。
+- 提交生成：`POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro` 或 `/flux-2-flex`，异步返回 `task_id`。
+- 轮询状态：`POST https://api.wizzx.ai/api/v1/task/status`，传入 `task_id` 获取结果或错误。
+- 模型：Flux 2 Pro（快速生成）、Flux 2 Flex（精细控制）。
+
+### 认证
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+### 模型对比
+
+| 特性 | Flux 2 Pro | Flux 2 Flex |
+|------|------------|-------------|
+| 文生图 | 20 积分 | 40 积分 |
+| 图生图 | 35 积分 | 75 积分 |
+| 最大输入图片数 | 8 | 8 |
+| 提示词上采样 | 否 | 是 |
+| Guidance 控制 | 否 | 是 (1.5-10) |
+| Steps 控制 | 否 | 是 (1-50) |
+| 适用场景 | 快速生成 | 精细控制 |
+
+### 计费
+
+| 模式 | Flux 2 Pro | Flux 2 Flex |
+|------|------------|-------------|
+| 文生图 | 20 积分 | 40 积分 |
+| 图生图 | 35 积分 | 75 积分 |
+
+### 提交任务 (Flux 2 Pro)
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro`，`Content-Type: application/json`
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `prompt` | string | 是 | - | 图像描述 |
+| `image_urls` | array | 否 | - | 输入图片 URL（图生图模式，最多 8 张） |
+| `width` | int | 否 | - | 输出宽度（像素，最小 64，需与 height 一起使用） |
+| `height` | int | 否 | - | 输出高度（像素，最小 64，需与 width 一起使用） |
+| `output_format` | string | 否 | `jpeg` | `jpeg` / `png` |
+| `safety_tolerance` | int | 否 | `2` | 安全等级 0-5（0 最严格） |
+| `seed` | int | 否 | - | 随机种子（可复现） |
+
+**尺寸约束：** 宽高比必须在 9:21（竖图）到 21:9（横图）之间。
+
+#### 请求示例（文生图）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "width": 1920,
+    "height": 1080,
+    "output_format": "png"
+  }'
+```
+
+#### 请求示例（图生图）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Transform this into a watercolor painting",
+    "image_urls": ["https://example.com/source.jpg"],
+    "width": 1024,
+    "height": 1024,
+    "output_format": "png"
+  }'
+```
+
+### 提交任务 (Flux 2 Flex)
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex`，`Content-Type: application/json`
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `prompt` | string | 是 | - | 图像描述 |
+| `image_urls` | array | 否 | - | 输入图片 URL（图生图模式，最多 8 张） |
+| `width` | int | 否 | - | 输出宽度（像素，最小 64，需与 height 一起使用） |
+| `height` | int | 否 | - | 输出高度（像素，最小 64，需与 width 一起使用） |
+| `prompt_upsampling` | bool | 否 | `true` | 启用提示词上采样 |
+| `guidance` | float | 否 | `5` | 引导系数 1.5-10（越高越遵循提示词） |
+| `steps` | int | 否 | `50` | 生成步数 1-50（越高越精细） |
+| `output_format` | string | 否 | `jpeg` | `jpeg` / `png` |
+| `safety_tolerance` | int | 否 | `2` | 安全等级 0-5（0 最严格） |
+| `seed` | int | 否 | - | 随机种子（可复现） |
+
+#### 请求示例（精细控制）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene mountain landscape with a crystal clear lake",
+    "width": 1920,
+    "height": 1080,
+    "prompt_upsampling": true,
+    "guidance": 7.5,
+    "steps": 50,
+    "output_format": "png"
+  }'
+```
+
+#### 请求示例（多参考图混合）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Blend these images into a surreal dreamscape",
+    "image_urls": [
+      "https://example.com/img1.jpg",
+      "https://example.com/img2.jpg",
+      "https://example.com/img3.jpg"
+    ],
+    "width": 1024,
+    "height": 1024,
+    "guidance": 5.0,
+    "steps": 40,
+    "output_format": "png"
+  }'
+```
+
+成功响应：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 20
+  }
+}
+```
+
+### 任务查询
+
+接口：`POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+响应示例（成功）：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
+  }
+}
+```
+
+状态值：`pending`（排队中）、`processing`（生成中）、`succeeded`（成功）、`failed`（失败）。
+
+### 最佳实践
+
+1. **尺寸选择：**
+   - 方形图片使用 1024x1024
+   - 横图使用 1920x1080
+   - 竖图使用 1080x1920
+   - 宽高比保持在 9:21 到 21:9 之间
+
+2. **模型选择：**
+   - 使用 **Pro** 进行快速、经济的生成
+   - 使用 **Flex** 需要精细控制 guidance 和 steps 时
+
+3. **Guidance 参数（仅 Flex）：**
+   - 较低值 (1.5-3)：更有创意，但不太遵循提示词
+   - 中等值 (4-6)：平衡结果（默认：5）
+   - 较高值 (7-10)：严格遵循提示词，但可能降低真实感
+
+4. **Steps 参数（仅 Flex）：**
+   - 较低值 (1-20)：更快但细节较少
+   - 较高值 (30-50)：更精细但较慢（默认：50）

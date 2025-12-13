@@ -1,0 +1,39 @@
+---
+title: "Submit Flux 2 Flex task"
+description: "POST Flux 2 Flex text-to-image and image-to-image with fine-tuned control"
+openapi: "POST /api/v1/task/submit/flux-2-flex"
+---
+
+## Submit task
+
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`. Optional: `image_urls` (max 8), `width`, `height`, `prompt_upsampling`, `guidance`, `steps`, `output_format`, `safety_tolerance`, `seed`.
+- Async `task_id`; poll `/api/v1/task/status`.
+- Cost: 40 credits (text-to-image), 75 credits (image-to-image).
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-flex \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene mountain landscape with a crystal clear lake",
+    "width": 1920,
+    "height": 1080,
+    "prompt_upsampling": true,
+    "guidance": 7.5,
+    "steps": 50,
+    "output_format": "png"
+  }'
+```
+
+<Note>
+- **Pricing**: 40 credits (text-to-image), 75 credits (image-to-image with 1+ images)
+- **Dimensions**: Both `width` and `height` must be provided together, min 64px each
+- **Aspect ratio**: Must be between 9:21 (portrait) and 21:9 (landscape)
+- **Input images**: Up to 8 reference images for image-to-image mode
+- **Prompt upsampling**: Enhances prompt for more creative generation (default: true)
+- **Guidance**: 1.5-10, higher values = more prompt adherence but less realism (default: 5)
+- **Steps**: 1-50, higher values = more detailed but slower (default: 50)
+- **Output**: `jpeg`/`png` (default `jpeg`)
+- **Safety**: 0-5 (0 strictest, 5 most permissive), default 2
+</Note>

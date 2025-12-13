@@ -1,0 +1,34 @@
+---
+title: "Submit Flux 2 Pro task"
+description: "POST Flux 2 Pro text-to-image and image-to-image"
+openapi: "POST /api/v1/task/submit/flux-2-pro"
+---
+
+## Submit task
+
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`. Optional: `image_urls` (max 8), `width`, `height`, `output_format`, `safety_tolerance`, `seed`.
+- Async `task_id`; poll `/api/v1/task/status`.
+- Cost: 20 credits (text-to-image), 35 credits (image-to-image).
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "width": 1920,
+    "height": 1080,
+    "output_format": "png",
+    "safety_tolerance": 2
+  }'
+```
+
+<Note>
+- **Pricing**: 20 credits (text-to-image), 35 credits (image-to-image with 1+ images)
+- **Dimensions**: Both `width` and `height` must be provided together, min 64px each
+- **Aspect ratio**: Must be between 9:21 (portrait) and 21:9 (landscape)
+- **Input images**: Up to 8 reference images for image-to-image mode
+- **Output**: `jpeg`/`png` (default `jpeg`)
+- **Safety**: 0-5 (0 strictest, 5 most permissive), default 2
+</Note>

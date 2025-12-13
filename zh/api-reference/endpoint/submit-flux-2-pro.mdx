@@ -1,0 +1,34 @@
+---
+title: "Submit Flux 2 Pro task"
+description: "POST Flux 2 Pro 文生图和图生图任务"
+openapi: "POST /api/v1/task/submit/flux-2-pro"
+---
+
+## 提交任务
+
+- 传 `Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`；可选 `image_urls`（最多 8 张）、`width`、`height`、`output_format`、`safety_tolerance`、`seed`。
+- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+- 费用：20 积分（文生图）、35 积分（图生图）。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-2-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "width": 1920,
+    "height": 1080,
+    "output_format": "png",
+    "safety_tolerance": 2
+  }'
+```
+
+<Note>
+- **费用计算**：20 积分（文生图）、35 积分（图生图，含 1 张以上输入图片）
+- **尺寸要求**：`width` 和 `height` 必须同时提供，最小 64 像素
+- **宽高比**：必须在 9:21（竖图）到 21:9（横图）之间
+- **输入图片**：图生图模式最多支持 8 张参考图
+- **输出格式**：支持 `jpeg`/`png`（默认 `jpeg`）
+- **安全容忍度**：0-5 之间，0 最严格，5 最宽松，默认 2
+</Note>
