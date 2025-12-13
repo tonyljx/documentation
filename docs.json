@@ -15,36 +15,6 @@
         "default": true,
         "tabs": [
           {
-            "tab": "Guides",
-            "groups": [
-              {
-                "group": "Getting started",
-                "pages": ["index", "quickstart", "development"]
-              },
-              {
-                "group": "Customization",
-                "pages": ["essentials/settings", "essentials/navigation"]
-              },
-              {
-                "group": "Writing content",
-                "pages": [
-                  "essentials/markdown",
-                  "essentials/code",
-                  "essentials/images",
-                  "essentials/reusable-snippets"
-                ]
-              },
-              {
-                "group": "AI tools",
-                "pages": [
-                  "ai-tools/cursor",
-                  "ai-tools/claude-code",
-                  "ai-tools/windsurf"
-                ]
-              }
-            ]
-          },
-          {
             "tab": "API reference",
             "groups": [
               {
@@ -79,21 +49,42 @@
                 ]
               }
             ]
+          },
+          {
+            "tab": "Guides",
+            "groups": [
+              {
+                "group": "Getting started",
+                "pages": ["index", "quickstart", "development"]
+              },
+              {
+                "group": "Customization",
+                "pages": ["essentials/settings", "essentials/navigation"]
+              },
+              {
+                "group": "Writing content",
+                "pages": [
+                  "essentials/markdown",
+                  "essentials/code",
+                  "essentials/images",
+                  "essentials/reusable-snippets"
+                ]
+              },
+              {
+                "group": "AI tools",
+                "pages": [
+                  "ai-tools/cursor",
+                  "ai-tools/claude-code",
+                  "ai-tools/windsurf"
+                ]
+              }
+            ]
           }
         ]
       },
       {
         "language": "zh",
         "tabs": [
-          {
-            "tab": "指南",
-            "groups": [
-              {
-                "group": "快速开始",
-                "pages": ["zh/index", "zh/quickstart", "zh/development"]
-              }
-            ]
-          },
           {
             "tab": "API 参考",
             "groups": [
@@ -127,6 +118,15 @@
                   "zh/api-reference/endpoint/submit-virtual-try-on",
                   "zh/api-reference/endpoint/task-status"
                 ]
+              }
+            ]
+          },
+          {
+            "tab": "指南",
+            "groups": [
+              {
+                "group": "快速开始",
+                "pages": ["zh/index", "zh/quickstart", "zh/development"]
               }
             ]
           }
