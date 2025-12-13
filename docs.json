@@ -18,6 +18,10 @@
             "tab": "Guides",
             "groups": [
               {
+                "group": "Getting started",
+                "pages": ["index"]
+              },
+              {
                 "group": "API documentation",
                 "pages": [
                   "models/runway-gen3",
@@ -31,10 +35,7 @@
                   "models/nano-banana-pro"
                 ]
               },
-              {
-                "group": "Getting started",
-                "pages": ["index", "quickstart", "development"]
-              },
+
               {
                 "group": "Customization",
                 "pages": ["essentials/settings", "essentials/navigation"]
