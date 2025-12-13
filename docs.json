@@ -15,44 +15,22 @@
         "default": true,
         "tabs": [
           {
-            "tab": "API reference",
+            "tab": "Guides",
             "groups": [
               {
                 "group": "API documentation",
                 "pages": [
-                  "api-reference/introduction",
-                  "api-reference/pricing",
-                  "api-reference/runway-gen3",
-                  "api-reference/veo-3-1",
-                  "api-reference/kling-ai",
-                  "api-reference/seedance-pro-fast",
-                  "api-reference/virtual-try-on",
-                  "api-reference/flux-kontext",
-                  "api-reference/flux-pro-1-1",
-                  "api-reference/seedream",
-                  "api-reference/nano-banana-pro"
+                  "models/runway-gen3",
+                  "models/veo-3-1",
+                  "models/kling-ai",
+                  "models/seedance-pro-fast",
+                  "models/virtual-try-on",
+                  "models/flux-kontext",
+                  "models/flux-pro-1-1",
+                  "models/seedream",
+                  "models/nano-banana-pro"
                 ]
               },
-              {
-                "group": "Endpoint examples",
-                "pages": [
-                  "api-reference/endpoint/submit-veo3",
-                  "api-reference/endpoint/submit-kling-ai",
-                  "api-reference/endpoint/submit-seedance-pro-fast",
-                  "api-reference/endpoint/submit-flux-kontext-pro",
-                  "api-reference/endpoint/submit-flux-kontext-max",
-                  "api-reference/endpoint/submit-seedream-4",
-                  "api-reference/endpoint/submit-seedream-4-5",
-                  "api-reference/endpoint/submit-nano-banana-pro",
-                  "api-reference/endpoint/submit-virtual-try-on",
-                  "api-reference/endpoint/task-status"
-                ]
-              }
-            ]
-          },
-          {
-            "tab": "Guides",
-            "groups": [
               {
                 "group": "Getting started",
                 "pages": ["index", "quickstart", "development"]
@@ -76,6 +54,26 @@
                   "ai-tools/cursor",
                   "ai-tools/claude-code",
                   "ai-tools/windsurf"
+                ]
+              }
+            ]
+          },
+          {
+            "tab": "API reference",
+            "groups": [
+              {
+                "group": "Endpoint examples",
+                "pages": [
+                  "api-reference/endpoint/submit-veo3",
+                  "api-reference/endpoint/submit-kling-ai",
+                  "api-reference/endpoint/submit-seedance-pro-fast",
+                  "api-reference/endpoint/submit-flux-kontext-pro",
+                  "api-reference/endpoint/submit-flux-kontext-max",
+                  "api-reference/endpoint/submit-seedream-4",
+                  "api-reference/endpoint/submit-seedream-4-5",
+                  "api-reference/endpoint/submit-nano-banana-pro",
+                  "api-reference/endpoint/submit-virtual-try-on",
+                  "api-reference/endpoint/task-status"
                 ]
               }
             ]
@@ -136,14 +134,14 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Pricing",
+          "href": "/pricing",
+          "icon": "tag"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "Introduction",
+          "href": "/introduction",
+          "icon": "book-open-cover"
         }
       ]
     }
