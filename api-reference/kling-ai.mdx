@@ -33,7 +33,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, `Content-Type
 
 | Field | Type | Default | Notes |
 |------|------|--------|------|
-| `model_name` | string | `kling-v1` | Versions: `kling-v1`, `kling-v1-5`, `kling-v1-6`, `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`, `kling-v2-5-turbo` |
+| `model_name` | string | `kling-v1` | Versions: `kling-v1`, `kling-v1-5`, `kling-v1-6`, `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`, `kling-v2-5-turbo`, `kling-v2-6` |
 | `image_tail` | string | - | Tail-frame control image URL; exclusive with brushes/camera |
 | `negative_prompt` | string | - | ≤2500 chars |
 | `cfg_scale` | float | 0.5 | Range [0, 1]; higher = closer to prompt |
@@ -50,7 +50,9 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, `Content-Type
 ### Model versions
 
 - `kling-v1`, `kling-v1-5`, `kling-v1-6`: base/iterative versions
-- `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`, `kling-v2-5-turbo`: high-quality versions (recommended)
+- `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`: high-quality versions
+- `kling-v2-5-turbo`: faster turbo version
+- `kling-v2-6`: latest version with optional audio generation (recommended)
 
 ### Example: basic image-to-video
 
@@ -170,14 +172,47 @@ Status: `PROCESSING` (submitted/processing), `SUCCEEDED` (use `result_urls`), `F
 
 ## Pricing
 
-| Mode | Duration | Credits |
-|------|----------|---------|
-| std | 5s | 10 |
-| std | 10s | 20 |
-| pro | 5s | 20 |
-| pro | 10s | 40 |
+Pricing is per second of video generated.
 
-**Formula**: `Base 10 × mode multiplier (std=1, pro=2) × duration multiplier (5s=1, 10s=2)`
+### Kling 1.6 / 2.1
+
+| Mode | Credits/second | USD/second | vs Official |
+|------|----------------|------------|-------------|
+| std  | 46             | $0.046     | Save 8%     |
+| pro  | 92             | $0.092     | Save 8%     |
+
+Official: std $0.05/s, pro $0.10/s.
+
+### Kling 2.1 Master
+
+| Mode | Credits/second | USD/second | vs Official |
+|------|----------------|------------|-------------|
+| pro  | 240            | $0.24      | Save 10%    |
+
+Official: $0.28/s.
+
+### Kling 2.5 Turbo
+
+| Mode | Credits/second | USD/second | vs Official |
+|------|----------------|------------|-------------|
+| std  | 36             | $0.036     | Save 10%    |
+| pro  | 65             | $0.065     | Save 7%     |
+
+Official: std $0.04/s, pro $0.07/s.
+
+### Kling 2.6
+
+| Mode | Credits/second | USD/second | vs Official |
+|------|----------------|------------|-------------|
+| pro (no sound)   | 65  | $0.065 | Save 7%  |
+| pro (with sound) | 130 | $0.13  | Save 7%  |
+
+Official: pro $0.07/s (no sound), $0.14/s (with sound).
+
+### Example cost calculation
+
+- 5s video, std mode (Kling 1.6): 46 credits/s x 5s = 230 credits
+- 10s video, pro mode (Kling 2.1): 92 credits/s x 10s = 920 credits
 
 ## FAQ
 

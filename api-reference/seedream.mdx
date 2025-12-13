@@ -28,7 +28,10 @@ Authorization: Bearer <your_api_key>
 | Model ID        | `seedream-4`  | `seedream-4.5`|
 | Quality         | High          | Higher        |
 | Speed           | Faster        | Slightly slower |
-| Base credits (2K)| 15           | 15            |
+| Base credits    | 30            | 40            |
+| vs Official     | Save 16%      | Save 12%      |
+
+Official price: Seedream 4.0 $0.035/image, Seedream 4.5 $0.045/image. Our price: 30/40 credits (1000 credits = $1).
 
 ### Submit job
 
@@ -45,9 +48,8 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/seedream-4` or `/seedrea
 | `watermark`     | bool            | No       | false                  | Add watermark                                |
 
 <Note>
-  - Aspect ratios appended to prompt (e.g., `16:9` → 2560x1440).  
-  - Constraint: `input images + batch_size <= 15`; else validation fails.  
-  - Pricing: 1K=10 credits, 2K=15, 4K=25; each input ref +5 credits; each extra output +15 credits.
+  - Aspect ratios appended to prompt (e.g., `16:9` - 2560x1440).
+  - Constraint: `input images + batch_size <= 15`; else validation fails.
 </Note>
 
 ### Example (text-to-image, Seedream 4.0)

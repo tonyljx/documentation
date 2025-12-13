@@ -37,7 +37,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/veo3`, `Content-Type: ap
 | --- | --- | --- | --- |
 | `type` | string | Auto | `text-to-video` / `image-to-video` / `reference-to-video` |
 | `image_urls` | []string | - | 1-3 images (see rules below) |
-| `model` | string | `veo3_fast` | `veo3` / `veo3_fast` |
+| `model` | string | `veo3_fast` | `veo3` / `veo3_fast` / `veo3.1_fast` |
 | `aspect_ratio` | string | `16:9` | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999 |
 | `enable_translation` | bool | true | Auto-translate prompt to English |
@@ -158,7 +158,12 @@ Status: `PROCESSING`, `SUCCEEDED` (use `result_urls`), `FAILED` (see `error`).
 
 ### Pricing
 
-Fixed 10 credits/job for now; future changes will be announced in docs.
+| Model | Credits | vs Official |
+|-------|---------|-------------|
+| veo3_fast | 120 credits/s | Save 20% |
+| veo3.1_fast | 120 credits/s | Save 20% |
+
+Official price: $0.15/second. Our price: 120 credits/second (1000 credits = $1).
 
 ### FAQ
 

@@ -1,0 +1,89 @@
+---
+title: "Flux Pro 1.1 Image API"
+description: "Wizzx Flux Pro 1.1 text-to-image submission and polling"
+---
+
+## Quick start
+
+- Platform: Wizzx gateway; use `Authorization: Bearer <your_api_key>`.
+- Submit: `POST https://api.wizzx.ai/api/v1/task/submit/flux-pro-1-1`, async `task_id`.
+- Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id`.
+- Model: Flux Pro 1.1 - high quality image generation.
+
+### Auth
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+### Pricing
+
+| Model | Credits | vs Official |
+|-------|---------|-------------|
+| Flux Pro 1.1 | 40 credits | Save 33% |
+
+Official price (Replicate): $0.06/image. Our price: 40 credits (1000 credits = $1).
+
+### Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/flux-pro-1-1`, `Content-Type: application/json`
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `prompt` | string | Yes | - | Image description |
+| `aspect_ratio` | string | No | `1:1` | Aspect ratio (e.g., `1:1`, `16:9`, `9:16`, `21:9`) |
+| `output_format` | string | No | `png` | `jpeg` / `png` |
+| `seed` | int | No | - | Seed for reproducibility |
+
+#### Example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/flux-pro-1-1 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "aspect_ratio": "16:9",
+    "output_format": "png"
+  }'
+```
+
+Success response:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 40
+  }
+}
+```
+
+### Query status
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+Response (succeeded):
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
+  }
+}
+```
+
+Statuses: `pending`, `processing`, `succeeded`, `failed`.

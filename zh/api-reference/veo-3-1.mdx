@@ -37,7 +37,7 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 | --- | --- | --- | --- |
 | `type` | string | 自动推断 | `text-to-video` / `image-to-video` / `reference-to-video` |
 | `image_urls` | []string | - | 1-3 张图片（规则见下） |
-| `model` | string | veo3_fast | `veo3` / `veo3_fast` |
+| `model` | string | veo3_fast | `veo3` / `veo3_fast` / `veo3.1_fast` |
 | `aspect_ratio` | string | 16:9 | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999，可复现 |
 | `enable_translation` | bool | true | 是否自动翻译提示词 |
@@ -158,7 +158,12 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 
 ### 计费
 
-当前固定 10 积分/次，后续调整将同步到文档。
+| 模型 | 积分 | 对比官方 |
+|------|------|----------|
+| veo3_fast | 120 积分/秒 | 节省 20% |
+| veo3.1_fast | 120 积分/秒 | 节省 20% |
+
+官方价格：$0.15/秒。我们的价格：120 积分/秒（1000 积分 = $1）。
 
 ### 常见问题
 

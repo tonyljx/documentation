@@ -34,9 +34,8 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-pro`, `Conte
 | `output_format` | string | No | Default `png` | `png` / `jpg` |
 
 <Note>
-  - Use clear, consistent reference images (1-3 typical, up to 8).  
-  - Aspect ratio hints composition; `auto` lets the model pick.  
-  - Credits: `1K/2K = 10` credits, `4K = 20` credits.
+  - Use clear, consistent reference images (1-3 typical, up to 8).
+  - Aspect ratio hints composition; `auto` lets the model pick.
 </Note>
 
 ### Example (text-to-image)
@@ -83,9 +82,17 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error_message`).
 
-## Credits & rate limits
+## Pricing
 
-- Credits: `1K/2K = 10`, `4K = 20`.
+| Resolution | Credits | vs Official |
+|------------|---------|-------------|
+| 1K / 2K    | 10      | Save 33%    |
+| 4K         | 20      | Save 33%    |
+
+Official price: $0.15/image (1K/2K), $0.30/image (4K). Our price: 10/20 credits (1000 credits = $1).
+
+## Rate limits
+
 - Rate limits: per API key 100 req/min; 1000 tasks/day; per-user concurrency 10 tasks.
 
 ## Migration (image_input → image_urls)
