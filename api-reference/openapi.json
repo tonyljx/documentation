@@ -164,6 +164,86 @@
         }
       }
     },
+    "/api/v1/task/submit/wan-2-5": {
+      "post": {
+        "summary": "Submit WAN 2.5 video task",
+        "description": "Submit a video generation task using Alibaba WAN 2.5 model. Supports text-to-video and image-to-video modes. Pricing: 720p = 60 credits/s, 1080p = 100 credits/s.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Wan25SubmitRequest"
+              },
+              "examples": {
+                "text-to-video": {
+                  "summary": "Text-to-video generation",
+                  "value": {
+                    "prompt": "A majestic dragon flying through clouds at sunset",
+                    "type": "text-to-video",
+                    "duration": 10,
+                    "resolution": "1080p",
+                    "aspect_ratio": "16:9"
+                  }
+                },
+                "image-to-video": {
+                  "summary": "Image-to-video generation",
+                  "value": {
+                    "prompt": "The character turns around and smiles at the camera",
+                    "type": "image-to-video",
+                    "image_urls": ["https://example.com/character.jpg"],
+                    "duration": 5,
+                    "resolution": "720p"
+                  }
+                },
+                "with-options": {
+                  "summary": "With negative prompt and seed",
+                  "value": {
+                    "prompt": "A futuristic city with neon lights and flying cars",
+                    "type": "text-to-video",
+                    "duration": 10,
+                    "resolution": "1080p",
+                    "aspect_ratio": "9:16",
+                    "negative_prompt": "blurry, low quality, distorted",
+                    "enable_prompt_expansion": true,
+                    "seed": 42
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wan25SubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/v1/task/submit/kling-ai": {
       "post": {
         "summary": "Submit Kling AI image-to-video task",
@@ -1932,6 +2012,95 @@
               "model_key": {
                 "type": "string",
                 "example": "virtual-try-on"
+              }
+            }
+          }
+        }
+      },
+      "Wan25SubmitRequest": {
+        "type": "object",
+        "required": ["prompt", "type"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 800,
+            "description": "Text prompt for video generation (max 800 characters).",
+            "example": "A majestic dragon flying through clouds at sunset"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["text-to-video", "image-to-video"],
+            "description": "Generation type: text-to-video (pure text) or image-to-video (requires 1 image)."
+          },
+          "image_urls": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 1,
+            "description": "Input image URL array for image-to-video mode. Exactly 1 image required for image-to-video."
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [5, 10],
+            "default": 5,
+            "description": "Video duration in seconds: 5 or 10."
+          },
+          "resolution": {
+            "type": "string",
+            "enum": ["720p", "1080p"],
+            "default": "1080p",
+            "description": "Video resolution. 720p = 60 credits/s, 1080p = 100 credits/s."
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": ["16:9", "9:16", "1:1"],
+            "default": "16:9",
+            "description": "Aspect ratio (only valid for text-to-video mode). In image-to-video mode, aspect ratio is determined by input image."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Negative prompt to describe content to avoid (max 500 characters)."
+          },
+          "enable_prompt_expansion": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to enable LLM prompt expansion for enhanced generation."
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Random seed for reproducibility. Same seed with same parameters produces similar results."
+          }
+        }
+      },
+      "Wan25SubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Task ID for status polling.",
+                "example": "task_123456789"
+              },
+              "model_key": {
+                "type": "string",
+                "example": "wan-2-5"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Credits deducted. 720p: 60/s (5s=300, 10s=600). 1080p: 100/s (5s=500, 10s=1000).",
+                "example": 500
               }
             }
           }
