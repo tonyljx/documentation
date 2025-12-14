@@ -1,0 +1,163 @@
+---
+title: "WAN 2.5 Video API"
+description: "Alibaba WAN 2.5 text/image-to-video generation with high quality and flexible aspect ratios"
+---
+
+## Overview
+
+- **Provider**: Alibaba
+- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
+- Required: `prompt`, `type` (`text-to-video`/`image-to-video`), `duration` (5/10s), `resolution` (720p/1080p).
+- Optional: aspect ratio (16:9/9:16/1:1 for text-to-video), negative prompt, prompt expansion, seed.
+- High-quality video generation with competitive pricing per second.
+
+## Auth
+
+- Header: `Authorization: Bearer <your_api_key>`
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5`, `Content-Type: application/json`
+
+### Required
+
+| Field | Type | Notes |
+|------|------|------|
+| `prompt` | string | Video description, ≤800 characters |
+| `type` | string | Generation type: `text-to-video` or `image-to-video` |
+
+### Optional
+
+| Field | Type | Default | Notes |
+|------|------|---------|------|
+| `duration` | int | 5 | Video length: `5` or `10` seconds |
+| `resolution` | string | `1080p` | Resolution: `720p` or `1080p` |
+| `aspect_ratio` | string | `16:9` | Aspect ratio (text-to-video only): `16:9`, `9:16`, or `1:1` |
+| `image_urls` | []string | - | Required for image-to-video mode (exactly 1 image) |
+| `negative_prompt` | string | - | ≤500 characters |
+| `enable_prompt_expansion` | bool | false | Enable LLM prompt expansion |
+| `seed` | int | - | For reproducible results |
+
+### Type rules
+
+| type | Description | `image_urls` requirement | `aspect_ratio` support |
+|------|-------------|-------------------------|----------------------|
+| `text-to-video` | Pure text to video | Omit `image_urls` | Yes (16:9, 9:16, 1:1) |
+| `image-to-video` | First frame to video | Exactly 1 image | No (aspect ratio from image) |
+
+<Warning>
+  `aspect_ratio` is only valid for `text-to-video` mode. In `image-to-video` mode, the aspect ratio is determined by the input image.
+</Warning>
+
+### Example: Text-to-Video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A majestic dragon flying through clouds at sunset",
+    "type": "text-to-video",
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "enable_prompt_expansion": true
+  }'
+```
+
+### Example: Image-to-Video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "The character turns around and smiles at the camera",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/character.jpg"],
+    "duration": 5,
+    "resolution": "720p",
+    "negative_prompt": "blurry, distorted"
+  }'
+```
+
+### Example: High-quality with seed
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city with neon lights and flying cars",
+    "type": "text-to-video",
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "9:16",
+    "enable_prompt_expansion": true,
+    "seed": 42
+  }'
+```
+
+### Success response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "wan-2-5",
+    "credits_deducted": 1000
+  }
+}
+```
+
+## Query status
+
+- Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+- Body:
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### Status response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+Status: `PROCESSING` (generating), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+
+## Pricing
+
+WAN 2.5 pricing is based on resolution and duration.
+
+| Resolution | Credits/second | 5s video | 10s video |
+|------------|----------------|----------|-----------|
+| **720p** | 60 | 300 credits ($0.30) | 600 credits ($0.60) |
+| **1080p** | 100 | 500 credits ($0.50) | 1000 credits ($1.00) |
+
+**Example calculations:**
+- 5s video at 720p: 60 × 5 = 300 credits
+- 10s video at 1080p: 100 × 10 = 1000 credits
+
+## FAQ
+
+- **What's the difference between text-to-video and image-to-video?** Text-to-video generates video from pure text descriptions. Image-to-video uses a reference image as the first frame and animates it based on the prompt.
+- **Can I control the aspect ratio in image-to-video mode?** No, the aspect ratio is determined by your input image. Use `aspect_ratio` only in text-to-video mode.
+- **What does prompt expansion do?** When enabled, an LLM enhances your prompt with more details for better results.
+- **How to reproduce results?** Provide the same `seed` value for consistent outputs.
+- **What's the maximum prompt length?** 800 characters for main prompt, 500 characters for negative prompt.
+- **How long are videos retained?** 30 days; please download and archive important videos.

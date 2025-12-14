@@ -27,7 +27,8 @@
                   "models/veo-3-1",
                   "models/kling-ai",
                   "models/seedance-pro-fast",
-                  "models/runway-gen3"
+                  "models/runway-gen3",
+                  "models/wan-2-5"
                 ]
               },
               {
@@ -66,6 +67,7 @@
                   "api-reference/endpoint/submit-veo3",
                   "api-reference/endpoint/submit-kling-ai",
                   "api-reference/endpoint/submit-seedance-pro-fast",
+                  "api-reference/endpoint/submit-wan-2-5",
                   "api-reference/endpoint/submit-flux-kontext-pro",
                   "api-reference/endpoint/submit-flux-kontext-max",
                   "api-reference/endpoint/submit-flux-2-pro",
@@ -98,7 +100,8 @@
                   "zh/models/veo-3-1",
                   "zh/models/kling-ai",
                   "zh/models/seedance-pro-fast",
-                  "zh/models/runway-gen3"
+                  "zh/models/runway-gen3",
+                  "zh/models/wan-2-5"
                 ]
               },
               {
@@ -124,6 +127,7 @@
                   "zh/api-reference/endpoint/submit-veo3",
                   "zh/api-reference/endpoint/submit-kling-ai",
                   "zh/api-reference/endpoint/submit-seedance-pro-fast",
+                  "zh/api-reference/endpoint/submit-wan-2-5",
                   "zh/api-reference/endpoint/submit-flux-kontext-pro",
                   "zh/api-reference/endpoint/submit-flux-kontext-max",
                   "zh/api-reference/endpoint/submit-flux-2-pro",

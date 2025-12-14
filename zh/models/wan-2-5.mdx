@@ -1,0 +1,163 @@
+---
+title: "WAN 2.5 视频 API"
+description: "阿里巴巴 WAN 2.5 文生视频/图生视频，高质量输出与灵活宽高比"
+---
+
+## 概览
+
+- **提供商**: 阿里巴巴
+- 提交任务：`POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5`；使用 `task_id` 在 `POST https://api.wizzx.ai/api/v1/task/status` 轮询结果。
+- 必填参数：`prompt`、`type`（`text-to-video`/`image-to-video`）、`duration`（5/10秒）、`resolution`（720p/1080p）。
+- 可选参数：宽高比（16:9/9:16/1:1，仅文生视频）、负向提示词、提示词扩展、随机种子。
+- 高质量视频生成，按秒计费且价格有竞争力。
+
+## 认证
+
+- Header：`Authorization: Bearer <your_api_key>`
+
+## 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5`，`Content-Type: application/json`
+
+### 必填参数
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `prompt` | string | 视频描述，最多 800 字符 |
+| `type` | string | 生成类型：`text-to-video` 或 `image-to-video` |
+
+### 可选参数
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|---------|------|
+| `duration` | int | 5 | 视频时长：`5` 或 `10` 秒 |
+| `resolution` | string | `1080p` | 分辨率：`720p` 或 `1080p` |
+| `aspect_ratio` | string | `16:9` | 宽高比（仅文生视频）：`16:9`、`9:16` 或 `1:1` |
+| `image_urls` | []string | - | 图生视频必填（恰好 1 张图片）|
+| `negative_prompt` | string | - | 负向提示词，最多 500 字符 |
+| `enable_prompt_expansion` | bool | false | 启用 LLM 提示词扩展 |
+| `seed` | int | - | 用于复现结果的随机种子 |
+
+### 类型规则
+
+| type | 说明 | `image_urls` 要求 | `aspect_ratio` 支持 |
+|------|-------------|-------------------------|----------------------|
+| `text-to-video` | 纯文本生成视频 | 不传 `image_urls` | 支持（16:9, 9:16, 1:1）|
+| `image-to-video` | 首帧图片生成视频 | 恰好 1 张图片 | 不支持（由输入图片决定）|
+
+<Warning>
+  `aspect_ratio` 仅在 `text-to-video` 模式下有效。在 `image-to-video` 模式下，宽高比由输入图片决定。
+</Warning>
+
+### 示例：文生视频
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一条威猛的巨龙在日落时分穿过云层飞翔",
+    "type": "text-to-video",
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "16:9",
+    "enable_prompt_expansion": true
+  }'
+```
+
+### 示例：图生视频
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "角色转身并对着镜头微笑",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/character.jpg"],
+    "duration": 5,
+    "resolution": "720p",
+    "negative_prompt": "模糊、变形"
+  }'
+```
+
+### 示例：高品质 + 种子复现
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一座未来城市，霓虹灯闪烁，飞行汽车穿梭其中",
+    "type": "text-to-video",
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "9:16",
+    "enable_prompt_expansion": true,
+    "seed": 42
+  }'
+```
+
+### 成功响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "wan-2-5",
+    "credits_deducted": 1000
+  }
+}
+```
+
+## 查询状态
+
+- 接口：`POST https://api.wizzx.ai/api/v1/task/status`
+- Body：
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### 状态响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+状态说明：`PROCESSING`（生成中）、`SUCCEEDED`（使用 `result_urls` 获取结果）、`FAILED`（`error` 包含详细信息）。
+
+## 计费
+
+WAN 2.5 根据分辨率和时长计费。
+
+| 分辨率 | 积分/秒 | 5秒视频 | 10秒视频 |
+|------------|----------------|----------|-----------|
+| **720p** | 60 | 300 积分（$0.30）| 600 积分（$0.60）|
+| **1080p** | 100 | 500 积分（$0.50）| 1000 积分（$1.00）|
+
+**计费示例：**
+- 5秒 720p 视频：60 × 5 = 300 积分
+- 10秒 1080p 视频：100 × 10 = 1000 积分
+
+## 常见问题
+
+- **文生视频和图生视频有什么区别？** 文生视频从纯文本描述生成视频。图生视频使用参考图片作为首帧，并根据提示词进行动画化。
+- **图生视频模式下可以控制宽高比吗？** 不可以，宽高比由输入图片决定。`aspect_ratio` 参数仅在文生视频模式下有效。
+- **提示词扩展有什么用？** 启用后，LLM 会为您的提示词添加更多细节以获得更好的效果。
+- **如何复现结果？** 提供相同的 `seed` 值可获得一致的输出。
+- **提示词最大长度是多少？** 主提示词最多 800 字符，负向提示词最多 500 字符。
+- **视频保留多久？** 30 天，请及时下载并归档重要视频。

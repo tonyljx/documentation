@@ -1,0 +1,49 @@
+---
+title: "Submit WAN 2.5 task"
+description: "POST WAN 2.5 (阿里巴巴) 文生视频/图生视频任务"
+openapi: "POST /api/v1/task/submit/wan-2-5"
+---
+
+## 提交任务
+
+- Header：`Authorization: Bearer <your_api_key>`。
+- 必填：`prompt`（最多 800 字符）、`type`（`text-to-video` 或 `image-to-video`）。
+- 可选：`duration`（5/10秒）、`resolution`（720p/1080p）、`aspect_ratio`（仅文生视频）、`image_urls`、`negative_prompt`、`enable_prompt_expansion`、`seed`。
+- 异步返回 `task_id` 与扣费 `credits_deducted`，使用 `/api/v1/task/status` 轮询结果。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一条威猛的巨龙在日落时分穿过云层飞翔",
+    "type": "text-to-video",
+    "duration": 10,
+    "resolution": "1080p",
+    "aspect_ratio": "16:9"
+  }'
+```
+
+### 图生视频示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "角色转身并微笑",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/character.jpg"],
+    "duration": 5,
+    "resolution": "720p"
+  }'
+```
+
+<Note>
+- **类型**：`text-to-video`（无图片）或 `image-to-video`（需要 1 张图片）。
+- **时长**：`5` 或 `10` 秒（默认：5）。
+- **分辨率**：`720p` 或 `1080p`（默认：1080p）。
+- **宽高比**：`16:9`、`9:16`、`1:1`（仅文生视频，默认：16:9）。
+- **计费**：720p = 60 积分/秒，1080p = 100 积分/秒。
+- **提示词**：主提示词最多 800 字符；负向提示词最多 500 字符。
+</Note>
