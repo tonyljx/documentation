@@ -18,13 +18,32 @@ Wizzx uses a credit-based pricing system:
 | **Flux Kontext Pro** | 30 | $0.04 | 25% |
 | **Flux Kontext Max** | 60 | $0.08 | 25% |
 | **Flux Pro 1.1** | 40 | $0.06 | 33% |
-| **Flux 2 Pro** (text-to-image) | 20 | - | - |
-| **Flux 2 Pro** (image-to-image) | 35 | - | - |
-| **Flux 2 Flex** (text-to-image) | 40 | - | - |
-| **Flux 2 Flex** (image-to-image) | 75 | - | - |
+| **Flux 2 Pro** | 20 + 10/MP | $0.03 + $0.015/MP | 33% |
+| **Flux 2 Flex** | 40/MP | $0.06/MP | 33% |
 | **Seedream 4.0** | 30 | $0.035 | 16% |
 | **Seedream 4.5** | 40 | $0.045 | 12% |
 | **Virtual Try-On** | 65 | $0.07 | 7% |
+
+### Flux 2 Megapixel Pricing
+
+Flux 2 models use **Megapixel (MP)** based pricing where **Total MP = Input MP + Output MP**.
+
+- **Output MP**: `width × height / (1024 × 1024)`, rounded up. Default 1 MP if not specified.
+- **Input MP**: 0 if no images; each image = 1 MP for multiple images; actual size (max 4 MP) for single image.
+
+**Flux 2 Pro:** 20 credits for first MP + 10 credits per additional MP
+- Formula: `20 + (totalMP - 1) × 10`
+
+**Flux 2 Flex:** 40 credits per MP
+- Formula: `totalMP × 40`
+
+| Scenario | Input MP | Output MP | Total MP | Pro Credits | Flex Credits |
+|----------|----------|-----------|----------|-------------|--------------|
+| Text-to-Image 1024×1024 | 0 | 1 | 1 | 20 | 40 |
+| Text-to-Image 1920×1080 | 0 | 2 | 2 | 30 | 80 |
+| Text-to-Image 2048×2048 | 0 | 4 | 4 | 50 | 160 |
+| Image-to-Image (1 img 2MP + 1024×1024) | 2 | 1 | 3 | 40 | 120 |
+| Image-to-Image (3 imgs + 1024×1024) | 3 | 1 | 4 | 50 | 160 |
 
 ## Video Generation
 

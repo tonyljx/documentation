@@ -20,20 +20,29 @@ Authorization: Bearer <your_api_key>
 
 | Feature | Flux 2 Pro | Flux 2 Flex |
 |---------|------------|-------------|
-| Text-to-Image | 20 credits | 40 credits |
-| Image-to-Image | 35 credits | 75 credits |
+| First MP | 20 credits | 40 credits |
+| Subsequent MP | 10 credits each | 40 credits each |
+| Pricing Formula | `20 + (totalMP - 1) × 10` | `totalMP × 40` |
 | Max Input Images | 8 | 8 |
 | Prompt Upsampling | No | Yes |
 | Guidance Control | No | Yes (1.5-10) |
 | Steps Control | No | Yes (1-50) |
-| Use Case | Fast generation | Fine-tuned control |
+| Use Case | Cost-effective | Fine-tuned control |
 
 ### Pricing
 
-| Mode | Flux 2 Pro | Flux 2 Flex |
-|------|------------|-------------|
-| Text-to-Image | 20 credits | 40 credits |
-| Image-to-Image | 35 credits | 75 credits |
+Flux 2 models use **Megapixel (MP)** based pricing: **Total MP = Input MP + Output MP**
+
+- **Output MP**: `width × height / (1024 × 1024)`, rounded up. Default 1 MP.
+- **Input MP**: 0 if no images; each image = 1 MP for multiple images; actual size (max 4 MP) for single image.
+
+| Scenario | Input MP | Output MP | Total MP | Pro Credits | Flex Credits |
+|----------|----------|-----------|----------|-------------|--------------|
+| Text-to-Image 1024×1024 | 0 | 1 | 1 | 20 | 40 |
+| Text-to-Image 1920×1080 | 0 | 2 | 2 | 30 | 80 |
+| Text-to-Image 2048×2048 | 0 | 4 | 4 | 50 | 160 |
+| Image-to-Image (1 img 2MP + 1024×1024) | 2 | 1 | 3 | 40 | 120 |
+| Image-to-Image (3 imgs + 1024×1024) | 3 | 1 | 4 | 50 | 160 |
 
 ### Submit job (Flux 2 Pro)
 
