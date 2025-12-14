@@ -1,0 +1,121 @@
+---
+title: "Nano Banana Image API"
+description: "Nano Banana (Google) text/image-to-image with smart mode selection"
+---
+
+## Overview
+
+- Model: Nano Banana (powered by Google); supports text-to-image and up to 10 reference images.
+- Smart mode selection: automatically chooses optimal generation mode based on inputs.
+- Aspect ratios: `1:1`, `16:9`, `9:16`, `21:9`, and more.
+- Output: `png` / `jpg` (default `png`).
+- Async API: submit `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`, poll `POST https://api.wizzx.ai/api/v1/task/status`.
+
+## Auth
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`, `Content-Type: application/json`
+
+| Field | Type | Required | Default/Limit | Description |
+| --- | --- | --- | --- | --- |
+| `prompt` | string | Yes | ≤10000 chars | Text prompt |
+| `image_urls` | array&lt;string&gt; | No | Max 10 | Reference images (JPEG/PNG/WebP) |
+| `aspect_ratio` | string | No | Default `1:1` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `auto` |
+| `output_format` | string | No | Default `png` | `png` / `jpg` |
+
+### Example (text-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A surreal painting of a giant banana floating in space",
+    "aspect_ratio": "16:9",
+    "output_format": "png"
+  }'
+```
+
+### Example (image-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Transform this into a watercolor painting style",
+    "image_urls": ["https://example.com/reference.jpg"],
+    "aspect_ratio": "1:1",
+    "output_format": "png"
+  }'
+```
+
+Success response:
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 24
+  }
+}
+```
+
+## Query status
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+Response (succeeded):
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
+  }
+}
+```
+
+Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error_message`).
+
+## Pricing
+
+| Model | Credits | USD |
+|-------|---------|-----|
+| Nano Banana | 24 | $0.024 |
+
+Fixed pricing: 24 credits per generation (1000 credits = $1).
+
+## Nano Banana vs Nano Banana Pro
+
+| Feature | Nano Banana | Nano Banana Pro |
+|---------|-------------|-----------------|
+| Provider | Google | kie.ai |
+| Max Input Images | 10 | 8 |
+| Resolution Options | Standard | 1K / 2K / 4K |
+| Credits | 24 (fixed) | 10-20 (by resolution) |
+| Best For | General use, smart mode | High-resolution output |
+
+## Best practices
+
+- Write prompts with subject, scene, lighting, style (e.g., photorealistic, digital art).
+- Use 1-3 reference images for best results; more images may dilute the effect.
+- Choose aspect ratio for target surface: `9:16` for portrait, `16:9`/`21:9` for landscape, `1:1` for covers.
+- For high-resolution needs (4K), consider using Nano Banana Pro instead.

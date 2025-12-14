@@ -38,6 +38,7 @@
                   "models/flux-2",
                   "models/seedream",
                   "models/nano-banana-pro",
+                  "models/nano-banana",
                   "models/virtual-try-on"
                 ]
               },
@@ -107,6 +108,7 @@
                   "zh/models/flux-2",
                   "zh/models/seedream",
                   "zh/models/nano-banana-pro",
+                  "zh/models/nano-banana",
                   "zh/models/virtual-try-on"
                 ]
               }

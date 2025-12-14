@@ -1,0 +1,121 @@
+---
+title: "Nano Banana 图像生成 API"
+description: "Nano Banana (Google) 文生图/图生图，智能模式选择"
+---
+
+## 概述
+
+- 模型：Nano Banana（Google 驱动）；支持文生图和最多 10 张参考图片。
+- 智能模式选择：根据输入自动选择最优生成模式。
+- 宽高比：`1:1`、`16:9`、`9:16`、`21:9` 等。
+- 输出格式：`png` / `jpg`（默认 `png`）。
+- 异步 API：提交 `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`，轮询 `POST https://api.wizzx.ai/api/v1/task/status`。
+
+## 认证
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`，`Content-Type: application/json`
+
+| 字段 | 类型 | 必填 | 默认/限制 | 说明 |
+| --- | --- | --- | --- | --- |
+| `prompt` | string | 是 | ≤10000 字符 | 文本提示词 |
+| `image_urls` | array&lt;string&gt; | 否 | 最多 10 张 | 参考图片（JPEG/PNG/WebP） |
+| `aspect_ratio` | string | 否 | 默认 `1:1` | `1:1`、`2:3`、`3:2`、`3:4`、`4:3`、`4:5`、`5:4`、`9:16`、`16:9`、`21:9`、`auto` |
+| `output_format` | string | 否 | 默认 `png` | `png` / `jpg` |
+
+### 请求示例（文生图）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一幅超现实主义画作，一根巨大的香蕉漂浮在太空中",
+    "aspect_ratio": "16:9",
+    "output_format": "png"
+  }'
+```
+
+### 请求示例（图生图）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "将这张图片转换成水彩画风格",
+    "image_urls": ["https://example.com/reference.jpg"],
+    "aspect_ratio": "1:1",
+    "output_format": "png"
+  }'
+```
+
+成功响应：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 24
+  }
+}
+```
+
+## 查询状态
+
+接口：`POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+响应示例（成功）：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
+  }
+}
+```
+
+状态流程：`pending`（排队中）→ `processing`（生成中）→ `succeeded`（成功，返回 `result_urls`）或 `failed`（失败，查看 `error_message`）。
+
+## 计费
+
+| 模型 | 积分 | 美元 |
+|------|------|------|
+| Nano Banana | 24 | $0.024 |
+
+固定计费：每次生成 24 积分（1000 积分 = $1）。
+
+## Nano Banana vs Nano Banana Pro
+
+| 特性 | Nano Banana | Nano Banana Pro |
+|------|-------------|-----------------|
+| 提供商 | Google | kie.ai |
+| 最大输入图片数 | 10 | 8 |
+| 分辨率选项 | 标准 | 1K / 2K / 4K |
+| 积分 | 24（固定） | 10-20（按分辨率） |
+| 适用场景 | 通用场景、智能模式 | 高分辨率输出 |
+
+## 最佳实践
+
+- 编写提示词时包含主题、场景、光线、风格（如写实、数字艺术）。
+- 使用 1-3 张参考图片效果最佳；图片过多可能稀释效果。
+- 根据目标用途选择宽高比：竖图用 `9:16`，横图用 `16:9`/`21:9`，封面用 `1:1`。
+- 如需高分辨率（4K），建议使用 Nano Banana Pro。
