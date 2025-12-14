@@ -149,6 +149,11 @@
           "icon": "tag"
         },
         {
+          "anchor": "Changelog",
+          "href": "/changelog",
+          "icon": "list"
+        },
+        {
           "anchor": "Introduction",
           "href": "/introduction",
           "icon": "book-open-cover"
