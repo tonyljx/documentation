@@ -120,10 +120,8 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
-    "provider_task_id": "kling_task_abcdef123456",
-    "model_key": "kling-ai",
-    "provider_key": "kling-ai"
+    "task_id": "task_123456789",
+    "model_key": "kling-ai"
   }
 }
 ```
@@ -135,7 +133,7 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 
 ```json
 {
-  "task_id": "local-task-id"
+  "task_id": "task_123456789"
 }
 ```
 
@@ -145,7 +143,7 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
+    "task_id": "task_123456789",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"

@@ -118,10 +118,8 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
-    "provider_task_id": "veo_task_abcdef123456",
-    "model_key": "veo3",
-    "provider_key": "veo3"
+    "task_id": "task_123456789",
+    "model_key": "veo3"
   }
 }
 ```
@@ -134,7 +132,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 
 ```json
 {
-  "task_id": "local-task-id"
+  "task_id": "task_123456789"
 }
 ```
 
@@ -144,7 +142,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
+    "task_id": "task_123456789",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"

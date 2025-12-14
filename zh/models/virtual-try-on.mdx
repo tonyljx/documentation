@@ -94,10 +94,8 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
-    "provider_task_id": "kolors_task_abcdef123456",
-    "model_key": "virtual-try-on",
-    "provider_key": "virtual-try-on"
+    "task_id": "task_123456789",
+    "model_key": "virtual-try-on"
   }
 }
 ```
@@ -109,7 +107,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
 
 ```json
 {
-  "task_id": "local-task-id"
+  "task_id": "task_123456789"
 }
 ```
 
@@ -119,7 +117,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/virtual-try-on \
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
+    "task_id": "task_123456789",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/try-on-result.png"

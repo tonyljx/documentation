@@ -888,17 +888,9 @@
             "properties": {
               "task_id": {
                 "type": "string",
-                "description": "Local task id."
-              },
-              "provider_task_id": {
-                "type": "string",
-                "description": "Downstream Veo task id."
+                "description": "Task ID for status polling."
               },
               "model_key": {
-                "type": "string",
-                "example": "veo3"
-              },
-              "provider_key": {
                 "type": "string",
                 "example": "veo3"
               }
@@ -1002,17 +994,9 @@
             "properties": {
               "task_id": {
                 "type": "string",
-                "description": "Local task id."
-              },
-              "provider_task_id": {
-                "type": "string",
-                "description": "Downstream Seedance task id."
+                "description": "Task ID for status polling."
               },
               "model_key": {
-                "type": "string",
-                "example": "seedance-pro-fast"
-              },
-              "provider_key": {
                 "type": "string",
                 "example": "seedance-pro-fast"
               }
@@ -1296,17 +1280,9 @@
             "properties": {
               "task_id": {
                 "type": "string",
-                "description": "Local task id."
-              },
-              "provider_task_id": {
-                "type": "string",
-                "description": "Downstream Kling task id."
+                "description": "Task ID for status polling."
               },
               "model_key": {
-                "type": "string",
-                "example": "kling-ai"
-              },
-              "provider_key": {
                 "type": "string",
                 "example": "kling-ai"
               }
@@ -1951,17 +1927,9 @@
             "properties": {
               "task_id": {
                 "type": "string",
-                "description": "Local task id"
-              },
-              "provider_task_id": {
-                "type": "string",
-                "description": "Downstream Kolors task id"
+                "description": "Task ID for status polling."
               },
               "model_key": {
-                "type": "string",
-                "example": "virtual-try-on"
-              },
-              "provider_key": {
                 "type": "string",
                 "example": "virtual-try-on"
               }

@@ -85,10 +85,8 @@ Success response:
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
-    "provider_task_id": "seedance_task_abcdef123456",
-    "model_key": "seedance-pro-fast",
-    "provider_key": "seedance-pro-fast"
+    "task_id": "task_123456789",
+    "model_key": "seedance-pro-fast"
   }
 }
 ```
@@ -99,7 +97,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
-  "task_id": "local-task-id"
+  "task_id": "task_123456789"
 }
 ```
 
@@ -109,7 +107,7 @@ Response example:
 {
   "code": 0,
   "data": {
-    "task_id": "local-task-id",
+    "task_id": "task_123456789",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
