@@ -424,6 +424,73 @@
         }
       }
     },
+    "/api/v1/task/submit/nano-banana": {
+      "post": {
+        "summary": "Submit Nano Banana image task",
+        "description": "Submit an image generation task using Nano Banana (Google) model. Supports text-to-image and multi-reference image input (up to 10 images). Fixed cost: 24 credits.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NanoBananaSubmitRequest"
+              },
+              "examples": {
+                "text-to-image": {
+                  "summary": "Text-to-image generation",
+                  "value": {
+                    "prompt": "A surreal painting of a giant banana floating in space",
+                    "aspect_ratio": "16:9",
+                    "output_format": "png"
+                  }
+                },
+                "image-to-image": {
+                  "summary": "Image-to-image with reference",
+                  "value": {
+                    "prompt": "Transform this into a watercolor painting style",
+                    "image_urls": ["https://example.com/reference.jpg"],
+                    "aspect_ratio": "1:1",
+                    "output_format": "png"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NanoBananaSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "404": {
+            "description": "Model not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/v1/task/submit/seedream-4": {
       "post": {
         "summary": "Submit Seedream 4.0 image task",
@@ -523,7 +590,7 @@
     "/api/v1/task/submit/flux-2-pro": {
       "post": {
         "summary": "Submit Flux 2 Pro image task",
-        "description": "Submit an image generation task using Flux 2 Pro model. Supports text-to-image and image-to-image (up to 8 reference images). Costs 20 credits (text-to-image) or 35 credits (image-to-image).",
+        "description": "Submit an image generation task using Flux 2 Pro model. Supports text-to-image and image-to-image (up to 8 reference images). Pricing: Megapixel (MP) based - 20 credits for first MP + 10 credits per additional MP. Total MP = Input MP + Output MP.",
         "security": [
           {
             "bearerAuth": []
@@ -593,7 +660,7 @@
     "/api/v1/task/submit/flux-2-flex": {
       "post": {
         "summary": "Submit Flux 2 Flex image task",
-        "description": "Submit an image generation task using Flux 2 Flex model with fine-tuned control over guidance and steps. Supports text-to-image and image-to-image (up to 8 reference images). Costs 40 credits (text-to-image) or 75 credits (image-to-image).",
+        "description": "Submit an image generation task using Flux 2 Flex model with fine-tuned control over guidance and steps. Supports text-to-image and image-to-image (up to 8 reference images). Pricing: Megapixel (MP) based - 40 credits per MP. Total MP = Input MP + Output MP.",
         "security": [
           {
             "bearerAuth": []
@@ -1476,6 +1543,100 @@
                 "type": "integer",
                 "description": "Number of credits deducted for this task. 1K/2K = 10 credits, 4K = 20 credits.",
                 "example": 10
+              }
+            }
+          }
+        }
+      },
+      "NanoBananaSubmitRequest": {
+        "type": "object",
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Text prompt for image generation (max 10000 characters).",
+            "maxLength": 10000,
+            "example": "A surreal painting of a giant banana floating in space"
+          },
+          "image_urls": {
+            "type": "array",
+            "description": "Array of input image URLs (max 10 images). Supports JPEG/PNG/WebP.",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "maxItems": 10,
+            "example": [
+              "https://example.com/reference.jpg"
+            ]
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "description": "Aspect ratio of the generated image.",
+            "enum": [
+              "1:1",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:3",
+              "4:5",
+              "5:4",
+              "9:16",
+              "16:9",
+              "21:9",
+              "auto"
+            ],
+            "default": "1:1",
+            "example": "16:9"
+          },
+          "output_format": {
+            "type": "string",
+            "description": "Output format for the generated image.",
+            "enum": [
+              "png",
+              "jpg"
+            ],
+            "default": "png",
+            "example": "png"
+          }
+        }
+      },
+      "NanoBananaSubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 200
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Local task ID for tracking.",
+                "example": "task_123456789"
+              },
+              "status": {
+                "type": "string",
+                "description": "Initial task status.",
+                "enum": [
+                  "pending",
+                  "processing",
+                  "succeeded",
+                  "failed"
+                ],
+                "example": "pending"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Number of credits deducted for this task. Fixed: 24 credits.",
+                "example": 24
               }
             }
           }

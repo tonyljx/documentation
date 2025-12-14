@@ -21,12 +21,12 @@ Authorization: Bearer <your_api_key>
 
 接口：`POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`，`Content-Type: application/json`
 
-| 字段 | 类型 | 必填 | 默认/限制 | 说明 |
-| --- | --- | --- | --- | --- |
-| `prompt` | string | 是 | ≤10000 字符 | 文本提示词 |
-| `image_urls` | array&lt;string&gt; | 否 | 最多 10 张 | 参考图片（JPEG/PNG/WebP） |
-| `aspect_ratio` | string | 否 | 默认 `1:1` | `1:1`、`2:3`、`3:2`、`3:4`、`4:3`、`4:5`、`5:4`、`9:16`、`16:9`、`21:9`、`auto` |
-| `output_format` | string | 否 | 默认 `png` | `png` / `jpg` |
+| 字段            | 类型                | 必填 | 默认/限制   | 说明                                                                            |
+| --------------- | ------------------- | ---- | ----------- | ------------------------------------------------------------------------------- |
+| `prompt`        | string              | 是   | ≤10000 字符 | 文本提示词                                                                      |
+| `image_urls`    | array&lt;string&gt; | 否   | 最多 10 张  | 参考图片（JPEG/PNG/WebP）                                                       |
+| `aspect_ratio`  | string              | 否   | 默认 `1:1`  | `1:1`、`2:3`、`3:2`、`3:4`、`4:3`、`4:5`、`5:4`、`9:16`、`16:9`、`21:9`、`auto` |
+| `output_format` | string              | 否   | 默认 `png`  | `png` / `jpg`                                                                   |
 
 ### 请求示例（文生图）
 
@@ -97,21 +97,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
 
 ## 计费
 
-| 模型 | 积分 | 美元 |
-|------|------|------|
-| Nano Banana | 24 | $0.024 |
+| 模型        | 积分 | 美元   |
+| ----------- | ---- | ------ |
+| Nano Banana | 24   | $0.024 |
 
 固定计费：每次生成 24 积分（1000 积分 = $1）。
 
 ## Nano Banana vs Nano Banana Pro
 
-| 特性 | Nano Banana | Nano Banana Pro |
-|------|-------------|-----------------|
-| 提供商 | Google | kie.ai |
-| 最大输入图片数 | 10 | 8 |
-| 分辨率选项 | 标准 | 1K / 2K / 4K |
-| 积分 | 24（固定） | 10-20（按分辨率） |
-| 适用场景 | 通用场景、智能模式 | 高分辨率输出 |
+| 特性           | Nano Banana        | Nano Banana Pro   |
+| -------------- | ------------------ | ----------------- |
+| 提供商         | Google             | Google            |
+| 最大输入图片数 | 10                 | 8                 |
+| 分辨率选项     | 标准               | 1K / 2K / 4K      |
+| 积分           | 24（固定）         | 10-20（按分辨率） |
+| 适用场景       | 通用场景、智能模式 | 高分辨率输出      |
 
 ## 最佳实践
 

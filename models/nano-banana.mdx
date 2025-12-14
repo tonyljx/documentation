@@ -21,12 +21,12 @@ Authorization: Bearer <your_api_key>
 
 Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`, `Content-Type: application/json`
 
-| Field | Type | Required | Default/Limit | Description |
-| --- | --- | --- | --- | --- |
-| `prompt` | string | Yes | ≤10000 chars | Text prompt |
-| `image_urls` | array&lt;string&gt; | No | Max 10 | Reference images (JPEG/PNG/WebP) |
-| `aspect_ratio` | string | No | Default `1:1` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `auto` |
-| `output_format` | string | No | Default `png` | `png` / `jpg` |
+| Field           | Type                | Required | Default/Limit | Description                                                                     |
+| --------------- | ------------------- | -------- | ------------- | ------------------------------------------------------------------------------- |
+| `prompt`        | string              | Yes      | ≤10000 chars  | Text prompt                                                                     |
+| `image_urls`    | array&lt;string&gt; | No       | Max 10        | Reference images (JPEG/PNG/WebP)                                                |
+| `aspect_ratio`  | string              | No       | Default `1:1` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `auto` |
+| `output_format` | string              | No       | Default `png` | `png` / `jpg`                                                                   |
 
 ### Example (text-to-image)
 
@@ -97,21 +97,21 @@ Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) 
 
 ## Pricing
 
-| Model | Credits | USD |
-|-------|---------|-----|
-| Nano Banana | 24 | $0.024 |
+| Model       | Credits | USD    |
+| ----------- | ------- | ------ |
+| Nano Banana | 24      | $0.024 |
 
 Fixed pricing: 24 credits per generation (1000 credits = $1).
 
 ## Nano Banana vs Nano Banana Pro
 
-| Feature | Nano Banana | Nano Banana Pro |
-|---------|-------------|-----------------|
-| Provider | Google | kie.ai |
-| Max Input Images | 10 | 8 |
-| Resolution Options | Standard | 1K / 2K / 4K |
-| Credits | 24 (fixed) | 10-20 (by resolution) |
-| Best For | General use, smart mode | High-resolution output |
+| Feature            | Nano Banana             | Nano Banana Pro        |
+| ------------------ | ----------------------- | ---------------------- |
+| Provider           | Google                  | Google                 |
+| Max Input Images   | 10                      | 8                      |
+| Resolution Options | Standard                | 1K / 2K / 4K           |
+| Credits            | 24 (fixed)              | 10-20 (by resolution)  |
+| Best For           | General use, smart mode | High-resolution output |
 
 ## Best practices
 

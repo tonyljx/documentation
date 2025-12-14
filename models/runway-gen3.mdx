@@ -1,97 +1,129 @@
 ---
 title: "Runway Gen-3 Video API"
-description: "How to submit Runway Gen-3 video jobs, request schema, responses, and polling"
+description: "Wizzx Runway Gen-3 text-to-video and image-to-video generation"
 ---
 
-## Overview
+## Quick start
 
-- Proxy to Runway Gen-3 via Kie.ai; supports `text2video` and `img2video`.
-- Every request creates an async video job; response returns `task_id` for polling.
+- Platform: Wizzx gateway; use `Authorization: Bearer <your_api_key>`.
+- Submit: `POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3`, async `task_id`.
+- Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id`.
+- Modes: `text-to-video` (text prompt only), `image-to-video` (1 reference image).
 
-## Endpoints
-
-- `POST https://api.wizzx.ai/v1/video/runway-gen3` — submit a generation job.
-- `GET https://api.wizzx.ai/v1/video/runway-gen3/{task_id}` — poll job status/result.
-
-> Add your own prefix if needed; always send `Authorization: Bearer <token>`.
-
-## Request schema (POST)
-
-Field | Description | Rules / Default
--| - | -
-`prompt` | Text prompt | Required
-`mode` | Generation mode | Required: `text2video` or `img2video`
-`input_image_url` | Reference image URL | Required for `img2video`, valid URL
-`duration` | Seconds | Optional, default 5; allowed 5 or 10
-`resolution` | Resolution | Optional, default `720p`; `720p` or `1080p` (10s does not support 1080p)
-`fps` | Frame rate | Optional, default 24; `24`/`30`/`60`
-`aspect_ratio` | Aspect ratio | Optional, `16:9`/`9:16`/`1:1` (empty = auto)
-
-### Submit example
+### Auth
 
 ```bash
-curl -X POST https://api.wizzx.ai/v1/video/runway-gen3 \
-  -H "Authorization: Bearer $TOKEN" \
+Authorization: Bearer <your_api_key>
+```
+
+### Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3`, `Content-Type: application/json`
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `prompt` | string | Yes | - | Text prompt describing the video |
+| `type` | string | Yes | - | `text-to-video` or `image-to-video` |
+| `image_urls` | array | Conditional | - | Image URLs (required for `image-to-video`, max 1) |
+| `duration` | int | No | 5 | Video duration: `5` or `10` seconds |
+| `resolution` | string | No | `720p` | `720p` or `1080p` (10s does not support 1080p) |
+| `aspect_ratio` | string | No | auto | `16:9`, `9:16`, or `1:1` |
+
+<Warning>
+  **Constraint:** 10-second videos cannot use 1080p resolution.
+</Warning>
+
+#### Example: Text-to-Video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
+  -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "a cinematic drone flythrough of a neon city",
-    "mode": "text2video",
+    "prompt": "A cinematic drone flythrough of a neon city at night",
+    "type": "text-to-video",
     "duration": 5,
     "resolution": "720p",
-    "fps": 24,
     "aspect_ratio": "16:9"
   }'
 ```
 
-## Response format
-
-On success:
-
-```json
-{
-  "task_id": "rw_123",
-  "status": "queued",
-  "credits": 5,
-  "duration": 5,
-  "resolution": "720p",
-  "mode": "text2video"
-}
-```
-
-Status values: `queued` | `processing` | `succeeded` | `failed`.
-
-## Polling for results
-
-Use `GET /v1/video/runway-gen3/{task_id}` (poll every 2-5s):
+#### Example: Image-to-Video
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  https://api.wizzx.ai/v1/video/runway-gen3/rw_123
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Make the character walk forward gracefully",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/character.jpg"],
+    "duration": 5,
+    "resolution": "720p"
+  }'
 ```
 
-Success example:
+Success response:
 
 ```json
 {
-  "task_id": "rw_123",
-  "status": "succeeded",
-  "result": {
-    "video_url": "https://cdn.example.com/rw_123.mp4",
-    "cover_image_url": "https://cdn.example.com/rw_123.jpg"
-  },
-  "duration": 5,
-  "resolution": "720p",
-  "mode": "text2video"
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 5
+  }
 }
 ```
 
-On failure: `status: failed` with `error`.
+### Query status
 
-## Pricing (reference)
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
-- 5s 720p: 5 credits
-- 5s 1080p: 10 credits
-- 10s 720p: 5 credits
-- 10s 1080p: not supported
+```json
+{
+  "task_id": "task_123456789"
+}
+```
 
-> Charges depend on submitted duration and resolution; invalid combos fail validation.
+Response (succeeded):
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/video.mp4"]
+  }
+}
+```
+
+Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error`).
+
+### Pricing
+
+| Duration | Resolution | Credits |
+|----------|------------|---------|
+| 5s | 720p | 5 |
+| 5s | 1080p | 10 |
+| 10s | 720p | 5 |
+| 10s | 1080p | Not supported |
+
+### Best practices
+
+1. **Duration & Resolution:**
+   - For longer videos (10s), use 720p resolution
+   - 1080p is only available for 5-second videos
+
+2. **Mode Selection:**
+   - Use `text-to-video` for pure text-driven generation
+   - Use `image-to-video` when you have a reference image for better consistency
+
+3. **Aspect Ratio:**
+   - Use `16:9` for landscape videos
+   - Use `9:16` for portrait/vertical videos
+   - Use `1:1` for square videos
+   - Leave empty for auto-detection (recommended for image-to-video)

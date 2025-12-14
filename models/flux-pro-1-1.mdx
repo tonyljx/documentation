@@ -31,7 +31,8 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/flux-pro-1-1`, `Content-
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `prompt` | string | Yes | - | Image description |
-| `aspect_ratio` | string | No | `1:1` | Aspect ratio (e.g., `1:1`, `16:9`, `9:16`, `21:9`) |
+| `aspect_ratio` | string | No | `1:1` | `1:1`, `16:9`, or `9:16` |
+| `is_raw` | bool | No | `false` | Enable raw mode for less processed output |
 | `output_format` | string | No | `png` | `jpeg` / `png` |
 | `seed` | int | No | - | Seed for reproducibility |
 

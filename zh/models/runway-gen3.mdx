@@ -1,97 +1,129 @@
 ---
 title: "Runway Gen-3 视频生成 API"
-description: "如何提交 Runway Gen-3 视频任务、请求 schema、返回格式与轮询方式"
+description: "Wizzx Runway Gen-3 文生视频及图生视频"
 ---
 
-## 概览
+## 快速上手
 
-- 通过 Kie.ai 代理调用 Runway Gen-3，支持文本驱动 (`text2video`) 和图片驱动 (`img2video`) 两种模式。
-- 所有请求均创建异步视频任务；响应会返回 `task_id` 供后续轮询。
+- 平台：Wizzx（第三方 API 聚合），统一使用 `Authorization: Bearer <your_api_key>`。
+- 提交任务：`POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3`，异步返回 `task_id`。
+- 轮询状态：`POST https://api.wizzx.ai/api/v1/task/status`，传入 `task_id` 获取结果。
+- 模式：`text-to-video`（纯文本）、`image-to-video`（1 张参考图）。
 
-## 接口速览
-
-- `POST /v1/video/runway-gen3`：提交生成任务。
-- `GET /v1/video/runway-gen3/{task_id}`：根据 `task_id` 轮询进度与结果。
-
-> 根据部署路径调整前缀（示例使用 `/v1`）。所有请求需携带 `Authorization: Bearer <token>`。
-
-## 请求 schema（POST）
-
-字段 | 说明 | 约束/默认
--| - | -
-`prompt` | 文本提示词 | 必填
-`mode` | 生成模式 | 必填，`text2video`/`img2video`
-`input_image_url` | 模板图 URL | `img2video` 必填，合法 URL
-`duration` | 时长（秒） | 可选，默认 5；仅支持 5 或 10
-`resolution` | 分辨率 | 可选，默认 `720p`；仅 `720p`/`1080p`，10 秒不支持 1080p
-`fps` | 帧率 | 可选，默认 24；`24`/`30`/`60`
-`aspect_ratio` | 画幅 | 可选，`16:9`/`9:16`/`1:1`（留空由后端判断）
-
-### 提交示例
+### 认证
 
 ```bash
-curl -X POST https://api.wizzx.ai/v1/video/runway-gen3 \
-  -H "Authorization: Bearer $TOKEN" \
+Authorization: Bearer <your_api_key>
+```
+
+### 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3`，`Content-Type: application/json`
+
+| 字段 | 类型 | 必填 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `prompt` | string | 是 | - | 描述视频内容的文本提示词 |
+| `type` | string | 是 | - | `text-to-video` 或 `image-to-video` |
+| `image_urls` | array | 条件必填 | - | 图片 URL 数组（`image-to-video` 必填，最多 1 张） |
+| `duration` | int | 否 | 5 | 视频时长：`5` 或 `10` 秒 |
+| `resolution` | string | 否 | `720p` | `720p` 或 `1080p`（10 秒不支持 1080p） |
+| `aspect_ratio` | string | 否 | auto | `16:9`、`9:16` 或 `1:1` |
+
+<Warning>
+  **限制：** 10 秒视频不支持 1080p 分辨率。
+</Warning>
+
+#### 请求示例：文生视频
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
+  -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "prompt": "a cinematic drone flythrough of a neon city",
-    "mode": "text2video",
+    "prompt": "电影级的无人机穿越霓虹城市夜景",
+    "type": "text-to-video",
     "duration": 5,
     "resolution": "720p",
-    "fps": 24,
     "aspect_ratio": "16:9"
   }'
 ```
 
-## 返回格式
-
-提交成功时：
-
-```json
-{
-  "task_id": "rw_123",
-  "status": "queued",
-  "credits": 5,
-  "duration": 5,
-  "resolution": "720p",
-  "mode": "text2video"
-}
-```
-
-状态字段通常为 `queued` | `processing` | `succeeded` | `failed`。
-
-## 轮询与结果获取
-
-使用 `GET /v1/video/runway-gen3/{task_id}` 间隔查询（建议 2-5s）：
+#### 请求示例：图生视频
 
 ```bash
-curl -H "Authorization: Bearer $TOKEN" \
-  https://api.wizzx.ai/v1/video/runway-gen3/rw_123
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "让角色优雅地向前走动",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/character.jpg"],
+    "duration": 5,
+    "resolution": "720p"
+  }'
 ```
 
-成功示例：
+成功响应：
 
 ```json
 {
-  "task_id": "rw_123",
-  "status": "succeeded",
-  "result": {
-    "video_url": "https://cdn.example.com/rw_123.mp4",
-    "cover_image_url": "https://cdn.example.com/rw_123.jpg"
-  },
-  "duration": 5,
-  "resolution": "720p",
-  "mode": "text2video"
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "pending",
+    "credits_deducted": 5
+  }
 }
 ```
 
-失败时返回 `status: failed` 与 `error` 描述。
+### 查询状态
 
-## 计费规则（参考）
+接口：`POST https://api.wizzx.ai/api/v1/task/status`
 
-- 5s 720p：5 积分
-- 5s 1080p：10 积分
-- 10s 720p：5 积分
-- 10s 1080p：不支持
+```json
+{
+  "task_id": "task_123456789"
+}
+```
 
-> 计费依据提交时的时长与分辨率；若超出限制会直接校验报错。
+响应示例（成功）：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "task_id": "task_123456789",
+    "status": "succeeded",
+    "result_urls": ["https://cdn.example.com/video.mp4"]
+  }
+}
+```
+
+状态流程：`pending`（排队中）→ `processing`（生成中）→ `succeeded`（成功，返回 `result_urls`）或 `failed`（失败，查看 `error`）。
+
+### 计费
+
+| 时长 | 分辨率 | 积分 |
+|------|--------|------|
+| 5 秒 | 720p | 5 |
+| 5 秒 | 1080p | 10 |
+| 10 秒 | 720p | 5 |
+| 10 秒 | 1080p | 不支持 |
+
+### 最佳实践
+
+1. **时长与分辨率：**
+   - 较长视频（10 秒）请使用 720p 分辨率
+   - 1080p 仅支持 5 秒视频
+
+2. **模式选择：**
+   - 使用 `text-to-video` 进行纯文本驱动生成
+   - 使用 `image-to-video` 时提供参考图可获得更好的一致性
+
+3. **宽高比：**
+   - 横屏视频使用 `16:9`
+   - 竖屏视频使用 `9:16`
+   - 方形视频使用 `1:1`
+   - 图生视频建议留空由系统自动检测
