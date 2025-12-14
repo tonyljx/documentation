@@ -1,0 +1,44 @@
+---
+title: "Submit Nano Banana task"
+description: "POST Nano Banana (Google) 文生图/图生图任务"
+openapi: "POST /api/v1/task/submit/nano-banana"
+---
+
+## 提交任务
+
+- Header：`Authorization: Bearer <your_api_key>`。
+- 必填 `prompt`（最多 5000 字符）；可选 `image_urls`（最多 10 张）、`aspect_ratio`、`output_format`。
+- 异步返回 `task_id` 与扣费 `credits_deducted`，使用 `/api/v1/task/status` 轮询结果。
+- 智能模式选择，根据输入自动选择最优生成模式。
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一幅超现实主义画作，一根巨大的香蕉漂浮在太空中",
+    "aspect_ratio": "16:9",
+    "output_format": "png"
+  }'
+```
+
+### 图生图示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "将这张图片转换成水彩画风格",
+    "image_urls": ["https://example.com/reference.jpg"],
+    "aspect_ratio": "1:1",
+    "output_format": "png"
+  }'
+```
+
+<Note>
+- 画幅：`1:1`、`2:3`、`3:2`、`3:4`、`4:3`、`4:5`、`5:4`、`9:16`、`16:9`、`21:9`、`auto`，默认 `1:1`。
+- 积分：固定 24 积分/次。
+- 输出格式：`png` / `jpeg`，默认 `png`。
+- 最多 10 张参考图片（JPEG/PNG/WebP）。
+</Note>

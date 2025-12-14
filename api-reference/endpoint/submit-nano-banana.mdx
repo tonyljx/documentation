@@ -1,0 +1,44 @@
+---
+title: "Submit Nano Banana task"
+description: "POST Nano Banana (Google) text/image-to-image task"
+openapi: "POST /api/v1/task/submit/nano-banana"
+---
+
+## Submit task
+
+- Header: `Authorization: Bearer <your_api_key>`.
+- Required: `prompt` (max 5000 chars). Optional: `image_urls` (max 10), `aspect_ratio`, `output_format`.
+- Async `task_id` and `credits_deducted`; poll `/api/v1/task/status`.
+- Smart mode selection based on inputs.
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A surreal painting of a giant banana floating in space",
+    "aspect_ratio": "16:9",
+    "output_format": "png"
+  }'
+```
+
+### Image-to-image example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Transform this into a watercolor painting style",
+    "image_urls": ["https://example.com/reference.jpg"],
+    "aspect_ratio": "1:1",
+    "output_format": "png"
+  }'
+```
+
+<Note>
+- Aspect ratios: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `auto` (default `1:1`).
+- Credits: Fixed 24 credits per generation.
+- Output formats: `png` / `jpeg` (default `png`).
+- Max 10 reference images (JPEG/PNG/WebP).
+</Note>
