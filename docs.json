@@ -62,12 +62,17 @@
             "tab": "API reference",
             "groups": [
               {
-                "group": "Endpoint examples",
+                "group": "Video Generation",
                 "pages": [
                   "api-reference/endpoint/submit-veo3",
                   "api-reference/endpoint/submit-kling-ai",
                   "api-reference/endpoint/submit-seedance-pro-fast",
-                  "api-reference/endpoint/submit-wan-2-5",
+                  "api-reference/endpoint/submit-wan-2-5"
+                ]
+              },
+              {
+                "group": "Image Generation",
+                "pages": [
                   "api-reference/endpoint/submit-flux-kontext-pro",
                   "api-reference/endpoint/submit-flux-kontext-max",
                   "api-reference/endpoint/submit-flux-2-pro",
@@ -76,7 +81,12 @@
                   "api-reference/endpoint/submit-seedream-4-5",
                   "api-reference/endpoint/submit-nano-banana-pro",
                   "api-reference/endpoint/submit-nano-banana",
-                  "api-reference/endpoint/submit-virtual-try-on",
+                  "api-reference/endpoint/submit-virtual-try-on"
+                ]
+              },
+              {
+                "group": "Task Management",
+                "pages": [
                   "api-reference/endpoint/task-status"
                 ]
               }
@@ -122,12 +132,17 @@
             "tab": "API 参考",
             "groups": [
               {
-                "group": "接口示例",
+                "group": "视频生成",
                 "pages": [
                   "zh/api-reference/endpoint/submit-veo3",
                   "zh/api-reference/endpoint/submit-kling-ai",
                   "zh/api-reference/endpoint/submit-seedance-pro-fast",
-                  "zh/api-reference/endpoint/submit-wan-2-5",
+                  "zh/api-reference/endpoint/submit-wan-2-5"
+                ]
+              },
+              {
+                "group": "图像生成",
+                "pages": [
                   "zh/api-reference/endpoint/submit-flux-kontext-pro",
                   "zh/api-reference/endpoint/submit-flux-kontext-max",
                   "zh/api-reference/endpoint/submit-flux-2-pro",
@@ -136,7 +151,12 @@
                   "zh/api-reference/endpoint/submit-seedream-4-5",
                   "zh/api-reference/endpoint/submit-nano-banana-pro",
                   "zh/api-reference/endpoint/submit-nano-banana",
-                  "zh/api-reference/endpoint/submit-virtual-try-on",
+                  "zh/api-reference/endpoint/submit-virtual-try-on"
+                ]
+              },
+              {
+                "group": "任务管理",
+                "pages": [
                   "zh/api-reference/endpoint/task-status"
                 ]
               }
