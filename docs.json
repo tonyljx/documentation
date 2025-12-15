@@ -42,19 +42,6 @@
                   "models/nano-banana",
                   "models/virtual-try-on"
                 ]
-              },
-              {
-                "group": "Customization",
-                "pages": ["essentials/settings", "essentials/navigation"]
-              },
-              {
-                "group": "Writing content",
-                "pages": [
-                  "essentials/markdown",
-                  "essentials/code",
-                  "essentials/images",
-                  "essentials/reusable-snippets"
-                ]
               }
             ]
           },
@@ -63,9 +50,7 @@
             "groups": [
               {
                 "group": "Overview",
-                "pages": [
-                  "api-reference/error-codes"
-                ]
+                "pages": ["api-reference/error-codes"]
               },
               {
                 "group": "Video Generation",
@@ -92,9 +77,7 @@
               },
               {
                 "group": "Task Management",
-                "pages": [
-                  "api-reference/endpoint/task-status"
-                ]
+                "pages": ["api-reference/endpoint/task-status"]
               }
             ]
           }
@@ -139,9 +122,7 @@
             "groups": [
               {
                 "group": "概览",
-                "pages": [
-                  "zh/api-reference/error-codes"
-                ]
+                "pages": ["zh/api-reference/error-codes"]
               },
               {
                 "group": "视频生成",
@@ -168,9 +149,7 @@
               },
               {
                 "group": "任务管理",
-                "pages": [
-                  "zh/api-reference/endpoint/task-status"
-                ]
+                "pages": ["zh/api-reference/endpoint/task-status"]
               }
             ]
           }
