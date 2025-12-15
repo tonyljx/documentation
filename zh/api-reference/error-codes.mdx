@@ -1,0 +1,605 @@
+---
+title: "错误码"
+description: "API 错误码完整参考及处理方法"
+---
+
+Wizzx API 使用标准的 HTTP 响应码来表示请求的成功或失败。API 返回的错误格式与 OpenAI 兼容，便于与现有 SDK 集成。
+
+## 错误响应格式
+
+所有错误响应遵循以下结构：
+
+```json
+{
+  "error": {
+    "message": "人类可读的错误描述及解决方案",
+    "type": "error_category",
+    "param": "parameter_name",
+    "code": "specific_error_code"
+  },
+  "request_id": "req_abc123"
+}
+```
+
+| 字段 | 描述 |
+|-----|------|
+| `message` | 人类可读的错误描述，包含解决建议 |
+| `type` | 错误类别，用于 SDK 异常映射 |
+| `param` | 导致错误的参数（如不适用则为 null） |
+| `code` | 具体的错误码，用于程序化处理 |
+| `request_id` | 请求的唯一标识符，用于联系支持时提供 |
+
+## HTTP 状态码概览
+
+| 状态码 | 类型 | 描述 |
+|-------|-----|------|
+| 400 | `invalid_request_error` | 请求格式错误或缺少必需参数 |
+| 401 | `authentication_error` | API 密钥无效或缺失 |
+| 402 | `insufficient_quota` | 积分不足，无法完成请求 |
+| 403 | `permission_denied` | 无权访问请求的资源 |
+| 404 | `not_found_error` | 请求的资源不存在 |
+| 409 | `conflict_error` | 请求与当前状态冲突 |
+| 422 | `unprocessable_entity_error` | 请求格式正确但无法处理 |
+| 429 | `rate_limit_error` | 短时间内请求过多 |
+| 500 | `server_error` | 服务器内部错误 |
+| 503 | `service_unavailable` | 服务暂时不可用 |
+
+---
+
+## 认证错误 (401)
+
+当 API 密钥存在问题时会返回认证错误。
+
+### `missing_api_key`
+
+```json
+{
+  "error": {
+    "message": "Missing API key. Include your API key in the Authorization header using Bearer authentication.",
+    "type": "authentication_error",
+    "param": null,
+    "code": "missing_api_key"
+  }
+}
+```
+
+**解决方案：** 在请求中添加 `Authorization` 请求头：
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" ...
+```
+
+### `invalid_api_key`
+
+```json
+{
+  "error": {
+    "message": "Invalid API key provided. Ensure the API key is correct and active.",
+    "type": "authentication_error",
+    "param": null,
+    "code": "invalid_api_key"
+  }
+}
+```
+
+**解决方案：** 确认 API 密钥正确无误。您可以在 [控制台](https://dashboard.wizzx.ai) 查看您的 API 密钥。
+
+### `api_key_revoked`
+
+```json
+{
+  "error": {
+    "message": "API key has been revoked. Generate a new API key from your dashboard.",
+    "type": "authentication_error",
+    "param": null,
+    "code": "api_key_revoked"
+  }
+}
+```
+
+**解决方案：** 在控制台生成新的 API 密钥。
+
+---
+
+## 无效请求错误 (400)
+
+这些错误表示请求格式或参数存在问题。
+
+### `missing_required_parameter`
+
+```json
+{
+  "error": {
+    "message": "Missing required parameter 'prompt'. Include this parameter in your request.",
+    "type": "invalid_request_error",
+    "param": "prompt",
+    "code": "missing_required_parameter"
+  }
+}
+```
+
+**解决方案：** 在请求体中包含必需的参数。
+
+### `invalid_parameter_value`
+
+```json
+{
+  "error": {
+    "message": "Invalid value for 'duration': must be one of: 5, 10. Check the API documentation for valid values.",
+    "type": "invalid_request_error",
+    "param": "duration",
+    "code": "invalid_parameter_value"
+  }
+}
+```
+
+**解决方案：** 查阅 API 文档了解有效的参数值。
+
+### `invalid_json_body`
+
+```json
+{
+  "error": {
+    "message": "Could not parse JSON body. Ensure your request body is valid JSON.",
+    "type": "invalid_request_error",
+    "param": null,
+    "code": "invalid_json_body"
+  }
+}
+```
+
+**解决方案：** 发送前验证 JSON 语法是否正确。
+
+### `model_not_supported`
+
+```json
+{
+  "error": {
+    "message": "Model 'invalid-model' is not supported. Check available models in the API documentation.",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_supported"
+  }
+}
+```
+
+**解决方案：** 使用支持的模型名称。查看 [API 文档](/zh/api-reference/introduction) 了解可用模型。
+
+---
+
+## 配额不足错误 (402)
+
+这些错误表示账单或积分问题。
+
+### `insufficient_credits`
+
+```json
+{
+  "error": {
+    "message": "You have insufficient credits. Your balance is 50 credits, but this request requires 100 credits. Top up your account to continue.",
+    "type": "insufficient_quota",
+    "param": null,
+    "code": "insufficient_credits"
+  }
+}
+```
+
+**解决方案：** 在 [控制台](https://dashboard.wizzx.ai) 为账户充值。
+
+### `billing_not_active`
+
+```json
+{
+  "error": {
+    "message": "Billing is not active on your account. Add a payment method to continue.",
+    "type": "insufficient_quota",
+    "param": null,
+    "code": "billing_not_active"
+  }
+}
+```
+
+**解决方案：** 在账户设置中添加支付方式以激活账单。
+
+---
+
+## 权限拒绝错误 (403)
+
+这些错误表示访问限制。
+
+### `access_denied`
+
+```json
+{
+  "error": {
+    "message": "You don't have permission to access this resource. Contact your administrator.",
+    "type": "permission_denied",
+    "param": null,
+    "code": "access_denied"
+  }
+}
+```
+
+**解决方案：** 联系管理员或升级您的套餐。
+
+### `model_access_denied`
+
+```json
+{
+  "error": {
+    "message": "You don't have access to model 'veo-3'. Upgrade your plan or contact support.",
+    "type": "permission_denied",
+    "param": null,
+    "code": "model_access_denied"
+  }
+}
+```
+
+**解决方案：** 升级订阅套餐或联系支持团队获取访问权限。
+
+### `ip_not_allowed`
+
+```json
+{
+  "error": {
+    "message": "Your IP address is not allowed. Check your API key's IP allowlist settings.",
+    "type": "permission_denied",
+    "param": null,
+    "code": "ip_not_allowed"
+  }
+}
+```
+
+**解决方案：** 在 API 密钥设置中更新 IP 白名单。
+
+---
+
+## 未找到错误 (404)
+
+这些错误表示请求的资源不存在。
+
+### `task_not_found`
+
+```json
+{
+  "error": {
+    "message": "Task 'task_abc123' not found. Ensure the task ID is correct and the task hasn't expired.",
+    "type": "not_found_error",
+    "param": null,
+    "code": "task_not_found"
+  }
+}
+```
+
+**解决方案：** 确认任务 ID 正确。请注意任务数据会在一段时间后过期。
+
+### `model_not_found`
+
+```json
+{
+  "error": {
+    "message": "Model 'unknown-model' does not exist. Check available models at /v1/models endpoint.",
+    "type": "not_found_error",
+    "param": null,
+    "code": "model_not_found"
+  }
+}
+```
+
+**解决方案：** 使用 `/v1/models` 端点列出可用模型。
+
+### `resource_not_found`
+
+```json
+{
+  "error": {
+    "message": "The requested resource was not found. Verify the endpoint URL is correct.",
+    "type": "not_found_error",
+    "param": null,
+    "code": "resource_not_found"
+  }
+}
+```
+
+**解决方案：** 检查端点 URL 是否正确。
+
+---
+
+## 冲突错误 (409)
+
+这些错误表示与当前资源状态存在冲突。
+
+### `resource_conflict`
+
+```json
+{
+  "error": {
+    "message": "A conflict occurred with resource 'api_key_123'. The resource may have been modified. Refresh and retry.",
+    "type": "conflict_error",
+    "param": null,
+    "code": "resource_conflict"
+  }
+}
+```
+
+**解决方案：** 刷新本地状态并重试操作。
+
+### `duplicate_resource`
+
+```json
+{
+  "error": {
+    "message": "Resource 'my-api-key' already exists. Use a different identifier or update the existing resource.",
+    "type": "conflict_error",
+    "param": null,
+    "code": "duplicate_resource"
+  }
+}
+```
+
+**解决方案：** 使用唯一标识符或更新现有资源。
+
+### `concurrent_update`
+
+```json
+{
+  "error": {
+    "message": "The resource was modified by another request. Refresh and retry your update.",
+    "type": "conflict_error",
+    "param": null,
+    "code": "concurrent_update"
+  }
+}
+```
+
+**解决方案：** 获取最新版本后重试更新。
+
+---
+
+## 无法处理实体错误 (422)
+
+这些错误表示请求格式正确但无法处理。
+
+### `validation_failed`
+
+```json
+{
+  "error": {
+    "message": "Validation failed: aspect_ratio must match the image dimensions.",
+    "type": "unprocessable_entity_error",
+    "param": null,
+    "code": "validation_failed"
+  }
+}
+```
+
+**解决方案：** 查看错误消息了解具体的验证要求。
+
+### `invalid_image_url`
+
+```json
+{
+  "error": {
+    "message": "Unable to process image at 'https://example.com/image.jpg'. Ensure the URL is accessible and points to a valid image.",
+    "type": "unprocessable_entity_error",
+    "param": "image_url",
+    "code": "invalid_image_url"
+  }
+}
+```
+
+**解决方案：** 确认图片 URL 可公开访问且返回有效图片。
+
+### `image_too_large`
+
+```json
+{
+  "error": {
+    "message": "Image exceeds maximum size of 20MB. Reduce the image size and retry.",
+    "type": "unprocessable_entity_error",
+    "param": "image_url",
+    "code": "image_too_large"
+  }
+}
+```
+
+**解决方案：** 压缩或调整图片大小以满足要求。
+
+### `unsupported_image_format`
+
+```json
+{
+  "error": {
+    "message": "Image format not supported. Use JPEG, PNG, or WebP format.",
+    "type": "unprocessable_entity_error",
+    "param": "image_url",
+    "code": "unsupported_image_format"
+  }
+}
+```
+
+**解决方案：** 将图片转换为 JPEG、PNG 或 WebP 格式。
+
+---
+
+## 速率限制错误 (429)
+
+这些错误表示请求发送过快。
+
+### `rate_limit_exceeded`
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. You are sending requests too quickly. Retry after 60 seconds.",
+    "type": "rate_limit_error",
+    "param": null,
+    "code": "rate_limit_exceeded"
+  },
+  "retry_after": 60
+}
+```
+
+**解决方案：** 在代码中实现指数退避重试。`retry_after` 字段指示何时可以重试。
+
+```python
+import time
+
+def call_api_with_retry(func, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                time.sleep(e.retry_after or 60)
+            else:
+                raise
+```
+
+### `requests_quota_exceeded`
+
+```json
+{
+  "error": {
+    "message": "You exceeded your request quota. Wait until your quota resets or upgrade your plan.",
+    "type": "rate_limit_error",
+    "param": null,
+    "code": "requests_quota_exceeded"
+  }
+}
+```
+
+**解决方案：** 等待配额重置或升级到更高等级。
+
+---
+
+## 服务器错误 (500)
+
+这些错误表示服务端出现问题。
+
+### `internal_error`
+
+```json
+{
+  "error": {
+    "message": "The server had an error processing your request. Retry after a brief wait. If the issue persists, contact support with request_id: req_abc123",
+    "type": "server_error",
+    "param": null,
+    "code": "internal_error"
+  },
+  "request_id": "req_abc123"
+}
+```
+
+**解决方案：** 稍等片刻后重试。如果问题持续，请携带 `request_id` 联系支持团队。
+
+### `upstream_provider_error`
+
+```json
+{
+  "error": {
+    "message": "An upstream provider error occurred. Retry your request after a brief wait.",
+    "type": "server_error",
+    "param": null,
+    "code": "upstream_provider_error"
+  }
+}
+```
+
+**解决方案：** 这是上游 AI 提供商的临时问题。稍等片刻后重试。
+
+---
+
+## 服务不可用错误 (503)
+
+这些错误表示服务暂时出现问题。
+
+### `service_overloaded`
+
+```json
+{
+  "error": {
+    "message": "The service is currently overloaded. Please retry your request after a brief wait.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "service_overloaded"
+  }
+}
+```
+
+**解决方案：** 使用指数退避重试。
+
+### `model_overloaded`
+
+```json
+{
+  "error": {
+    "message": "Model 'veo-3' is experiencing high traffic. Please retry later or use an alternative model.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "model_overloaded"
+  }
+}
+```
+
+**解决方案：** 尝试使用其他模型或稍后重试。
+
+### `maintenance_mode`
+
+```json
+{
+  "error": {
+    "message": "The service is under maintenance. Please try again later.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "maintenance_mode"
+  }
+}
+```
+
+**解决方案：** 等待维护完成。查看我们的状态页面了解最新动态。
+
+---
+
+## 错误处理最佳实践
+
+<AccordionGroup>
+  <Accordion title="实现重试逻辑">
+    对于临时性错误（429、500、503），始终实现指数退避重试：
+
+    ```python
+    import time
+    import random
+
+    def retry_with_backoff(func, max_retries=3, base_delay=1):
+        for attempt in range(max_retries):
+            try:
+                return func()
+            except (RateLimitError, ServerError) as e:
+                if attempt == max_retries - 1:
+                    raise
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(delay)
+    ```
+  </Accordion>
+
+  <Accordion title="记录请求 ID">
+    始终记录错误响应中的 `request_id`。这有助于支持团队快速诊断问题。
+  </Accordion>
+
+  <Accordion title="处理特定错误码">
+    处理特定的错误码而不仅仅是 HTTP 状态码，以实现更精确的错误处理：
+
+    ```python
+    try:
+        response = api.generate_video(...)
+    except APIError as e:
+        if e.code == "insufficient_credits":
+            notify_user_to_top_up()
+        elif e.code == "rate_limit_exceeded":
+            retry_later(e.retry_after)
+        else:
+            log_error(e.request_id)
+    ```
+  </Accordion>
+</AccordionGroup>

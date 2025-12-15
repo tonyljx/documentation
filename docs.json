@@ -62,6 +62,12 @@
             "tab": "API reference",
             "groups": [
               {
+                "group": "Overview",
+                "pages": [
+                  "api-reference/error-codes"
+                ]
+              },
+              {
                 "group": "Video Generation",
                 "pages": [
                   "api-reference/endpoint/submit-veo3",
@@ -131,6 +137,12 @@
           {
             "tab": "API 参考",
             "groups": [
+              {
+                "group": "概览",
+                "pages": [
+                  "zh/api-reference/error-codes"
+                ]
+              },
               {
                 "group": "视频生成",
                 "pages": [

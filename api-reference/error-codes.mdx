@@ -1,0 +1,605 @@
+---
+title: "Error Codes"
+description: "Complete reference for API error codes and how to handle them"
+---
+
+The Wizzx API uses conventional HTTP response codes to indicate the success or failure of an API request. The API returns errors in an OpenAI-compatible format for easy integration with existing SDKs.
+
+## Error Response Format
+
+All error responses follow this structure:
+
+```json
+{
+  "error": {
+    "message": "Human-readable error message with solution",
+    "type": "error_category",
+    "param": "parameter_name",
+    "code": "specific_error_code"
+  },
+  "request_id": "req_abc123"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `message` | A human-readable description of the error with suggested solutions |
+| `type` | The category of error, useful for SDK exception mapping |
+| `param` | The parameter that caused the error (null if not applicable) |
+| `code` | A specific error code for programmatic handling |
+| `request_id` | Unique identifier for the request, useful for support |
+
+## HTTP Status Codes Overview
+
+| Status Code | Type | Description |
+|-------------|------|-------------|
+| 400 | `invalid_request_error` | The request was malformed or missing required parameters |
+| 401 | `authentication_error` | Invalid or missing API key |
+| 402 | `insufficient_quota` | Not enough credits to complete the request |
+| 403 | `permission_denied` | You don't have access to the requested resource |
+| 404 | `not_found_error` | The requested resource doesn't exist |
+| 409 | `conflict_error` | The request conflicts with current state |
+| 422 | `unprocessable_entity_error` | The request was well-formed but cannot be processed |
+| 429 | `rate_limit_error` | Too many requests in a short period |
+| 500 | `server_error` | Something went wrong on our end |
+| 503 | `service_unavailable` | The service is temporarily unavailable |
+
+---
+
+## Authentication Errors (401)
+
+Authentication errors occur when there's an issue with your API key.
+
+### `missing_api_key`
+
+```json
+{
+  "error": {
+    "message": "Missing API key. Include your API key in the Authorization header using Bearer authentication.",
+    "type": "authentication_error",
+    "param": null,
+    "code": "missing_api_key"
+  }
+}
+```
+
+**Solution:** Add the `Authorization` header to your request:
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" ...
+```
+
+### `invalid_api_key`
+
+```json
+{
+  "error": {
+    "message": "Invalid API key provided. Ensure the API key is correct and active.",
+    "type": "authentication_error",
+    "param": null,
+    "code": "invalid_api_key"
+  }
+}
+```
+
+**Solution:** Verify your API key is correct. You can find your API keys in the [Dashboard](https://dashboard.wizzx.ai).
+
+### `api_key_revoked`
+
+```json
+{
+  "error": {
+    "message": "API key has been revoked. Generate a new API key from your dashboard.",
+    "type": "authentication_error",
+    "param": null,
+    "code": "api_key_revoked"
+  }
+}
+```
+
+**Solution:** Generate a new API key from your dashboard.
+
+---
+
+## Invalid Request Errors (400)
+
+These errors indicate issues with the request format or parameters.
+
+### `missing_required_parameter`
+
+```json
+{
+  "error": {
+    "message": "Missing required parameter 'prompt'. Include this parameter in your request.",
+    "type": "invalid_request_error",
+    "param": "prompt",
+    "code": "missing_required_parameter"
+  }
+}
+```
+
+**Solution:** Include the required parameter in your request body.
+
+### `invalid_parameter_value`
+
+```json
+{
+  "error": {
+    "message": "Invalid value for 'duration': must be one of: 5, 10. Check the API documentation for valid values.",
+    "type": "invalid_request_error",
+    "param": "duration",
+    "code": "invalid_parameter_value"
+  }
+}
+```
+
+**Solution:** Check the API documentation for valid parameter values.
+
+### `invalid_json_body`
+
+```json
+{
+  "error": {
+    "message": "Could not parse JSON body. Ensure your request body is valid JSON.",
+    "type": "invalid_request_error",
+    "param": null,
+    "code": "invalid_json_body"
+  }
+}
+```
+
+**Solution:** Validate your JSON syntax before sending. Use a JSON validator if needed.
+
+### `model_not_supported`
+
+```json
+{
+  "error": {
+    "message": "Model 'invalid-model' is not supported. Check available models in the API documentation.",
+    "type": "invalid_request_error",
+    "param": "model",
+    "code": "model_not_supported"
+  }
+}
+```
+
+**Solution:** Use a supported model name. Check the [API documentation](/api-reference/introduction) for available models.
+
+---
+
+## Insufficient Quota Errors (402)
+
+These errors indicate billing or credit issues.
+
+### `insufficient_credits`
+
+```json
+{
+  "error": {
+    "message": "You have insufficient credits. Your balance is 50 credits, but this request requires 100 credits. Top up your account to continue.",
+    "type": "insufficient_quota",
+    "param": null,
+    "code": "insufficient_credits"
+  }
+}
+```
+
+**Solution:** Add more credits to your account from the [Dashboard](https://dashboard.wizzx.ai).
+
+### `billing_not_active`
+
+```json
+{
+  "error": {
+    "message": "Billing is not active on your account. Add a payment method to continue.",
+    "type": "insufficient_quota",
+    "param": null,
+    "code": "billing_not_active"
+  }
+}
+```
+
+**Solution:** Activate billing by adding a payment method in your account settings.
+
+---
+
+## Permission Denied Errors (403)
+
+These errors indicate access restrictions.
+
+### `access_denied`
+
+```json
+{
+  "error": {
+    "message": "You don't have permission to access this resource. Contact your administrator.",
+    "type": "permission_denied",
+    "param": null,
+    "code": "access_denied"
+  }
+}
+```
+
+**Solution:** Contact your administrator or upgrade your plan.
+
+### `model_access_denied`
+
+```json
+{
+  "error": {
+    "message": "You don't have access to model 'veo-3'. Upgrade your plan or contact support.",
+    "type": "permission_denied",
+    "param": null,
+    "code": "model_access_denied"
+  }
+}
+```
+
+**Solution:** Upgrade your subscription plan or contact support for access.
+
+### `ip_not_allowed`
+
+```json
+{
+  "error": {
+    "message": "Your IP address is not allowed. Check your API key's IP allowlist settings.",
+    "type": "permission_denied",
+    "param": null,
+    "code": "ip_not_allowed"
+  }
+}
+```
+
+**Solution:** Update the IP allowlist in your API key settings.
+
+---
+
+## Not Found Errors (404)
+
+These errors indicate the requested resource doesn't exist.
+
+### `task_not_found`
+
+```json
+{
+  "error": {
+    "message": "Task 'task_abc123' not found. Ensure the task ID is correct and the task hasn't expired.",
+    "type": "not_found_error",
+    "param": null,
+    "code": "task_not_found"
+  }
+}
+```
+
+**Solution:** Verify the task ID is correct. Note that task data expires after a period of time.
+
+### `model_not_found`
+
+```json
+{
+  "error": {
+    "message": "Model 'unknown-model' does not exist. Check available models at /v1/models endpoint.",
+    "type": "not_found_error",
+    "param": null,
+    "code": "model_not_found"
+  }
+}
+```
+
+**Solution:** Use the `/v1/models` endpoint to list available models.
+
+### `resource_not_found`
+
+```json
+{
+  "error": {
+    "message": "The requested resource was not found. Verify the endpoint URL is correct.",
+    "type": "not_found_error",
+    "param": null,
+    "code": "resource_not_found"
+  }
+}
+```
+
+**Solution:** Check that the endpoint URL is correct.
+
+---
+
+## Conflict Errors (409)
+
+These errors indicate conflicts with the current resource state.
+
+### `resource_conflict`
+
+```json
+{
+  "error": {
+    "message": "A conflict occurred with resource 'api_key_123'. The resource may have been modified. Refresh and retry.",
+    "type": "conflict_error",
+    "param": null,
+    "code": "resource_conflict"
+  }
+}
+```
+
+**Solution:** Refresh your local state and retry the operation.
+
+### `duplicate_resource`
+
+```json
+{
+  "error": {
+    "message": "Resource 'my-api-key' already exists. Use a different identifier or update the existing resource.",
+    "type": "conflict_error",
+    "param": null,
+    "code": "duplicate_resource"
+  }
+}
+```
+
+**Solution:** Use a unique identifier or update the existing resource instead.
+
+### `concurrent_update`
+
+```json
+{
+  "error": {
+    "message": "The resource was modified by another request. Refresh and retry your update.",
+    "type": "conflict_error",
+    "param": null,
+    "code": "concurrent_update"
+  }
+}
+```
+
+**Solution:** Fetch the latest version and retry your update.
+
+---
+
+## Unprocessable Entity Errors (422)
+
+These errors indicate the request was well-formed but cannot be processed.
+
+### `validation_failed`
+
+```json
+{
+  "error": {
+    "message": "Validation failed: aspect_ratio must match the image dimensions.",
+    "type": "unprocessable_entity_error",
+    "param": null,
+    "code": "validation_failed"
+  }
+}
+```
+
+**Solution:** Check the error message for specific validation requirements.
+
+### `invalid_image_url`
+
+```json
+{
+  "error": {
+    "message": "Unable to process image at 'https://example.com/image.jpg'. Ensure the URL is accessible and points to a valid image.",
+    "type": "unprocessable_entity_error",
+    "param": "image_url",
+    "code": "invalid_image_url"
+  }
+}
+```
+
+**Solution:** Verify the image URL is publicly accessible and returns a valid image.
+
+### `image_too_large`
+
+```json
+{
+  "error": {
+    "message": "Image exceeds maximum size of 20MB. Reduce the image size and retry.",
+    "type": "unprocessable_entity_error",
+    "param": "image_url",
+    "code": "image_too_large"
+  }
+}
+```
+
+**Solution:** Compress or resize your image to meet the size requirements.
+
+### `unsupported_image_format`
+
+```json
+{
+  "error": {
+    "message": "Image format not supported. Use JPEG, PNG, or WebP format.",
+    "type": "unprocessable_entity_error",
+    "param": "image_url",
+    "code": "unsupported_image_format"
+  }
+}
+```
+
+**Solution:** Convert your image to JPEG, PNG, or WebP format.
+
+---
+
+## Rate Limit Errors (429)
+
+These errors indicate you're sending requests too quickly.
+
+### `rate_limit_exceeded`
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. You are sending requests too quickly. Retry after 60 seconds.",
+    "type": "rate_limit_error",
+    "param": null,
+    "code": "rate_limit_exceeded"
+  },
+  "retry_after": 60
+}
+```
+
+**Solution:** Implement exponential backoff in your code. The `retry_after` field indicates when you can retry.
+
+```python
+import time
+
+def call_api_with_retry(func, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except RateLimitError as e:
+            if attempt < max_retries - 1:
+                time.sleep(e.retry_after or 60)
+            else:
+                raise
+```
+
+### `requests_quota_exceeded`
+
+```json
+{
+  "error": {
+    "message": "You exceeded your request quota. Wait until your quota resets or upgrade your plan.",
+    "type": "rate_limit_error",
+    "param": null,
+    "code": "requests_quota_exceeded"
+  }
+}
+```
+
+**Solution:** Wait for your quota to reset or upgrade to a higher tier.
+
+---
+
+## Server Errors (500)
+
+These errors indicate problems on our end.
+
+### `internal_error`
+
+```json
+{
+  "error": {
+    "message": "The server had an error processing your request. Retry after a brief wait. If the issue persists, contact support with request_id: req_abc123",
+    "type": "server_error",
+    "param": null,
+    "code": "internal_error"
+  },
+  "request_id": "req_abc123"
+}
+```
+
+**Solution:** Retry after a brief wait. If the issue persists, contact support with the `request_id`.
+
+### `upstream_provider_error`
+
+```json
+{
+  "error": {
+    "message": "An upstream provider error occurred. Retry your request after a brief wait.",
+    "type": "server_error",
+    "param": null,
+    "code": "upstream_provider_error"
+  }
+}
+```
+
+**Solution:** This is a temporary issue with our AI providers. Retry after a brief wait.
+
+---
+
+## Service Unavailable Errors (503)
+
+These errors indicate temporary service issues.
+
+### `service_overloaded`
+
+```json
+{
+  "error": {
+    "message": "The service is currently overloaded. Please retry your request after a brief wait.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "service_overloaded"
+  }
+}
+```
+
+**Solution:** Retry with exponential backoff.
+
+### `model_overloaded`
+
+```json
+{
+  "error": {
+    "message": "Model 'veo-3' is experiencing high traffic. Please retry later or use an alternative model.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "model_overloaded"
+  }
+}
+```
+
+**Solution:** Try an alternative model or retry later.
+
+### `maintenance_mode`
+
+```json
+{
+  "error": {
+    "message": "The service is under maintenance. Please try again later.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "maintenance_mode"
+  }
+}
+```
+
+**Solution:** Wait for maintenance to complete. Check our status page for updates.
+
+---
+
+## Error Handling Best Practices
+
+<AccordionGroup>
+  <Accordion title="Implement Retry Logic">
+    Always implement retry logic with exponential backoff for transient errors (429, 500, 503):
+
+    ```python
+    import time
+    import random
+
+    def retry_with_backoff(func, max_retries=3, base_delay=1):
+        for attempt in range(max_retries):
+            try:
+                return func()
+            except (RateLimitError, ServerError) as e:
+                if attempt == max_retries - 1:
+                    raise
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                time.sleep(delay)
+    ```
+  </Accordion>
+
+  <Accordion title="Log Request IDs">
+    Always log the `request_id` from error responses. This helps our support team diagnose issues quickly.
+  </Accordion>
+
+  <Accordion title="Handle Specific Error Codes">
+    Handle specific error codes rather than just HTTP status codes for more precise error handling:
+
+    ```python
+    try:
+        response = api.generate_video(...)
+    except APIError as e:
+        if e.code == "insufficient_credits":
+            notify_user_to_top_up()
+        elif e.code == "rate_limit_exceeded":
+            retry_later(e.retry_after)
+        else:
+            log_error(e.request_id)
+    ```
+  </Accordion>
+</AccordionGroup>
