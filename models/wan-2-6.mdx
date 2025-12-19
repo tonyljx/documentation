@@ -1,0 +1,173 @@
+---
+title: "WAN 2.6 Video API"
+description: "Alibaba WAN 2.6 text/image-to-video generation with extended duration (up to 15s) and longer prompts (up to 5000 characters)"
+---
+
+## Overview
+
+- **Provider**: Alibaba
+- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
+- Required: `prompt`, `type` (`text-to-video` or `image-to-video`).
+- Optional: `duration` (5/10/15s), `resolution` (720p/1080p), `image_urls` (for image-to-video).
+- Extended prompt support (up to 5000 characters) and longer video duration (up to 15 seconds).
+
+## Auth
+
+- Header: `Authorization: Bearer <your_api_key>`
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`, `Content-Type: application/json`
+
+### Required
+
+| Field | Type | Notes |
+|------|------|------|
+| `prompt` | string | Video description, 1-5000 characters |
+| `type` | string | `text-to-video` or `image-to-video` |
+
+### Optional
+
+| Field | Type | Default | Notes |
+|------|------|---------|------|
+| `duration` | int | 5 | Video length: `5`, `10`, or `15` seconds |
+| `resolution` | string | `1080p` | Resolution: `720p` or `1080p` |
+| `image_urls` | []string | - | Required for image-to-video mode |
+
+### Type rules
+
+| type | Description | `image_urls` requirement |
+|------|-------------|-------------------------|
+| `text-to-video` | Pure text to video | Omit `image_urls` |
+| `image-to-video` | First frame to video | At least 1 image |
+
+### Image requirements (image-to-video mode)
+
+- Format: jpeg/png/webp
+- Size: < 10MB
+- Must provide at least 1 image
+
+### Comparison with WAN 2.5
+
+| Feature | WAN 2.5 | WAN 2.6 |
+|---------|---------|---------|
+| Generation modes | text-to-video, image-to-video | text-to-video, image-to-video |
+| Duration options | 5s, 10s | 5s, 10s, **15s** |
+| Prompt length | up to 800 characters | **up to 5000 characters** |
+| aspect_ratio | Supported | Not supported |
+| negative_prompt | Supported | Not supported |
+| enable_prompt_expansion | Supported | Not supported |
+| seed | Supported | Not supported |
+
+<Warning>
+  WAN 2.6 does not support `aspect_ratio`, `negative_prompt`, `enable_prompt_expansion`, or `seed` parameters. Use WAN 2.5 if you need these features.
+</Warning>
+
+### Example: Text-to-Video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "In a hyperrealistic ASMR video, a hand uses a knitted knife to slowly slice a burger made entirely of knitted wool.",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### Example: Image-to-Video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Anthropomorphic fox singing a Christmas song at the rubbish dump in the rain.",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/fox.jpg"],
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### Example: 15-second video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene timelapse of a cherry blossom tree in full bloom, petals gently falling in slow motion as the sun sets behind distant mountains. Soft golden light filters through the branches, creating a dreamy atmosphere.",
+    "type": "text-to-video",
+    "duration": 15,
+    "resolution": "720p"
+  }'
+```
+
+### Success response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "wan-2-6",
+    "credits_deducted": 1100
+  }
+}
+```
+
+## Query status
+
+- Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+- Body:
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### Status response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+Status: `PROCESSING` (generating), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+
+## Pricing
+
+WAN 2.6 pricing is based on resolution and duration.
+
+| Resolution | Credits/second | 5s video | 10s video | 15s video |
+|------------|----------------|----------|-----------|-----------|
+| **720p** | 80 | 400 credits ($0.40) | 800 credits ($0.80) | 1200 credits ($1.20) |
+| **1080p** | 110 | 550 credits ($0.55) | 1100 credits ($1.10) | 1650 credits ($1.65) |
+
+**Example calculations:**
+- 5s video at 720p: 80 x 5 = 400 credits
+- 10s video at 1080p: 110 x 10 = 1100 credits
+- 15s video at 1080p: 110 x 15 = 1650 credits
+
+## FAQ
+
+- **What's the difference between WAN 2.5 and WAN 2.6?** Both support text-to-video and image-to-video. WAN 2.6 offers longer videos (up to 15s) and longer prompts (up to 5000 characters), but doesn't support aspect_ratio, negative_prompt, seed, or prompt expansion. WAN 2.5 provides more fine-grained control.
+- **When should I use WAN 2.6 vs WAN 2.5?**
+  - Use WAN 2.6 for: longer videos (15s), detailed prompts (up to 5000 chars), improved quality
+  - Use WAN 2.5 for: aspect ratio control, negative prompts, seed control, prompt expansion
+- **What's the maximum prompt length?** 5000 characters, significantly longer than WAN 2.5's 800 character limit.
+- **How long are videos retained?** 30 days; please download and archive important videos.
+- **What image formats are supported?** JPEG, PNG, and WebP. Maximum file size is 10MB.

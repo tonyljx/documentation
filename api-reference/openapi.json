@@ -164,6 +164,90 @@
         }
       }
     },
+    "/api/v1/task/submit/wan-2-6": {
+      "post": {
+        "summary": "Submit WAN 2.6 video task",
+        "description": "Submit a video generation task using Alibaba WAN 2.6 model. Supports text-to-video and image-to-video modes with extended duration (up to 15s) and longer prompts (up to 5000 chars). Pricing: 720p = 80 credits/s, 1080p = 110 credits/s.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Wan26SubmitRequest"
+              },
+              "examples": {
+                "text-to-video": {
+                  "summary": "Text-to-video generation",
+                  "value": {
+                    "prompt": "In a hyperrealistic ASMR video, a hand uses a knitted knife to slowly slice a burger made entirely of knitted wool.",
+                    "type": "text-to-video",
+                    "duration": 5,
+                    "resolution": "1080p"
+                  }
+                },
+                "image-to-video": {
+                  "summary": "Image-to-video generation",
+                  "value": {
+                    "prompt": "Anthropomorphic fox singing a Christmas song at the rubbish dump in the rain.",
+                    "type": "image-to-video",
+                    "image_urls": ["https://example.com/fox.jpg"],
+                    "duration": 5,
+                    "resolution": "1080p"
+                  }
+                },
+                "15-second": {
+                  "summary": "15-second video generation",
+                  "value": {
+                    "prompt": "A serene timelapse of a cherry blossom tree in full bloom, petals gently falling in slow motion as the sun sets behind distant mountains.",
+                    "type": "text-to-video",
+                    "duration": 15,
+                    "resolution": "720p"
+                  }
+                },
+                "long-prompt": {
+                  "summary": "Using extended prompt capability",
+                  "value": {
+                    "prompt": "A cinematic aerial shot of a futuristic city at twilight. Flying cars navigate between towering skyscrapers covered in holographic advertisements. The camera slowly descends through the urban canyon, revealing bustling streets below with pedestrians walking under neon signs. Rain begins to fall, creating beautiful reflections on the wet pavement.",
+                    "type": "text-to-video",
+                    "duration": 10,
+                    "resolution": "1080p"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wan26SubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/v1/task/submit/wan-2-5": {
       "post": {
         "summary": "Submit WAN 2.5 video task",
@@ -2151,6 +2235,75 @@
                 "type": "integer",
                 "description": "Credits deducted. 720p: 60/s (5s=300, 10s=600). 1080p: 100/s (5s=500, 10s=1000).",
                 "example": 500
+              }
+            }
+          }
+        }
+      },
+      "Wan26SubmitRequest": {
+        "type": "object",
+        "required": ["prompt", "type"],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "Text prompt for video generation (1-5000 characters). Supports both Chinese and English.",
+            "example": "A cinematic aerial shot of a futuristic city at twilight with flying cars navigating between towering skyscrapers."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["text-to-video", "image-to-video"],
+            "description": "Generation type: text-to-video (pure text) or image-to-video (requires image_urls)."
+          },
+          "image_urls": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Array of input image URLs for image-to-video mode. Required for image-to-video, omit for text-to-video."
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [5, 10, 15],
+            "default": 5,
+            "description": "Video duration in seconds: 5, 10, or 15."
+          },
+          "resolution": {
+            "type": "string",
+            "enum": ["720p", "1080p"],
+            "default": "1080p",
+            "description": "Video resolution. 720p = 80 credits/s, 1080p = 110 credits/s."
+          }
+        }
+      },
+      "Wan26SubmitResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Task ID for status polling.",
+                "example": "task_123456789"
+              },
+              "model_key": {
+                "type": "string",
+                "example": "wan-2-6"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Credits deducted. 720p: 80/s (5s=400, 10s=800, 15s=1200). 1080p: 110/s (5s=550, 10s=1100, 15s=1650).",
+                "example": 1100
               }
             }
           }

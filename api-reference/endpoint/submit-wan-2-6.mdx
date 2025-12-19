@@ -1,0 +1,64 @@
+---
+title: "Submit WAN 2.6 task"
+description: "POST WAN 2.6 (Alibaba) text/image-to-video task with extended duration and longer prompts"
+openapi: "POST /api/v1/task/submit/wan-2-6"
+---
+
+## Submit task
+
+- Header: `Authorization: Bearer <your_api_key>`.
+- Required: `prompt` (1-5000 chars), `type` (`text-to-video` or `image-to-video`).
+- Optional: `duration` (5/10/15s), `resolution` (720p/1080p), `image_urls` (required for image-to-video).
+- Async `task_id` and `credits_deducted`; poll `/api/v1/task/status`.
+
+### Text-to-video example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "In a hyperrealistic ASMR video, a hand uses a knitted knife to slowly slice a burger made entirely of knitted wool.",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### Image-to-video example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Anthropomorphic fox singing a Christmas song at the rubbish dump in the rain.",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/fox.jpg"],
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### 15-second video example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A serene timelapse of a cherry blossom tree in full bloom, petals gently falling in slow motion as the sun sets behind distant mountains.",
+    "type": "text-to-video",
+    "duration": 15,
+    "resolution": "720p"
+  }'
+```
+
+<Note>
+- **Type**: `text-to-video` (no images) or `image-to-video` (requires images).
+- **Duration**: `5`, `10`, or `15` seconds (default: 5).
+- **Resolution**: `720p` or `1080p` (default: 1080p).
+- **Prompt**: 1-5000 characters (much longer than WAN 2.5's 800 limit).
+- **Pricing**: 720p = 80 credits/s, 1080p = 110 credits/s.
+- **No aspect_ratio/negative_prompt/seed**: Use WAN 2.5 if you need these features.
+</Note>

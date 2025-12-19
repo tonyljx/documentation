@@ -1,0 +1,64 @@
+---
+title: "Submit WAN 2.6 task"
+description: "POST WAN 2.6 (阿里巴巴) 文生视频/图生视频任务，支持更长时长和更长提示词"
+openapi: "POST /api/v1/task/submit/wan-2-6"
+---
+
+## 提交任务
+
+- Header：`Authorization: Bearer <your_api_key>`。
+- 必填：`prompt`（1-5000 字符）、`type`（`text-to-video` 或 `image-to-video`）。
+- 可选：`duration`（5/10/15秒）、`resolution`（720p/1080p）、`image_urls`（图生视频必填）。
+- 异步返回 `task_id` 与扣费 `credits_deducted`，使用 `/api/v1/task/status` 轮询结果。
+
+### 文生视频示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "在一个超写实的 ASMR 视频中，一只手用针织刀慢慢切开一个完全由针织羊毛制成的汉堡。",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### 图生视频示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "拟人化的狐狸在雨中的垃圾场唱圣诞歌",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/fox.jpg"],
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### 15秒视频示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一棵盛开的樱花树的宁静延时摄影，花瓣在阳光照射下轻轻飘落，远处的山脉在夕阳下呈现出梦幻般的氛围。",
+    "type": "text-to-video",
+    "duration": 15,
+    "resolution": "720p"
+  }'
+```
+
+<Note>
+- **类型**：`text-to-video`（无图片）或 `image-to-video`（需要图片）。
+- **时长**：`5`、`10` 或 `15` 秒（默认：5）。
+- **分辨率**：`720p` 或 `1080p`（默认：1080p）。
+- **提示词**：1-5000 字符（远超 WAN 2.5 的 800 字符限制）。
+- **计费**：720p = 80 积分/秒，1080p = 110 积分/秒。
+- **无 aspect_ratio/negative_prompt/seed**：如需这些功能请使用 WAN 2.5。
+</Note>

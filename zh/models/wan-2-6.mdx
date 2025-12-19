@@ -1,0 +1,173 @@
+---
+title: "WAN 2.6 视频 API"
+description: "阿里巴巴 WAN 2.6 文生视频/图生视频，支持更长时长（15秒）和更长提示词（5000字符）"
+---
+
+## 概览
+
+- **提供商**: 阿里巴巴
+- 提交任务：`POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`；使用 `task_id` 在 `POST https://api.wizzx.ai/api/v1/task/status` 轮询结果。
+- 必填参数：`prompt`、`type`（`text-to-video` 或 `image-to-video`）。
+- 可选参数：`duration`（5/10/15秒）、`resolution`（720p/1080p）、`image_urls`（图生视频必填）。
+- 支持更长提示词（最多 5000 字符）和更长视频时长（最多 15 秒）。
+
+## 认证
+
+- Header：`Authorization: Bearer <your_api_key>`
+
+## 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`，`Content-Type: application/json`
+
+### 必填参数
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `prompt` | string | 视频描述，1-5000 字符 |
+| `type` | string | 生成类型：`text-to-video` 或 `image-to-video` |
+
+### 可选参数
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|---------|------|
+| `duration` | int | 5 | 视频时长：`5`、`10` 或 `15` 秒 |
+| `resolution` | string | `1080p` | 分辨率：`720p` 或 `1080p` |
+| `image_urls` | []string | - | 图生视频模式必填 |
+
+### 类型规则
+
+| type | 说明 | `image_urls` 要求 |
+|------|-------------|-------------------------|
+| `text-to-video` | 纯文本生成视频 | 不传 `image_urls` |
+| `image-to-video` | 首帧图片生成视频 | 至少 1 张图片 |
+
+### 图片要求（image-to-video 模式）
+
+- 格式：jpeg/png/webp
+- 大小：< 10MB
+- 数量：至少提供 1 张图片
+
+### 与 WAN 2.5 对比
+
+| 特性 | WAN 2.5 | WAN 2.6 |
+|---------|---------|---------|
+| 生成模式 | 文生视频、图生视频 | 文生视频、图生视频 |
+| 时长选项 | 5秒、10秒 | 5秒、10秒、**15秒** |
+| 提示词长度 | 最多 800 字符 | **最多 5000 字符** |
+| aspect_ratio | 支持 | 不支持 |
+| negative_prompt | 支持 | 不支持 |
+| enable_prompt_expansion | 支持 | 不支持 |
+| seed | 支持 | 不支持 |
+
+<Warning>
+  WAN 2.6 不支持 `aspect_ratio`、`negative_prompt`、`enable_prompt_expansion`、`seed` 参数。如需这些功能，请使用 WAN 2.5。
+</Warning>
+
+### 示例：文生视频
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "在一个超写实的 ASMR 视频中，一只手用针织刀慢慢切开一个完全由针织羊毛制成的汉堡。",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### 示例：图生视频
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "拟人化的狐狸在雨中的垃圾场唱圣诞歌",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/fox.jpg"],
+    "duration": 5,
+    "resolution": "1080p"
+  }'
+```
+
+### 示例：15秒视频
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一棵盛开的樱花树的宁静延时摄影，花瓣在阳光照射下轻轻飘落，远处的山脉在夕阳下呈现出梦幻般的氛围。",
+    "type": "text-to-video",
+    "duration": 15,
+    "resolution": "720p"
+  }'
+```
+
+### 成功响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "wan-2-6",
+    "credits_deducted": 1100
+  }
+}
+```
+
+## 查询状态
+
+- 接口：`POST https://api.wizzx.ai/api/v1/task/status`
+- Body：
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### 状态响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+状态说明：`PROCESSING`（生成中）、`SUCCEEDED`（使用 `result_urls` 获取结果）、`FAILED`（`error` 包含详细信息）。
+
+## 计费
+
+WAN 2.6 根据分辨率和时长计费。
+
+| 分辨率 | 积分/秒 | 5秒视频 | 10秒视频 | 15秒视频 |
+|------------|----------------|----------|-----------|-----------|
+| **720p** | 80 | 400 积分（$0.40）| 800 积分（$0.80）| 1200 积分（$1.20）|
+| **1080p** | 110 | 550 积分（$0.55）| 1100 积分（$1.10）| 1650 积分（$1.65）|
+
+**计费示例：**
+- 5秒 720p 视频：80 x 5 = 400 积分
+- 10秒 1080p 视频：110 x 10 = 1100 积分
+- 15秒 1080p 视频：110 x 15 = 1650 积分
+
+## 常见问题
+
+- **WAN 2.5 和 WAN 2.6 有什么区别？** 两者都支持文生视频和图生视频。WAN 2.6 支持更长的视频（最多 15 秒）和更长的提示词（最多 5000 字符），但不支持 aspect_ratio、negative_prompt、seed 或提示词扩展。WAN 2.5 提供更精细的控制选项。
+- **什么时候应该用 WAN 2.6 而不是 WAN 2.5？**
+  - 使用 WAN 2.6：需要更长视频（15秒）、详细提示词（最多 5000 字符）、更高质量
+  - 使用 WAN 2.5：需要宽高比控制、负向提示词、种子控制、提示词扩展
+- **提示词最大长度是多少？** 5000 字符，远超 WAN 2.5 的 800 字符限制。
+- **视频保留多久？** 30 天，请及时下载并归档重要视频。
+- **支持哪些图片格式？** 支持 JPEG、PNG 和 WebP 格式，单张图片最大 10MB。
