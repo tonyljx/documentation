@@ -1,15 +1,17 @@
 ---
-title: "Kling AI Image-to-Video API"
-description: "Unified Kling image-to-video submit/query with quality_mode and image_urls"
+title: "Kling AI Video Generation API"
+description: "Unified Kling text-to-video and image-to-video submit/query with quality_mode, sound, and aspect_ratio"
 ---
 
 ## Overview
 
-- **Breaking change (2025-12-10)**: `mode` → `quality_mode`; `image` → `image_urls` (array, 1 image); new `type` field (must be `image-to-video`).
+- **Breaking change (2025-12-19)**: Added `text-to-video` type support; added `sound` parameter (V2.6 only, enables audio generation); added `aspect_ratio` parameter (V2.6 only: 16:9, 9:16, 1:1); added `kling-v2-6` model version.
+- **Breaking change (2025-12-10)**: `mode` → `quality_mode`; `image` → `image_urls` (array, 1 image); new `type` field.
 - Submit via `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
-- Required: `prompt`, `type="image-to-video"`, `image_urls` (1), `quality_mode` (`std`/`pro`), `duration` (5/10s).
-- Optional controls: model version, negative prompt, cfg scale, tail frame, static/dynamic masks, camera control, callback, external task id.
-- Mutual exclusion: only one of `image_tail`, `dynamic_masks/static_mask`, `camera_control` can be used.
+- Required: `prompt`, `type` (`text-to-video` or `image-to-video`), `quality_mode` (`std`/`pro`), `duration` (5/10s).
+- Conditionally required: `image_urls` (1 image, only for `image-to-video`).
+- Optional: model version, sound (V2.6 only), aspect_ratio (V2.6 only), negative prompt, cfg scale (V1.x only), tail frame, static/dynamic masks, camera control, callback, external task id.
+- Mutual exclusion (image-to-video only): only one of `image_tail`, `dynamic_masks/static_mask`, `camera_control` can be used.
 
 ## Auth
 
@@ -24,37 +26,81 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, `Content-Type
 | Field | Type | Notes |
 |------|------|------|
 | `prompt` | string | Positive prompt, ≤2500 chars |
-| `type` | string | Generation type, **must be** `image-to-video` |
-| `image_urls` | []string | Reference image URLs, **exactly 1** image |
+| `type` | string | Generation type: `text-to-video` or `image-to-video` |
 | `quality_mode` | string | Quality mode: `std` (standard) or `pro` (professional) |
 | `duration` | int | Video length: `5` or `10` seconds |
+
+### Conditionally required
+
+| Field | Type | Notes |
+|------|------|------|
+| `image_urls` | []string | Reference image URLs, **exactly 1** image required for `image-to-video` |
 
 ### Optional
 
 | Field | Type | Default | Notes |
 |------|------|--------|------|
-| `model_name` | string | `kling-v1` | Versions: `kling-v1`, `kling-v1-5`, `kling-v1-6`, `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`, `kling-v2-5-turbo`, `kling-v2-6` |
-| `image_tail` | string | - | Tail-frame control image URL; exclusive with brushes/camera |
+| `model_name` | string | `kling-v1` | Model versions (see below) |
+| `aspect_ratio` | string | `16:9` | Video aspect ratio (**V2.6 only**): `16:9`, `9:16`, `1:1` |
+| `sound` | string | `off` | Generate audio (**V2.6 only**): `on`, `off` |
+| `image_tail` | string | - | Tail-frame control image URL (image-to-video only); exclusive with brushes/camera |
 | `negative_prompt` | string | - | ≤2500 chars |
-| `cfg_scale` | float | 0.5 | Range [0, 1]; higher = closer to prompt |
-| `static_mask` | string | - | Static brush mask URL |
-| `dynamic_masks` | array | - | Up to 6 groups; each has `mask` + `trajectories` |
+| `cfg_scale` | float | 0.5 | Range [0, 1] (**V1.x models only**); higher = closer to prompt |
+| `static_mask` | string | - | Static brush mask URL (image-to-video only) |
+| `dynamic_masks` | array | - | Up to 6 groups (image-to-video only); each has `mask` + `trajectories` |
 | `camera_control` | object | - | Camera motion; see details below |
 | `callback_url` | string | - | Optional webhook |
 | `external_task_id` | string | - | Custom task ID |
 
 <Warning>
-  Assets: jpg/jpeg/png, ≤10MB, width/height ≥300px, aspect ratio 1:2.5 ~ 2.5:1. `image_tail`, `dynamic_masks/static_mask`, and `camera_control` are mutually exclusive feature sets.
+  Assets: jpg/jpeg/png, ≤10MB, width/height ≥300px, aspect ratio 1:2.5 ~ 2.5:1. For image-to-video, `image_tail`, `dynamic_masks/static_mask`, and `camera_control` are mutually exclusive feature sets.
 </Warning>
 
 ### Model versions
 
-- `kling-v1`, `kling-v1-5`, `kling-v1-6`: base/iterative versions
-- `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master`: high-quality versions
-- `kling-v2-5-turbo`: faster turbo version
-- `kling-v2-6`: latest version with optional audio generation (recommended)
+| Model | Description |
+|------|------|
+| `kling-v1`, `kling-v1-5`, `kling-v1-6` | Base/iterative versions |
+| `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master` | High-quality versions |
+| `kling-v2-5-turbo` | Faster turbo version |
+| `kling-v2-6` | **Latest version**, supports sound and aspect_ratio |
 
-### Example: basic image-to-video
+### Example: V2.6 text-to-video with sound
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A cat playing piano with pleasant background music",
+    "type": "text-to-video",
+    "model_name": "kling-v2-6",
+    "quality_mode": "std",
+    "duration": 5,
+    "aspect_ratio": "16:9",
+    "sound": "on"
+  }'
+```
+
+### Example: V2.6 image-to-video
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "The astronaut stands up and walks away",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/astronaut.jpg"],
+    "model_name": "kling-v2-6",
+    "quality_mode": "pro",
+    "duration": 10,
+    "aspect_ratio": "9:16",
+    "sound": "off"
+  }'
+```
+
+### Example: basic image-to-video (V1.x)
 
 ```bash
 curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
@@ -172,7 +218,18 @@ Status: `PROCESSING` (submitted/processing), `SUCCEEDED` (use `result_urls`), `F
 
 Pricing is per second of video generated.
 
-### Kling 1.6 / 2.1
+### Kling V2.6 (by sound)
+
+| Mode | Credits/second | USD/second | vs Official |
+|------|----------------|------------|-------------|
+| sound=off | 65 | $0.065 | Save 7% |
+| sound=on | 130 | $0.13 | Save 7% |
+
+Official: $0.07/s (no sound), $0.14/s (with sound).
+
+### Kling V1.x / V2.x (by quality_mode)
+
+#### Kling 1.6 / 2.1
 
 | Mode | Credits/second | USD/second | vs Official |
 |------|----------------|------------|-------------|
@@ -181,7 +238,7 @@ Pricing is per second of video generated.
 
 Official: std $0.05/s, pro $0.10/s.
 
-### Kling 2.1 Master
+#### Kling 2.1 Master
 
 | Mode | Credits/second | USD/second | vs Official |
 |------|----------------|------------|-------------|
@@ -189,7 +246,7 @@ Official: std $0.05/s, pro $0.10/s.
 
 Official: $0.28/s.
 
-### Kling 2.5 Turbo
+#### Kling 2.5 Turbo
 
 | Mode | Credits/second | USD/second | vs Official |
 |------|----------------|------------|-------------|
@@ -198,24 +255,19 @@ Official: $0.28/s.
 
 Official: std $0.04/s, pro $0.07/s.
 
-### Kling 2.6
-
-| Mode | Credits/second | USD/second | vs Official |
-|------|----------------|------------|-------------|
-| pro (no sound)   | 65  | $0.065 | Save 7%  |
-| pro (with sound) | 130 | $0.13  | Save 7%  |
-
-Official: pro $0.07/s (no sound), $0.14/s (with sound).
-
 ### Example cost calculation
 
 - 5s video, std mode (Kling 1.6): 46 credits/s x 5s = 230 credits
 - 10s video, pro mode (Kling 2.1): 92 credits/s x 10s = 920 credits
+- 5s video, V2.6 with sound: 130 credits/s x 5s = 650 credits
 
 ## FAQ
 
-- Why `mode` renamed to `quality_mode`? To avoid conflict with new `type`. `type` is the generation category; `quality_mode` is quality level (`std`/`pro`).
-- Does Kling support text-to-video? No, `type` must be `image-to-video`.
-- How to use camera control? Set `camera_control` with a supported `type`; `simple` uses `config` with exactly one non-zero field.
-- Dynamic vs static masks? `static_mask` sets a fixed region; `dynamic_masks` add trajectory points for motion control.
-- How long are videos retained? 30 days; please archive promptly.
+- **Does Kling V2.6 support text-to-video?** Yes, V2.6 supports both `text-to-video` and `image-to-video`.
+- **How to generate video with sound?** Use `kling-v2-6` model and set `sound: "on"`. Note that sound doubles the credit cost.
+- **When is aspect_ratio available?** `aspect_ratio` is only supported by `kling-v2-6` model; other models will return an error.
+- **Why was `mode` renamed to `quality_mode`?** To avoid conflict with new `type`. `type` is the generation category; `quality_mode` is quality level (`std`/`pro`).
+- **When is cfg_scale available?** `cfg_scale` is only supported by V1.x models; V2.x models will return an error.
+- **How to use camera control?** Set `camera_control` with a supported `type`; `simple` uses `config` with exactly one non-zero field.
+- **Dynamic vs static masks?** `static_mask` sets a fixed region; `dynamic_masks` add trajectory points for motion control. Only supported for image-to-video.
+- **How long are videos retained?** 30 days; please archive promptly.

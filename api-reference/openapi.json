@@ -246,7 +246,7 @@
     },
     "/api/v1/task/submit/kling-ai": {
       "post": {
-        "summary": "Submit Kling AI image-to-video task",
+        "summary": "Submit Kling AI video generation task",
         "security": [
           {
             "bearerAuth": []
@@ -260,27 +260,48 @@
                 "$ref": "#/components/schemas/KlingSubmitRequest"
               },
               "examples": {
-                "basic": {
-                  "summary": "\u57fa\u7840\u56fe\u751f\u89c6\u9891",
+                "text2video_v26_sound": {
+                  "summary": "V2.6 Text-to-Video with Sound",
                   "value": {
-                    "prompt": "\u5b87\u822a\u5458\u7ad9\u8d77\u8eab\u8d70\u4e86",
+                    "prompt": "A cat playing piano with pleasant background music",
+                    "type": "text-to-video",
+                    "model_name": "kling-v2-6",
+                    "quality_mode": "std",
+                    "duration": 5,
+                    "aspect_ratio": "16:9",
+                    "sound": "on"
+                  }
+                },
+                "img2video_v26": {
+                  "summary": "V2.6 Image-to-Video",
+                  "value": {
+                    "prompt": "The astronaut stands up and walks away",
                     "type": "image-to-video",
-                    "image_urls": [
-                      "https://example.com/astronaut.jpg"
-                    ],
+                    "image_urls": ["https://example.com/astronaut.jpg"],
+                    "model_name": "kling-v2-6",
+                    "quality_mode": "pro",
+                    "duration": 10,
+                    "aspect_ratio": "9:16",
+                    "sound": "off"
+                  }
+                },
+                "basic_img2video": {
+                  "summary": "Basic Image-to-Video (V1.x)",
+                  "value": {
+                    "prompt": "The astronaut stands up and walks away",
+                    "type": "image-to-video",
+                    "image_urls": ["https://example.com/astronaut.jpg"],
                     "quality_mode": "std",
                     "duration": 5,
                     "cfg_scale": 0.5
                   }
                 },
                 "pro_with_camera": {
-                  "summary": "\u9ad8\u54c1\u8d28 + \u955c\u5934\u63a7\u5236",
+                  "summary": "Pro mode with camera control",
                   "value": {
-                    "prompt": "\u4e3b\u89d2\u5728\u68ee\u6797\u4e2d\u6f2b\u6b65",
+                    "prompt": "The character walks through the forest",
                     "type": "image-to-video",
-                    "image_urls": [
-                      "https://example.com/forest.jpg"
-                    ],
+                    "image_urls": ["https://example.com/forest.jpg"],
                     "quality_mode": "pro",
                     "duration": 10,
                     "model_name": "kling-v2-master",
@@ -1139,7 +1160,6 @@
         "required": [
           "prompt",
           "type",
-          "image_urls",
           "quality_mode",
           "duration"
         ],
@@ -1151,14 +1171,15 @@
           },
           "type": {
             "type": "string",
-            "description": "Generation type (unified field). Kling only supports image-to-video.",
+            "description": "Generation type. V2.6 supports both text-to-video and image-to-video.",
             "enum": [
+              "text-to-video",
               "image-to-video"
             ]
           },
           "image_urls": {
             "type": "array",
-            "description": "Reference image URL array (unified field). Must provide exactly 1 image.",
+            "description": "Reference image URL array (unified field). Required for image-to-video, must provide exactly 1 image. Not needed for text-to-video.",
             "items": {
               "type": "string",
               "format": "uri"
@@ -1184,7 +1205,7 @@
           },
           "model_name": {
             "type": "string",
-            "description": "Kling model version.",
+            "description": "Kling model version. V2.6 is recommended for text-to-video and sound generation.",
             "enum": [
               "kling-v1",
               "kling-v1-5",
@@ -1192,13 +1213,33 @@
               "kling-v2-master",
               "kling-v2-1",
               "kling-v2-1-master",
-              "kling-v2-5-turbo"
+              "kling-v2-5-turbo",
+              "kling-v2-6"
             ],
             "default": "kling-v1"
           },
+          "aspect_ratio": {
+            "type": "string",
+            "description": "Video aspect ratio. **Only supported by kling-v2-6 model**.",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "default": "16:9"
+          },
+          "sound": {
+            "type": "string",
+            "description": "Whether to generate audio with the video. **Only supported by kling-v2-6 model**. 'on' doubles the credit cost.",
+            "enum": [
+              "on",
+              "off"
+            ],
+            "default": "off"
+          },
           "image_tail": {
             "type": "string",
-            "description": "Tail frame control image URL. Mutually exclusive with dynamic_masks/static_mask and camera_control."
+            "description": "Tail frame control image URL. Only for image-to-video. Mutually exclusive with dynamic_masks/static_mask and camera_control."
           },
           "negative_prompt": {
             "type": "string",
@@ -1210,16 +1251,16 @@
             "format": "float",
             "minimum": 0,
             "maximum": 1,
-            "description": "CFG scale controlling how closely to follow the prompt.",
+            "description": "CFG scale controlling how closely to follow the prompt. **Only supported by V1.x models**. V2.x models will return an error.",
             "default": 0.5
           },
           "static_mask": {
             "type": "string",
-            "description": "Static brush mask image URL. Mutually exclusive with image_tail and camera_control."
+            "description": "Static brush mask image URL. Only for image-to-video. Mutually exclusive with image_tail and camera_control."
           },
           "dynamic_masks": {
             "type": "array",
-            "description": "Dynamic brush configurations with masks and trajectories. Max 6 groups. Mutually exclusive with image_tail and camera_control.",
+            "description": "Dynamic brush configurations with masks and trajectories. Only for image-to-video. Max 6 groups. Mutually exclusive with image_tail and camera_control.",
             "maxItems": 6,
             "items": {
               "$ref": "#/components/schemas/DynamicMask"
@@ -1282,7 +1323,7 @@
       },
       "CameraControl": {
         "type": "object",
-        "description": "Camera movement configuration. Mutually exclusive with image_tail and dynamic_masks/static_mask.",
+        "description": "Camera movement configuration. For image-to-video, mutually exclusive with image_tail and dynamic_masks/static_mask.",
         "required": [
           "type"
         ],

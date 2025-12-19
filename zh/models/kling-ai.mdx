@@ -1,15 +1,17 @@
 ---
-title: "Kling AI 图生视频 API"
-description: "统一字段的 Kling 图生视频提交、查询、参数规则与积分定价"
+title: "Kling AI 视频生成 API"
+description: "统一字段的 Kling 文生视频与图生视频提交、查询、参数规则与积分定价"
 ---
 
 ## 概览
 
-- **重大变更（2025-12-10）**：`mode` → `quality_mode`；`image` → `image_urls`（数组，仅 1 张）；新增必填字段 `type`，仅支持 `image-to-video`。
+- **重大变更（2025-12-19）**：新增 `text-to-video` 类型支持；新增 `sound` 参数（仅 V2.6，开启音频生成）；新增 `aspect_ratio` 参数（仅 V2.6，支持 16:9、9:16、1:1）；新增 `kling-v2-6` 模型版本。
+- **重大变更（2025-12-10）**：`mode` → `quality_mode`；`image` → `image_urls`（数组，仅 1 张）；新增必填字段 `type`。
 - 提交：`POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`；轮询：`POST https://api.wizzx.ai/api/v1/task/status`。
-- 必填：`prompt`、`type="image-to-video"`、`image_urls`（1 张）、`quality_mode`（`std`/`pro`）、`duration`（5/10 秒）。
-- 可选：模型版本、负向提示词、cfg 自由度、尾帧、静态/动态笔刷、镜头控制、回调、外部任务 ID。
-- 互斥：`image_tail`、`dynamic_masks/static_mask`、`camera_control` 三组选其一。
+- 必填：`prompt`、`type`（`text-to-video` 或 `image-to-video`）、`quality_mode`（`std`/`pro`）、`duration`（5/10 秒）。
+- 条件必填：`image_urls`（仅 `image-to-video` 时需要提供 1 张图片）。
+- 可选：模型版本、sound（仅 V2.6）、aspect_ratio（仅 V2.6）、负向提示词、cfg 自由度（仅 V1.x）、尾帧、静态/动态笔刷、镜头控制、回调、外部任务 ID。
+- 互斥（仅 image-to-video）：`image_tail`、`dynamic_masks/static_mask`、`camera_control` 三组选其一。
 
 ## 认证
 
@@ -25,40 +27,84 @@ description: "统一字段的 Kling 图生视频提交、查询、参数规则�
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `prompt` | string | 正向提示词（≤2500 字符） |
-| `type` | string | 生成类型，**仅支持** `image-to-video` |
-| `image_urls` | []string | 参考图片 URL 数组，**必须 1 张** |
+| `type` | string | 生成类型：`text-to-video` 或 `image-to-video` |
 | `quality_mode` | string | 质量模式：`std`（标准）或 `pro`（专业） |
 | `duration` | int | 视频时长：`5` 或 `10` 秒 |
+
+### 条件必填参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `image_urls` | []string | 参考图片 URL 数组，`image-to-video` 时**必须 1 张** |
 
 ### 可选参数
 
 | 参数 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
-| `model_name` | string | kling-v1 | 模型版本：`kling-v1` / `kling-v1-5` / `kling-v1-6` / `kling-v2-master` / `kling-v2-1` / `kling-v2-1-master` / `kling-v2-5-turbo` / `kling-v2-6` |
-| `image_tail` | string | - | 尾帧控制图像（URL），与 dynamic_masks/static_mask 或 camera_control 互斥 |
+| `model_name` | string | kling-v1 | 模型版本（详见下方） |
+| `aspect_ratio` | string | 16:9 | 画面纵横比（**仅 V2.6**）：`16:9`、`9:16`、`1:1` |
+| `sound` | string | off | 是否生成声音（**仅 V2.6**）：`on`、`off` |
+| `image_tail` | string | - | 尾帧控制图像 URL（仅 image-to-video），与 dynamic_masks/static_mask 或 camera_control 互斥 |
 | `negative_prompt` | string | - | 负向提示词（≤2500 字符） |
-| `cfg_scale` | float | 0.5 | 自由度 [0, 1]，值越大越贴合提示词 |
-| `static_mask` | string | - | 静态笔刷区域 URL |
-| `dynamic_masks` | array | - | 动态笔刷列表（最多 6 组） |
+| `cfg_scale` | float | 0.5 | 自由度 [0, 1]（**仅 V1.x 模型**），值越大越贴合提示词 |
+| `static_mask` | string | - | 静态笔刷区域 URL（仅 image-to-video） |
+| `dynamic_masks` | array | - | 动态笔刷列表（仅 image-to-video，最多 6 组） |
 | `camera_control` | object | - | 镜头运动控制 |
 | `callback_url` | string | - | 回调通知地址 |
 | `external_task_id` | string | - | 自定义任务 ID |
 
 <Warning>
-  资源要求：jpg/jpeg/png，≤10MB，宽高 ≥300px，宽高比 1:2.5 ~ 2.5:1。`image_tail`、`dynamic_masks/static_mask`、`camera_control` 三组能力互斥。
+  资源要求：jpg/jpeg/png，≤10MB，宽高 ≥300px，宽高比 1:2.5 ~ 2.5:1。仅 image-to-video 时，`image_tail`、`dynamic_masks/static_mask`、`camera_control` 三组能力互斥。
 </Warning>
 
 ### 模型版本
 
-- `kling-v1`、`kling-v1-5`、`kling-v1-6`：基础/迭代版本
-- `kling-v2-master`、`kling-v2-1`、`kling-v2-1-master`：高质量版本
-- `kling-v2-5-turbo`：快速版本
-- `kling-v2-6`：最新版本，支持音频生成（推荐）
+| 模型 | 说明 |
+|------|------|
+| `kling-v1`、`kling-v1-5`、`kling-v1-6` | 基础/迭代版本 |
+| `kling-v2-master`、`kling-v2-1`、`kling-v2-1-master` | 高质量版本 |
+| `kling-v2-5-turbo` | 快速版本 |
+| `kling-v2-6` | **最新版本**，支持 sound 和 aspect_ratio |
 
-### 请求示例（基础图生视频）
+### 请求示例（V2.6 文生视频 + 声音）
 
 ```bash
-curl -X POST https://<host>/api/v1/task/submit/kling-ai \
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一只猫在弹钢琴，背景音乐悠扬",
+    "type": "text-to-video",
+    "model_name": "kling-v2-6",
+    "quality_mode": "std",
+    "duration": 5,
+    "aspect_ratio": "16:9",
+    "sound": "on"
+  }'
+```
+
+### 请求示例（V2.6 图生视频）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "宇航员站起身走了",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/astronaut.jpg"],
+    "model_name": "kling-v2-6",
+    "quality_mode": "pro",
+    "duration": 10,
+    "aspect_ratio": "9:16",
+    "sound": "off"
+  }'
+```
+
+### 请求示例（基础图生视频 - V1.x）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -74,7 +120,7 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 ### 请求示例（高品质模式 + 镜头控制）
 
 ```bash
-curl -X POST https://<host>/api/v1/task/submit/kling-ai \
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -93,7 +139,7 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 ### 请求示例（动态笔刷轨迹）
 
 ```bash
-curl -X POST https://<host>/api/v1/task/submit/kling-ai \
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
   -d '{
@@ -173,7 +219,18 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 
 按秒计费：
 
-### Kling 1.6 / 2.1
+### Kling V2.6（按 sound 计费）
+
+| 模式 | 积分/秒 | 美元/秒 | 对比官方 |
+|------|---------|---------|----------|
+| sound=off | 65 | $0.065 | 节省 7% |
+| sound=on | 130 | $0.13 | 节省 7% |
+
+官方：$0.07/秒（无音频），$0.14/秒（有音频）。
+
+### Kling V1.x / V2.x（按 quality_mode 计费）
+
+#### Kling 1.6 / 2.1
 
 | 模式 | 积分/秒 | 美元/秒 | 对比官方 |
 |------|---------|---------|----------|
@@ -182,7 +239,7 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 
 官方：std $0.05/秒，pro $0.10/秒。
 
-### Kling 2.1 Master
+#### Kling 2.1 Master
 
 | 模式 | 积分/秒 | 美元/秒 | 对比官方 |
 |------|---------|---------|----------|
@@ -190,7 +247,7 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 
 官方：$0.28/秒。
 
-### Kling 2.5 Turbo
+#### Kling 2.5 Turbo
 
 | 模式 | 积分/秒 | 美元/秒 | 对比官方 |
 |------|---------|---------|----------|
@@ -199,24 +256,19 @@ curl -X POST https://<host>/api/v1/task/submit/kling-ai \
 
 官方：std $0.04/秒，pro $0.07/秒。
 
-### Kling 2.6
-
-| 模式 | 积分/秒 | 美元/秒 | 对比官方 |
-|------|---------|---------|----------|
-| pro（无音频） | 65  | $0.065 | 节省 7%  |
-| pro（有音频） | 130 | $0.13  | 节省 7%  |
-
-官方：pro $0.07/秒（无音频），$0.14/秒（有音频）。
-
 ### 费用计算示例
 
 - 5 秒视频，std 模式（Kling 1.6）：46 积分/秒 x 5 秒 = 230 积分
 - 10 秒视频，pro 模式（Kling 2.1）：92 积分/秒 x 10 秒 = 920 积分
+- 5 秒视频，V2.6 带声音：130 积分/秒 x 5 秒 = 650 积分
 
 ## 常见问题
 
+- **Kling V2.6 支持文生视频吗？** 是的，V2.6 同时支持 `text-to-video` 和 `image-to-video`。
+- **如何生成带声音的视频？** 使用 `kling-v2-6` 模型并设置 `sound: "on"`。注意带声音的积分是不带声音的两倍。
+- **aspect_ratio 参数什么时候可用？** `aspect_ratio` 仅在 `kling-v2-6` 模型下可用，其他模型会返回错误。
 - **为什么 `mode` 改名为 `quality_mode`？** 为了与新增的 `type` 区分；`type` 表示生成类型（text-to-video/image-to-video），`quality_mode` 表示质量等级（std/pro）。
-- **Kling 支持文生视频吗？** 不支持，`type` 必须是 `image-to-video`。
+- **cfg_scale 参数什么时候可用？** `cfg_scale` 仅支持 V1.x 模型，V2.x 模型会返回错误。
 - **如何使用镜头控制？** 设置 `camera_control`；`simple` 模式的 6 个 `config` 参数只能有一个非零。
-- **动态笔刷与静态笔刷有什么区别？** 静态笔刷限定固定区域；动态笔刷可添加轨迹控制运动路径。
+- **动态笔刷与静态笔刷有什么区别？** 静态笔刷限定固定区域；动态笔刷可添加轨迹控制运动路径。仅 image-to-video 支持。
 - **视频保留多久？** 为安全起见，生成视频保留 30 天，请尽快转存。
