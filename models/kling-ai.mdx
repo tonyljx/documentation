@@ -5,7 +5,7 @@ description: "Unified Kling text-to-video and image-to-video submit/query with q
 
 ## Overview
 
-- **Breaking change (2025-12-19)**: Added `text-to-video` type support; added `sound` parameter (V2.6 only, enables audio generation); added `aspect_ratio` parameter (V2.6 only: 16:9, 9:16, 1:1); added `kling-v2-6` model version.
+- **Breaking change (2025-12-19)**: Added `text-to-video` type support (multiple models); added `sound` parameter (V2.6 only, enables audio generation); added `aspect_ratio` parameter (V2.6 only: 16:9, 9:16, 1:1); added `kling-v2-6` model version.
 - **Breaking change (2025-12-10)**: `mode` → `quality_mode`; `image` → `image_urls` (array, 1 image); new `type` field.
 - Submit via `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
 - Required: `prompt`, `type` (`text-to-video` or `image-to-video`), `quality_mode` (`std`/`pro`), `duration` (5/10s).
@@ -56,14 +56,32 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, `Content-Type
   Assets: jpg/jpeg/png, ≤10MB, width/height ≥300px, aspect ratio 1:2.5 ~ 2.5:1. For image-to-video, `image_tail`, `dynamic_masks/static_mask`, and `camera_control` are mutually exclusive feature sets.
 </Warning>
 
-### Model versions
+### Model versions and feature support
 
-| Model | Description |
-|------|------|
-| `kling-v1`, `kling-v1-5`, `kling-v1-6` | Base/iterative versions |
-| `kling-v2-master`, `kling-v2-1`, `kling-v2-1-master` | High-quality versions |
-| `kling-v2-5-turbo` | Faster turbo version |
-| `kling-v2-6` | **Latest version**, supports sound and aspect_ratio |
+| Model | text-to-video | image-to-video | sound | aspect_ratio | Description |
+|------|:-------------:|:--------------:|:-----:|:------------:|------|
+| `kling-v1` | ✅ | ✅ | ❌ | ❌ | Base version |
+| `kling-v1-5` | ❌ | ✅ | ❌ | ❌ | Iterative (image-to-video only) |
+| `kling-v1-6` | ✅ | ✅ | ❌ | ❌ | Iterative version |
+| `kling-v2-master` | ✅ | ✅ | ❌ | ❌ | High-quality version |
+| `kling-v2-1` | ❌ | ✅ | ❌ | ❌ | High-quality (image-to-video only) |
+| `kling-v2-1-master` | ✅ | ✅ | ❌ | ❌ | High-quality version |
+| `kling-v2-5-turbo` | ✅ | ✅ | ❌ | ❌ | Faster turbo version |
+| `kling-v2-6` | ✅ | ✅ | ✅ | ✅ | **Latest**, supports sound & aspect_ratio |
+
+### Example: basic text-to-video (V1)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A cat playing piano",
+    "type": "text-to-video",
+    "quality_mode": "std",
+    "duration": 5
+  }'
+```
 
 ### Example: V2.6 text-to-video with sound
 
@@ -202,13 +220,26 @@ Status: `PROCESSING` (submitted/processing), `SUCCEEDED` (use `result_urls`), `F
 
 ## Camera control
 
+### Camera types
+
 | type | Description |
 |------|------|
-| `simple` | Use `config` with one non-zero: `horizontal`/`vertical`/`pan`/`tilt`/`roll`/`zoom` (range -10 to 10) |
+| `simple` | Simple camera motion, requires `config` parameter |
 | `down_back` | Camera tilts down and moves back |
 | `forward_up` | Camera moves forward and tilts up |
 | `right_turn_forward` | Rotate right then move forward |
 | `left_turn_forward` | Rotate left then move forward |
+
+### Config parameters (simple type only)
+
+| Parameter | Range | Description |
+|------|------|------|
+| `horizontal` | [-10, 10] | Horizontal movement |
+| `vertical` | [-10, 10] | Vertical movement |
+| `pan` | [-10, 10] | Horizontal pan |
+| `tilt` | [-10, 10] | Vertical tilt |
+| `roll` | [-10, 10] | Roll rotation |
+| `zoom` | [-10, 10] | Zoom in/out |
 
 <Warning>
   `simple` mode: only one of the six `config` parameters can be non-zero.
@@ -263,11 +294,11 @@ Official: std $0.04/s, pro $0.07/s.
 
 ## FAQ
 
-- **Does Kling V2.6 support text-to-video?** Yes, V2.6 supports both `text-to-video` and `image-to-video`.
+- **Which models support text-to-video?** Models that support `text-to-video`: `kling-v1`, `kling-v1-6`, `kling-v2-master`, `kling-v2-1-master`, `kling-v2-5-turbo`, `kling-v2-6`. Note that `kling-v1-5` and `kling-v2-1` only support image-to-video.
 - **How to generate video with sound?** Use `kling-v2-6` model and set `sound: "on"`. Note that sound doubles the credit cost.
 - **When is aspect_ratio available?** `aspect_ratio` is only supported by `kling-v2-6` model; other models will return an error.
 - **Why was `mode` renamed to `quality_mode`?** To avoid conflict with new `type`. `type` is the generation category; `quality_mode` is quality level (`std`/`pro`).
 - **When is cfg_scale available?** `cfg_scale` is only supported by V1.x models; V2.x models will return an error.
-- **How to use camera control?** Set `camera_control` with a supported `type`; `simple` uses `config` with exactly one non-zero field.
+- **How to use camera control?** Set `camera_control` with a supported `type`. Camera control works for both text-to-video and image-to-video. `simple` type uses `config` with exactly one non-zero field.
 - **Dynamic vs static masks?** `static_mask` sets a fixed region; `dynamic_masks` add trajectory points for motion control. Only supported for image-to-video.
 - **How long are videos retained?** 30 days; please archive promptly.

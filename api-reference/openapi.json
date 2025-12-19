@@ -260,6 +260,15 @@
                 "$ref": "#/components/schemas/KlingSubmitRequest"
               },
               "examples": {
+                "text2video_basic": {
+                  "summary": "Basic Text-to-Video (V1)",
+                  "value": {
+                    "prompt": "A cat playing piano",
+                    "type": "text-to-video",
+                    "quality_mode": "std",
+                    "duration": 5
+                  }
+                },
                 "text2video_v26_sound": {
                   "summary": "V2.6 Text-to-Video with Sound",
                   "value": {
@@ -1171,7 +1180,7 @@
           },
           "type": {
             "type": "string",
-            "description": "Generation type. V2.6 supports both text-to-video and image-to-video.",
+            "description": "Generation type. text-to-video supported by: v1, v1-6, v2-master, v2-1-master, v2-5-turbo, v2-6. image-to-video supported by all models.",
             "enum": [
               "text-to-video",
               "image-to-video"
@@ -1205,7 +1214,7 @@
           },
           "model_name": {
             "type": "string",
-            "description": "Kling model version. V2.6 is recommended for text-to-video and sound generation.",
+            "description": "Kling model version. Note: v1-5 and v2-1 only support image-to-video. V2.6 supports sound and aspect_ratio.",
             "enum": [
               "kling-v1",
               "kling-v1-5",
