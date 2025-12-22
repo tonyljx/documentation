@@ -1,0 +1,45 @@
+---
+title: "Submit ElevenLabs TTS task"
+description: "POST ElevenLabs Text-to-Speech Multilingual V2 task"
+openapi: "POST /api/v1/task/submit/eleven-labs-tts-v2"
+---
+
+## Submit task
+
+- Header: `Authorization: Bearer <your_api_key>`.
+- Required: `text` (1-5000 characters).
+- Optional: `voice`, `stability`, `similarity_boost`, `style`, `speed`, `timestamps`, `previous_text`, `next_text`, `language_code`.
+- Async `task_id`; poll `/api/v1/task/status`.
+
+### Basic example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, welcome to our AI platform."
+  }'
+```
+
+### Full parameters example
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Unlock powerful API with our platform.",
+    "voice": "Brian",
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "speed": 1.0
+  }'
+```
+
+<Note>
+- **Text**: 1-5000 characters, multi-language supported.
+- **Voice**: 21 options (Rachel, Brian, Sarah, etc.). Default: Rachel.
+- **Speed**: 0.7-1.2 (default: 1.0).
+- **Pricing**: 80 credits per 1000 characters (rounded up).
+</Note>

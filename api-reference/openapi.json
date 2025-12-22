@@ -929,6 +929,139 @@
         }
       }
     },
+    "/api/v1/task/submit/eleven-labs-tts-turbo-25": {
+      "post": {
+        "summary": "Submit ElevenLabs TTS Turbo 2.5 task",
+        "description": "Submit a text-to-speech task using ElevenLabs Turbo 2.5 model. Faster and 50% cheaper than V2. Supports 21 voices and multiple languages. Pricing: 40 credits per 1000 characters (rounded up).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElevenLabsTTSRequest"
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Basic TTS request",
+                  "value": {
+                    "text": "Hello, welcome to our AI platform."
+                  }
+                },
+                "with-voice": {
+                  "summary": "With voice and speed",
+                  "value": {
+                    "text": "Unlock powerful API with our platform.",
+                    "voice": "Brian",
+                    "stability": 0.5,
+                    "speed": 1.0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElevenLabsTTSTurboResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/eleven-labs-tts-v2": {
+      "post": {
+        "summary": "Submit ElevenLabs TTS V2 task",
+        "description": "Submit a text-to-speech task using ElevenLabs Multilingual V2 model. Supports 21 voices and multiple languages. Pricing: 80 credits per 1000 characters (rounded up).",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElevenLabsTTSRequest"
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Basic TTS request",
+                  "value": {
+                    "text": "Hello, welcome to our AI platform."
+                  }
+                },
+                "with-voice": {
+                  "summary": "With voice and speed",
+                  "value": {
+                    "text": "Unlock powerful API with our platform.",
+                    "voice": "Brian",
+                    "stability": 0.5,
+                    "similarity_boost": 0.75,
+                    "speed": 1.0
+                  }
+                },
+                "chinese": {
+                  "summary": "Chinese text",
+                  "value": {
+                    "text": "欢迎使用我们的人工智能平台。",
+                    "voice": "Rachel",
+                    "speed": 0.9
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElevenLabsTTSResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/v1/task/submit/virtual-try-on": {
       "post": {
         "summary": "Submit Virtual Try-On task",
@@ -2304,6 +2437,124 @@
                 "type": "integer",
                 "description": "Credits deducted. 720p: 80/s (5s=400, 10s=800, 15s=1200). 1080p: 110/s (5s=550, 10s=1100, 15s=1650).",
                 "example": 1100
+              }
+            }
+          }
+        }
+      },
+      "ElevenLabsTTSRequest": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "Text to convert to speech (1-5000 characters).",
+            "example": "Hello, welcome to our AI platform."
+          },
+          "voice": {
+            "type": "string",
+            "enum": ["Rachel", "Aria", "Roger", "Sarah", "Laura", "Charlie", "George", "Callum", "River", "Liam", "Charlotte", "Alice", "Matilda", "Will", "Jessica", "Eric", "Chris", "Brian", "Daniel", "Lily", "Bill"],
+            "default": "Rachel",
+            "description": "Voice selection. 21 options available."
+          },
+          "stability": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.5,
+            "description": "Voice stability (0-1). Higher = more consistent, lower = more expressive."
+          },
+          "similarity_boost": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0.75,
+            "description": "Similarity enhancement (0-1)."
+          },
+          "style": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 0,
+            "description": "Style exaggeration (0-1)."
+          },
+          "speed": {
+            "type": "number",
+            "minimum": 0.7,
+            "maximum": 1.2,
+            "default": 1,
+            "description": "Speech rate (0.7-1.2)."
+          },
+          "timestamps": {
+            "type": "boolean",
+            "default": false,
+            "description": "Whether to return word timestamps."
+          },
+          "previous_text": {
+            "type": "string",
+            "maxLength": 5000,
+            "description": "Context before text for continuity."
+          },
+          "next_text": {
+            "type": "string",
+            "maxLength": 5000,
+            "description": "Context after text for continuity."
+          },
+          "language_code": {
+            "type": "string",
+            "description": "ISO 639-1 language code. Auto-detected if not specified."
+          }
+        }
+      },
+      "ElevenLabsTTSResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Task ID for status polling.",
+                "example": "task_123456789"
+              },
+              "model_key": {
+                "type": "string",
+                "example": "eleven-labs-tts-v2"
+              }
+            }
+          }
+        }
+      },
+      "ElevenLabsTTSTurboResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Task ID for status polling.",
+                "example": "task_123456789"
+              },
+              "model_key": {
+                "type": "string",
+                "example": "eleven-labs-tts-turbo-25"
               }
             }
           }

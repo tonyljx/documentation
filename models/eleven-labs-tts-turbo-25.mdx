@@ -1,0 +1,157 @@
+---
+title: "ElevenLabs TTS Turbo 2.5 API"
+description: "ElevenLabs Text-to-Speech Turbo 2.5 - Faster and more affordable text-to-speech"
+---
+
+## Overview
+
+- **Provider**: ElevenLabs
+- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
+- Required: `text` (1-5000 characters).
+- Optional: `voice`, `stability`, `similarity_boost`, `style`, `speed`, `timestamps`, `previous_text`, `next_text`, `language_code`.
+- **50% cheaper** than TTS V2, optimized for low-latency scenarios.
+
+## Comparison with TTS V2
+
+| Feature | TTS V2 | TTS Turbo 2.5 |
+|---------|--------|---------------|
+| Pricing | 80 credits/1000 chars | **40 credits/1000 chars** |
+| Speed | Standard | **Faster** |
+| Quality | Highest | High |
+| Parameters | Full | Same as V2 |
+| Best for | Premium quality | Low-latency, cost-sensitive |
+
+## Auth
+
+- Header: `Authorization: Bearer <your_api_key>`
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25`, `Content-Type: application/json`
+
+### Required
+
+| Field | Type | Notes |
+|------|------|------|
+| `text` | string | Text to convert to speech (1-5000 characters) |
+
+### Optional
+
+| Field | Type | Default | Notes |
+|------|------|---------|------|
+| `voice` | string | `Rachel` | Voice selection (see voice list below) |
+| `stability` | number | 0.5 | Voice stability (0-1) |
+| `similarity_boost` | number | 0.75 | Similarity enhancement (0-1) |
+| `style` | number | 0 | Style exaggeration (0-1) |
+| `speed` | number | 1.0 | Speech rate (0.7-1.2) |
+| `timestamps` | boolean | false | Return word timestamps |
+| `previous_text` | string | - | Context before text (for continuity) |
+| `next_text` | string | - | Context after text (for continuity) |
+| `language_code` | string | - | ISO 639-1 language code |
+
+### Available Voices
+
+| Voice | Description | Voice | Description |
+|-------|-------------|-------|-------------|
+| Rachel | Female (default) | Brian | Male |
+| Aria | Female | Daniel | Male |
+| Sarah | Female | Lily | Female |
+| Laura | Female | Bill | Male |
+| Charlotte | Female | George | Male |
+| Alice | Female | Callum | Male |
+| Matilda | Female | River | Neutral |
+| Jessica | Female | Liam | Male |
+| Roger | Male | Will | Male |
+| Charlie | Male | Eric | Male |
+| Chris | Male | | |
+
+### Example: Basic
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, welcome to our AI platform. This is a text-to-speech demonstration."
+  }'
+```
+
+### Example: With voice and speed
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Unlock powerful API with our platform. Affordable, scalable API integration.",
+    "voice": "Brian",
+    "stability": 0.5,
+    "speed": 1.0
+  }'
+```
+
+### Success response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "eleven-labs-tts-turbo-25"
+  }
+}
+```
+
+## Query status
+
+- Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+- Body:
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### Status response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/output.mp3"
+    ],
+    "error": ""
+  }
+}
+```
+
+Status: `PROCESSING` (generating), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+
+## Pricing
+
+ElevenLabs TTS Turbo 2.5 pricing - **50% cheaper** than TTS V2.
+
+| Characters | Credits | USD |
+|------------|---------|-----|
+| 1-1000 | 40 | $0.04 |
+| 1001-2000 | 80 | $0.08 |
+| 2001-3000 | 120 | $0.12 |
+| 3001-4000 | 160 | $0.16 |
+| 4001-5000 | 200 | $0.20 |
+
+**Formula**: `ceil(characters / 1000) × 40 credits`
+
+**Examples:**
+- 500 characters → 40 credits ($0.04)
+- 1500 characters → 80 credits ($0.08)
+- 3500 characters → 160 credits ($0.16)
+
+## FAQ
+
+- **When should I use Turbo 2.5 vs V2?** Use Turbo 2.5 for real-time applications, chatbots, or when cost is a concern. Use V2 for premium content requiring highest quality.
+- **Is the quality noticeably different?** Turbo 2.5 offers high quality suitable for most use cases. V2 provides marginally better quality for audiophile-level requirements.
+- **Can I switch between models?** Yes, both models use identical parameters. Simply change the endpoint.

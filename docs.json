@@ -43,6 +43,13 @@
                   "models/nano-banana",
                   "models/virtual-try-on"
                 ]
+              },
+              {
+                "group": "Audio Generation",
+                "pages": [
+                  "models/eleven-labs-tts-v2",
+                  "models/eleven-labs-tts-turbo-25"
+                ]
               }
             ]
           },
@@ -75,6 +82,13 @@
                   "api-reference/endpoint/submit-nano-banana-pro",
                   "api-reference/endpoint/submit-nano-banana",
                   "api-reference/endpoint/submit-virtual-try-on"
+                ]
+              },
+              {
+                "group": "Audio Generation",
+                "pages": [
+                  "api-reference/endpoint/submit-eleven-labs-tts-v2",
+                  "api-reference/endpoint/submit-eleven-labs-tts-turbo-25"
                 ]
               },
               {
@@ -117,6 +131,13 @@
                   "zh/models/nano-banana",
                   "zh/models/virtual-try-on"
                 ]
+              },
+              {
+                "group": "音频生成",
+                "pages": [
+                  "zh/models/eleven-labs-tts-v2",
+                  "zh/models/eleven-labs-tts-turbo-25"
+                ]
               }
             ]
           },
@@ -149,6 +170,13 @@
                   "zh/api-reference/endpoint/submit-nano-banana-pro",
                   "zh/api-reference/endpoint/submit-nano-banana",
                   "zh/api-reference/endpoint/submit-virtual-try-on"
+                ]
+              },
+              {
+                "group": "音频生成",
+                "pages": [
+                  "zh/api-reference/endpoint/submit-eleven-labs-tts-v2",
+                  "zh/api-reference/endpoint/submit-eleven-labs-tts-turbo-25"
                 ]
               },
               {

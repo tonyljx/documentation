@@ -1,0 +1,45 @@
+---
+title: "提交 ElevenLabs TTS 任务"
+description: "POST ElevenLabs 文本转语音多语言 V2 任务"
+openapi: "POST /api/v1/task/submit/eleven-labs-tts-v2"
+---
+
+## 提交任务
+
+- 请求头: `Authorization: Bearer <your_api_key>`
+- 必需: `text`（1-5000 字符）
+- 可选: `voice`, `stability`, `similarity_boost`, `style`, `speed`, `timestamps`, `previous_text`, `next_text`, `language_code`
+- 返回 `task_id`；通过 `/api/v1/task/status` 查询状态
+
+### 基础示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "欢迎使用我们的人工智能平台。"
+  }'
+```
+
+### 完整参数示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "解锁强大的 API 平台。",
+    "voice": "Brian",
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "speed": 1.0
+  }'
+```
+
+<Note>
+- **文本**: 1-5000 字符，支持多语言。
+- **语音**: 21 种选择（Rachel, Brian, Sarah 等）。默认: Rachel。
+- **语速**: 0.7-1.2（默认: 1.0）。
+- **价格**: 每 1000 字符 80 积分（向上取整）。
+</Note>

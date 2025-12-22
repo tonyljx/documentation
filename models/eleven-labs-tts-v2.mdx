@@ -1,0 +1,173 @@
+---
+title: "ElevenLabs TTS V2 API"
+description: "ElevenLabs Text-to-Speech Multilingual V2 - High-quality multi-language text-to-speech with 21 voice options"
+---
+
+## Overview
+
+- **Provider**: ElevenLabs
+- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
+- Required: `text` (1-5000 characters).
+- Optional: `voice`, `stability`, `similarity_boost`, `style`, `speed`, `timestamps`, `previous_text`, `next_text`, `language_code`.
+- Multi-language support with automatic language detection.
+
+## Auth
+
+- Header: `Authorization: Bearer <your_api_key>`
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2`, `Content-Type: application/json`
+
+### Required
+
+| Field | Type | Notes |
+|------|------|------|
+| `text` | string | Text to convert to speech (1-5000 characters) |
+
+### Optional
+
+| Field | Type | Default | Notes |
+|------|------|---------|------|
+| `voice` | string | `Rachel` | Voice selection (see voice list below) |
+| `stability` | number | 0.5 | Voice stability (0-1) |
+| `similarity_boost` | number | 0.75 | Similarity enhancement (0-1) |
+| `style` | number | 0 | Style exaggeration (0-1) |
+| `speed` | number | 1.0 | Speech rate (0.7-1.2) |
+| `timestamps` | boolean | false | Return word timestamps |
+| `previous_text` | string | - | Context before text (for continuity) |
+| `next_text` | string | - | Context after text (for continuity) |
+| `language_code` | string | - | ISO 639-1 language code |
+
+### Available Voices
+
+| Voice | Description | Voice | Description |
+|-------|-------------|-------|-------------|
+| Rachel | Female (default) | Brian | Male |
+| Aria | Female | Daniel | Male |
+| Sarah | Female | Lily | Female |
+| Laura | Female | Bill | Male |
+| Charlotte | Female | George | Male |
+| Alice | Female | Callum | Male |
+| Matilda | Female | River | Neutral |
+| Jessica | Female | Liam | Male |
+| Roger | Male | Will | Male |
+| Charlie | Male | Eric | Male |
+| Chris | Male | | |
+
+**Voice recommendations:**
+- Professional/formal: Brian, Daniel, George
+- Warm/friendly: Rachel, Sarah, Alice
+- Energetic/youthful: Aria, Charlotte, Lily
+
+### Example: Basic
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, welcome to our AI platform. This is a text-to-speech demonstration."
+  }'
+```
+
+### Example: With voice and speed
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Unlock powerful API with our platform. Affordable, scalable API integration.",
+    "voice": "Brian",
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "speed": 1.0
+  }'
+```
+
+### Example: Chinese text
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "欢迎使用我们的人工智能平台，这是一个文本转语音的演示。",
+    "voice": "Rachel",
+    "speed": 0.9
+  }'
+```
+
+### Success response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "eleven-labs-tts-v2"
+  }
+}
+```
+
+## Query status
+
+- Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+- Body:
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### Status response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/output.mp3"
+    ],
+    "error": ""
+  }
+}
+```
+
+Status: `PROCESSING` (generating), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+
+## Pricing
+
+ElevenLabs TTS pricing is based on character count (rounded up to nearest 1000).
+
+| Characters | Credits | USD |
+|------------|---------|-----|
+| 1-1000 | 80 | $0.08 |
+| 1001-2000 | 160 | $0.16 |
+| 2001-3000 | 240 | $0.24 |
+| 3001-4000 | 320 | $0.32 |
+| 4001-5000 | 400 | $0.40 |
+
+**Formula**: `ceil(characters / 1000) × 80 credits`
+
+**Examples:**
+- 500 characters → 80 credits
+- 1500 characters → 160 credits
+- 3500 characters → 320 credits
+
+## FAQ
+
+- **What languages are supported?** ElevenLabs supports multiple languages including English, Chinese, Japanese, Korean, Spanish, and more. The model automatically detects the language.
+- **How do I choose the right voice?** Match voice to content style - professional voices for business content, warm voices for friendly content.
+- **How long are audio files retained?** 30 days; please download and archive important files.
+- **How do I improve speech quality?**
+  - Adjust `stability`: Higher (0.7-1.0) for consistent speech, lower (0.3-0.5) for more expressive
+  - Use `previous_text` and `next_text` for better continuity between sentences
+- **What does speed control do?**
+  - 0.7-0.9: Slower, good for tutorials or clear pronunciation
+  - 1.0: Normal speed
+  - 1.1-1.2: Faster, good for quick-paced content

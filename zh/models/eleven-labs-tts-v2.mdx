@@ -1,0 +1,173 @@
+---
+title: "ElevenLabs TTS V2 API"
+description: "ElevenLabs 文本转语音多语言 V2 - 高质量多语言文本转语音，21 种语音选择"
+---
+
+## 概述
+
+- **提供商**: ElevenLabs
+- 通过 `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2` 提交任务；使用 `task_id` 在 `POST https://api.wizzx.ai/api/v1/task/status` 查询状态。
+- 必需: `text`（1-5000 字符）。
+- 可选: `voice`, `stability`, `similarity_boost`, `style`, `speed`, `timestamps`, `previous_text`, `next_text`, `language_code`。
+- 支持多语言，自动检测语言。
+
+## 认证
+
+- 请求头: `Authorization: Bearer <your_api_key>`
+
+## 提交任务
+
+端点: `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2`, `Content-Type: application/json`
+
+### 必需参数
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `text` | string | 要转换的文本（1-5000 字符） |
+
+### 可选参数
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `voice` | string | `Rachel` | 语音选择（见下方语音列表） |
+| `stability` | number | 0.5 | 语音稳定性（0-1） |
+| `similarity_boost` | number | 0.75 | 相似度增强（0-1） |
+| `style` | number | 0 | 风格夸张程度（0-1） |
+| `speed` | number | 1.0 | 语速（0.7-1.2） |
+| `timestamps` | boolean | false | 是否返回时间戳 |
+| `previous_text` | string | - | 前文（用于连贯性） |
+| `next_text` | string | - | 后文（用于连贯性） |
+| `language_code` | string | - | 语言代码（ISO 639-1） |
+
+### 可用语音列表
+
+| 语音 | 描述 | 语音 | 描述 |
+|------|------|------|------|
+| Rachel | 女声（默认） | Brian | 男声 |
+| Aria | 女声 | Daniel | 男声 |
+| Sarah | 女声 | Lily | 女声 |
+| Laura | 女声 | Bill | 男声 |
+| Charlotte | 女声 | George | 男声 |
+| Alice | 女声 | Callum | 男声 |
+| Matilda | 女声 | River | 中性 |
+| Jessica | 女声 | Liam | 男声 |
+| Roger | 男声 | Will | 男声 |
+| Charlie | 男声 | Eric | 男声 |
+| Chris | 男声 | | |
+
+**语音推荐：**
+- 专业/正式内容：Brian, Daniel, George
+- 温暖/亲切内容：Rachel, Sarah, Alice
+- 活力/年轻内容：Aria, Charlotte, Lily
+
+### 示例：基础用法
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Hello, welcome to our AI platform. This is a text-to-speech demonstration."
+  }'
+```
+
+### 示例：带语音和语速
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Unlock powerful API with our platform. Affordable, scalable API integration.",
+    "voice": "Brian",
+    "stability": 0.5,
+    "similarity_boost": 0.75,
+    "speed": 1.0
+  }'
+```
+
+### 示例：中文文本
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "欢迎使用我们的人工智能平台，这是一个文本转语音的演示。",
+    "voice": "Rachel",
+    "speed": 0.9
+  }'
+```
+
+### 成功响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "eleven-labs-tts-v2"
+  }
+}
+```
+
+## 查询状态
+
+- 端点: `POST https://api.wizzx.ai/api/v1/task/status`
+- 请求体:
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### 状态响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/output.mp3"
+    ],
+    "error": ""
+  }
+}
+```
+
+状态: `PROCESSING`（生成中）, `SUCCEEDED`（成功，使用 `result_urls`）, `FAILED`（失败，`error` 包含错误信息）。
+
+## 价格
+
+ElevenLabs TTS 按字符数计费（向上取整到最近的 1000）。
+
+| 字符数 | 积分 | 美元 |
+|--------|------|------|
+| 1-1000 | 80 | $0.08 |
+| 1001-2000 | 160 | $0.16 |
+| 2001-3000 | 240 | $0.24 |
+| 3001-4000 | 320 | $0.32 |
+| 4001-5000 | 400 | $0.40 |
+
+**计算公式**: `向上取整(字符数 / 1000) × 80 积分`
+
+**示例：**
+- 500 字符 → 80 积分
+- 1500 字符 → 160 积分
+- 3500 字符 → 320 积分
+
+## 常见问题
+
+- **支持哪些语言？** ElevenLabs 支持多种语言，包括英语、中文、日语、韩语、西班牙语等。模型会自动检测语言。
+- **如何选择合适的语音？** 根据内容风格选择 - 专业内容用商务语音，友好内容用温暖语音。
+- **生成的音频会保留多久？** 30 天；请及时下载和存档重要文件。
+- **如何提高语音质量？**
+  - 调整 `stability`：较高值（0.7-1.0）更稳定一致，较低值（0.3-0.5）更富表现力
+  - 使用 `previous_text` 和 `next_text` 提高句子之间的连贯性
+- **speed 参数如何影响输出？**
+  - 0.7-0.9：语速较慢，适合教程或需要清晰表达的内容
+  - 1.0：正常语速
+  - 1.1-1.2：语速较快，适合快节奏内容

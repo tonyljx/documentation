@@ -121,6 +121,43 @@ WAN 2.6 supports extended duration (up to 15 seconds) and longer prompts (up to 
 - 5s video, std mode: 46 × 5 = 230 credits ($0.23)
 - 10s video, pro mode: 92 × 10 = 920 credits ($0.92)
 
+## Audio Generation
+
+Audio models are priced per 1000 characters.
+
+### ElevenLabs TTS V2
+
+High-quality multilingual text-to-speech.
+
+| Characters | Credits | USD |
+|------------|---------|-----|
+| 1-1000 | 80 | $0.08 |
+| 1001-2000 | 160 | $0.16 |
+| 2001-3000 | 240 | $0.24 |
+| 3001-4000 | 320 | $0.32 |
+| 4001-5000 | 400 | $0.40 |
+
+**Formula:** `ceil(characters / 1000) × 80 credits`
+
+### ElevenLabs TTS Turbo 2.5
+
+**50% cheaper** than V2, optimized for low-latency scenarios.
+
+| Characters | Credits | USD |
+|------------|---------|-----|
+| 1-1000 | 40 | $0.04 |
+| 1001-2000 | 80 | $0.08 |
+| 2001-3000 | 120 | $0.12 |
+| 3001-4000 | 160 | $0.16 |
+| 4001-5000 | 200 | $0.20 |
+
+**Formula:** `ceil(characters / 1000) × 40 credits`
+
+**Examples:**
+- 500 characters: V2 = 80 credits, Turbo = 40 credits
+- 1500 characters: V2 = 160 credits, Turbo = 80 credits
+- 3500 characters: V2 = 320 credits, Turbo = 160 credits
+
 ## Cost Calculator
 
 To calculate your cost:
