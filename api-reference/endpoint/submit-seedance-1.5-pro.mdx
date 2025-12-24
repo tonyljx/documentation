@@ -1,0 +1,37 @@
+---
+title: "Submit Seedance 1.5 Pro task"
+description: "POST Seedance 1.5 Pro text/image-to-video submission with audio generation"
+openapi: "POST /api/v1/task/submit/seedance-1.5-pro"
+---
+
+## Submit task
+
+- Send `Authorization: Bearer <your_api_key>`.
+- Required: `prompt`, `type`.
+- `image-to-video` requires `image_urls` (1-2 images for first/last frame control).
+- Optional: `duration`, `resolution`, `aspect_ratio`, `seed`, `watermark`, `camera_fixed`, `generate_audio`, `return_last_frame`.
+- Async `task_id`; poll `/api/v1/task/status`.
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A cat playing piano with soft jazz music",
+    "type": "text-to-video",
+    "duration": 8,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": true
+  }'
+```
+
+<Note>
+- `text-to-video`: no `image_urls` needed.
+- `image-to-video`: `image_urls` required; 1 image = first frame only, 2 images = first + last frame.
+- Images: jpeg/png/webp/bmp/tiff/gif, aspect 0.4-2.5, short side >300px, long side &lt;6000px, size &lt;30MB.
+- `generate_audio`: defaults to `true`, generates synchronized audio (voice, sound effects, music).
+- Resolutions: 480p, 720p only (no 1080p).
+- Duration: 4-12 seconds or -1 (auto).
+- Fixed 24fps.
+</Note>

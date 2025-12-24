@@ -1,0 +1,189 @@
+---
+title: "Seedance 1.5 Pro 视频 API"
+description: "统一的 Seedance 1.5 Pro 文生视频/图生视频提交和轮询接口，支持音频生成"
+---
+
+## 快速开始
+
+- 平台: Wizzx 网关; `Authorization: Bearer <your_api_key>`.
+- 提交任务: `POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro` → 返回 `task_id`.
+- 轮询状态: `POST https://api.wizzx.ai/api/v1/task/status` 带 `task_id`.
+- 模式: `text-to-video` / `image-to-video`; 固定 24fps; 时长 4-12秒; 分辨率 480p/720p.
+- **核心特性**: `generate_audio` - 生成带同步音频的视频（人声、音效、背景音乐）。
+
+### 认证
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+### 提交任务
+
+接口: `POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro`, `Content-Type: application/json`
+
+### 必填参数
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `prompt` | string | 视频描述 |
+| `type` | string | `text-to-video` 或 `image-to-video` |
+
+### 可选参数
+
+| 字段 | 类型 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `image_urls` | []string | - | `image-to-video` 模式必填，最多 2 张图片（首帧 + 尾帧） |
+| `duration` | int | 5 | `4` 到 `12` 秒，或 `-1` 自动 |
+| `resolution` | string | 720p | `480p` / `720p`（不支持 1080p） |
+| `aspect_ratio` | string | adaptive | `16:9`, `4:3`, `1:1`, `3:4`, `9:16`, `21:9`, `adaptive` |
+| `seed` | int | -1 | 随机种子; -1 为随机, 范围 [0, 4294967295] |
+| `watermark` | bool | false | 添加水印 |
+| `camera_fixed` | bool | false | 锁定摄像机位置 |
+| `generate_audio` | bool | true | 生成同步音频（人声、音效、音乐） |
+| `return_last_frame` | bool | false | 返回最后一帧图片（用于连续视频生成） |
+
+<Warning>
+  **图片要求（图生视频）**
+  - 格式: jpeg/png/webp/bmp/tiff/gif
+  - 宽高比: 0.4-2.5
+  - 短边 \>300px，长边 \<6000px
+  - 大小 \<30MB
+  - 最多 2 张图片：第一张 = 首帧，第二张 = 尾帧
+</Warning>
+
+<Note>
+  **首帧 + 尾帧支持**
+  Seedance 1.5 Pro 支持首帧+尾帧图生视频。在 `image_urls` 中提供 2 张图片即可控制视频的开始和结束画面。
+</Note>
+
+#### 示例: 文生视频（带音频）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "一只猫在温馨的客厅里弹钢琴，轻柔的爵士乐正在播放",
+    "type": "text-to-video",
+    "duration": 8,
+    "resolution": "720p",
+    "aspect_ratio": "16:9",
+    "generate_audio": true
+  }'
+```
+
+#### 示例: 文生视频（无音频）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "宁静的山景，云彩缓缓流动",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "480p",
+    "generate_audio": false
+  }'
+```
+
+#### 示例: 图生视频（首帧 + 尾帧）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "角色优雅地向前走并向镜头挥手",
+    "type": "image-to-video",
+    "image_urls": [
+      "https://example.com/first_frame.jpg",
+      "https://example.com/last_frame.jpg"
+    ],
+    "duration": 6,
+    "resolution": "720p",
+    "generate_audio": true
+  }'
+```
+
+成功响应:
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "seedance-1.5-pro"
+  }
+}
+```
+
+### 查询状态
+
+接口: `POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+响应示例:
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.example.com/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+状态值: `PROCESSING`, `SUCCEEDED`, `FAILED`.
+
+### 定价
+
+Seedance 1.5 Pro 根据分辨率和音频生成计费:
+
+| 分辨率 | 带音频 (积分/秒) | 无音频 (积分/秒) |
+|--------|------------------|------------------|
+| 480p | 22 | 11 |
+| 720p | 50 | 25 |
+
+**费用示例（带音频）:**
+
+| 分辨率 | 5秒视频 | 8秒视频 | 12秒视频 |
+|--------|---------|---------|----------|
+| 480p | 110 积分 | 176 积分 | 264 积分 |
+| 720p | 250 积分 | 400 积分 | 600 积分 |
+
+**费用示例（无音频）:**
+
+| 分辨率 | 5秒视频 | 8秒视频 | 12秒视频 |
+|--------|---------|---------|----------|
+| 480p | 55 积分 | 88 积分 | 132 积分 |
+| 720p | 125 积分 | 200 积分 | 300 积分 |
+
+### Seedance 1.5 Pro vs Seedance Pro Fast
+
+| 特性 | Seedance 1.5 Pro | Seedance Pro Fast |
+|------|------------------|-------------------|
+| 音频生成 | 支持（默认开启） | 不支持 |
+| 首帧+尾帧 | 支持（2张图片） | 不支持（仅1张） |
+| 分辨率 | 480p, 720p | 480p, 720p, 1080p |
+| 时长范围 | 4-12秒或自动 | 5秒或10秒 |
+| 自动时长 | 支持 (-1) | 不支持 |
+
+### 常见问题
+
+- **Seedance 1.5 Pro 有什么特别之处？** 音频生成和首帧+尾帧支持，实现更精确的视频控制。
+- **`generate_audio` 如何工作？** 启用时（默认），模型会根据提示词生成同步音频，包括人声、音效和背景音乐。
+- **1.5 Pro 和 Pro Fast 有什么区别？** 1.5 Pro 增加了音频生成和首帧+尾帧控制，但不支持 1080p 分辨率。Pro Fast 只能生成无声视频，但支持更高分辨率。
+- **如何创建连续视频？** 使用 `return_last_frame: true` 获取最后一帧，然后将其作为下一个视频的首帧。
+- **为什么没有 1080p？** Seedance 1.5 Pro 目前仅支持 480p 和 720p 分辨率。
+- **可以更改帧率吗？** 固定为 24fps。
