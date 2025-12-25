@@ -1,0 +1,33 @@
+---
+title: "Submit WAN 2.2 Animate Move task"
+description: "POST WAN 2.2 Animate Move video task - combine image and video to create animated content"
+openapi: "POST /api/v1/task/submit/wan22-animate-move"
+---
+
+## Submit task
+
+- Header: `Authorization: Bearer <your_api_key>`.
+- Required: `video_url` (source video), `image_url` (reference image).
+- Optional: `resolution` (480p/580p/720p, default: 480p).
+- Async `task_id` and `credits_deducted`; poll `/api/v1/task/status`.
+
+### Example request
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://example.com/source-video.mp4",
+    "image_url": "https://example.com/reference-image.jpg",
+    "resolution": "720p"
+  }'
+```
+
+<Note>
+- **No prompt required**: Unlike WAN 2.5/2.6, this model doesn't use text prompts.
+- **Video formats**: mp4, mov, mkv (max 10MB).
+- **Image formats**: jpeg, png, webp (max 10MB).
+- **Resolution**: `480p` (default), `580p`, or `720p`.
+- **Pricing**: Fixed 5s billing - 480p=175, 580p=260, 720p=350 credits.
+</Note>

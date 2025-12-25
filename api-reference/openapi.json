@@ -1144,6 +1144,68 @@
         }
       }
     },
+    "/api/v1/task/submit/wan22-animate-move": {
+      "post": {
+        "summary": "Submit WAN 2.2 Animate Move video task",
+        "description": "Submit a video generation task using Alibaba WAN 2.2 Animate Move model. Combines an image with a video to create animated content. No prompt required. Fixed 5-second billing. Pricing: 480p = 35 credits/s, 580p = 52 credits/s, 720p = 70 credits/s.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Wan22AnimateMoveRequest"
+              },
+              "examples": {
+                "basic": {
+                  "summary": "Basic animation request",
+                  "value": {
+                    "video_url": "https://example.com/source-video.mp4",
+                    "image_url": "https://example.com/reference-image.jpg"
+                  }
+                },
+                "720p": {
+                  "summary": "720p resolution",
+                  "value": {
+                    "video_url": "https://example.com/source-video.mp4",
+                    "image_url": "https://example.com/reference-image.jpg",
+                    "resolution": "720p"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Wan22AnimateMoveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/v1/task/submit/virtual-try-on": {
       "post": {
         "summary": "Submit Virtual Try-On task",
@@ -2750,6 +2812,61 @@
               "model_key": {
                 "type": "string",
                 "example": "eleven-labs-tts-turbo-25"
+              }
+            }
+          }
+        }
+      },
+      "Wan22AnimateMoveRequest": {
+        "type": "object",
+        "required": ["video_url", "image_url"],
+        "properties": {
+          "video_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Source video URL. Accepted types: video/mp4, video/quicktime, video/x-matroska. Max file size: 10MB.",
+            "example": "https://example.com/source-video.mp4"
+          },
+          "image_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Reference image URL. Accepted types: image/jpeg, image/png, image/webp. Max file size: 10MB. If aspect ratio doesn't match, image is resized and center-cropped.",
+            "example": "https://example.com/reference-image.jpg"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": ["480p", "580p", "720p"],
+            "default": "480p",
+            "description": "Output video resolution. 480p = 35 credits/s, 580p = 52 credits/s, 720p = 70 credits/s."
+          }
+        }
+      },
+      "Wan22AnimateMoveResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "integer",
+            "example": 0
+          },
+          "msg": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "description": "Task ID for status polling.",
+                "example": "task_123456789"
+              },
+              "model_key": {
+                "type": "string",
+                "example": "wan22-animate-move"
+              },
+              "credits_deducted": {
+                "type": "integer",
+                "description": "Credits deducted. Fixed 5s billing: 480p=175, 580p=260, 720p=350.",
+                "example": 175
               }
             }
           }

@@ -1,0 +1,33 @@
+---
+title: "提交 WAN 2.2 Animate Move 任务"
+description: "POST WAN 2.2 Animate Move 视频任务 - 将图片与视频结合创建动画内容"
+openapi: "POST /api/v1/task/submit/wan22-animate-move"
+---
+
+## 提交任务
+
+- Header：`Authorization: Bearer <your_api_key>`
+- 必填：`video_url`（源视频）、`image_url`（参考图片）
+- 可选：`resolution`（480p/580p/720p，默认：480p）
+- 异步返回 `task_id` 和 `credits_deducted`；轮询 `/api/v1/task/status`
+
+### 请求示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://example.com/source-video.mp4",
+    "image_url": "https://example.com/reference-image.jpg",
+    "resolution": "720p"
+  }'
+```
+
+<Note>
+- **无需提示词**：与 WAN 2.5/2.6 不同，此模型不使用文本提示词。
+- **视频格式**：mp4、mov、mkv（最大 10MB）
+- **图片格式**：jpeg、png、webp（最大 10MB）
+- **分辨率**：`480p`（默认）、`580p` 或 `720p`
+- **计费**：固定 5 秒计费 - 480p=175、580p=260、720p=350 积分
+</Note>

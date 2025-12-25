@@ -1,0 +1,120 @@
+---
+title: "WAN 2.2 Animate Move 视频 API"
+description: "阿里巴巴 WAN 2.2 Animate Move 视频生成 - 将图片与视频结合创建动画内容"
+---
+
+## 概览
+
+- **提供商**: 阿里巴巴
+- 提交任务：`POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move`；使用 `task_id` 在 `POST https://api.wizzx.ai/api/v1/task/status` 轮询结果。
+- 必填参数：`video_url`（源视频）、`image_url`（参考图片）。
+- 可选参数：`resolution`（480p/580p/720p）。
+- 通过将图片与视频结合来生成动画视频。无需提示词。
+
+## 认证
+
+- Header：`Authorization: Bearer <your_api_key>`
+
+## 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move`，`Content-Type: application/json`
+
+### 必填参数
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `video_url` | string | 源视频 URL（mp4/mov/mkv，最大 10MB）|
+| `image_url` | string | 参考图片 URL（jpeg/png/webp，最大 10MB）|
+
+### 可选参数
+
+| 字段 | 类型 | 默认值 | 说明 |
+|------|------|---------|------|
+| `resolution` | string | `480p` | 输出分辨率：`480p`、`580p` 或 `720p` |
+
+### 输入要求
+
+**视频：**
+- 格式：mp4、quicktime (mov)、x-matroska (mkv)
+- 最大文件大小：10MB
+
+**图片：**
+- 格式：jpeg、png、webp
+- 最大文件大小：10MB
+- 如果宽高比不匹配，图片会被调整大小并居中裁剪
+
+<Note>
+  与 WAN 2.5/2.6 不同，此模型**不需要** `prompt` 参数。它完全基于图片和视频输入生成动画。
+</Note>
+
+### 请求示例
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://example.com/source-video.mp4",
+    "image_url": "https://example.com/reference-image.jpg",
+    "resolution": "720p"
+  }'
+```
+
+### 成功响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "wan22-animate-move",
+    "credits_deducted": 350
+  }
+}
+```
+
+## 查询状态
+
+- 接口：`POST https://api.wizzx.ai/api/v1/task/status`
+- Body：
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### 状态响应
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+状态说明：`PROCESSING`（生成中）、`SUCCEEDED`（使用 `result_urls` 获取结果）、`FAILED`（`error` 包含详细信息）。
+
+## 计费
+
+WAN 2.2 Animate Move 根据分辨率计费（固定 5 秒计费）。
+
+| 分辨率 | 积分/秒 | 固定费用（5秒）|
+|------------|----------------|-----------------|
+| **480p** | 35 | 175 积分（$0.175）|
+| **580p** | 52 | 260 积分（$0.26）|
+| **720p** | 70 | 350 积分（$0.35）|
+
+## 常见问题
+
+- **与 WAN 2.5/2.6 有什么区别？** WAN 2.2 Animate Move 将图片与视频结合来创建动画内容。与 WAN 2.5/2.6 不同，它不使用文本提示词 - 完全由图片+视频驱动。
+- **输出视频时长是多少？** 无论实际输出时长如何，视频均按固定 5 秒费率计费。
+- **支持哪些图片/视频格式？** 图片：JPEG、PNG、WebP。视频：MP4、MOV、MKV。两者最大文件大小均为 10MB。
+- **视频保留多久？** 30 天，请及时下载并归档重要视频。

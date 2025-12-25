@@ -1,0 +1,120 @@
+---
+title: "WAN 2.2 Animate Move API"
+description: "Alibaba WAN 2.2 Animate Move video generation - combine image and video to create animated content"
+---
+
+## Overview
+
+- **Provider**: Alibaba
+- Submit via `POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
+- Required: `video_url` (source video), `image_url` (reference image).
+- Optional: `resolution` (480p/580p/720p).
+- Generates animated video by combining an image with a video. No prompt required.
+
+## Auth
+
+- Header: `Authorization: Bearer <your_api_key>`
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move`, `Content-Type: application/json`
+
+### Required
+
+| Field | Type | Notes |
+|------|------|------|
+| `video_url` | string | Source video URL (mp4/mov/mkv, max 10MB) |
+| `image_url` | string | Reference image URL (jpeg/png/webp, max 10MB) |
+
+### Optional
+
+| Field | Type | Default | Notes |
+|------|------|---------|------|
+| `resolution` | string | `480p` | Output resolution: `480p`, `580p`, or `720p` |
+
+### Input requirements
+
+**Video:**
+- Format: mp4, quicktime (mov), x-matroska (mkv)
+- Max file size: 10MB
+
+**Image:**
+- Format: jpeg, png, webp
+- Max file size: 10MB
+- If aspect ratio doesn't match, image is resized and center-cropped
+
+<Note>
+  Unlike WAN 2.5/2.6, this model does **not** require a `prompt` parameter. It generates animation purely based on image and video input.
+</Note>
+
+### Example request
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan22-animate-move \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "video_url": "https://example.com/source-video.mp4",
+    "image_url": "https://example.com/reference-image.jpg",
+    "resolution": "720p"
+  }'
+```
+
+### Success response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "model_key": "wan22-animate-move",
+    "credits_deducted": 350
+  }
+}
+```
+
+## Query status
+
+- Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+- Body:
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+### Status response
+
+```json
+{
+  "code": 0,
+  "data": {
+    "task_id": "task_123456789",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/video.mp4"
+    ],
+    "error": ""
+  }
+}
+```
+
+Status: `PROCESSING` (generating), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+
+## Pricing
+
+WAN 2.2 Animate Move pricing is based on resolution (fixed 5-second billing).
+
+| Resolution | Credits/second | Fixed cost (5s) |
+|------------|----------------|-----------------|
+| **480p** | 35 | 175 credits ($0.175) |
+| **580p** | 52 | 260 credits ($0.26) |
+| **720p** | 70 | 350 credits ($0.35) |
+
+## FAQ
+
+- **How is this different from WAN 2.5/2.6?** WAN 2.2 Animate Move combines an image with a video to create animated content. Unlike WAN 2.5/2.6, it does not use text prompts - it's purely image+video driven.
+- **What's the output video duration?** Videos are billed at a fixed 5-second rate regardless of actual output duration.
+- **What image/video formats are supported?** Images: JPEG, PNG, WebP. Videos: MP4, MOV, MKV. Maximum file size is 10MB for both.
+- **How long are videos retained?** 30 days; please download and archive important videos.
