@@ -16,35 +16,16 @@ Wizzx uses a credit-based pricing system:
 | **Nano Banana Pro** (1K/2K) | 10 | $0.15 | 33% |
 | **Nano Banana Pro** (4K) | 20 | $0.30 | 33% |
 | **Nano Banana** | 24 | - | - |
-| **Flux Kontext Pro** | 30 | $0.04 | 25% |
-| **Flux Kontext Max** | 60 | $0.08 | 25% |
-| **Flux Pro 1.1** | 40 | $0.06 | 33% |
-| **Flux 2 Pro** | 20 + 10/MP | $0.03 + $0.015/MP | 33% |
-| **Flux 2 Flex** | 40/MP | $0.06/MP | 33% |
+| **Nano Banana 2** (1K) | 48 | - | - |
+| **Nano Banana 2** (2K) | 72 | - | - |
+| **Nano Banana 2** (4K) | 108 | - | - |
+| **Nano Banana 2 Lite** | 24 | - | - |
 | **Seedream 4.0** | 30 | $0.035 | 16% |
 | **Seedream 4.5** | 40 | $0.045 | 12% |
-| **Virtual Try-On** | 65 | $0.07 | 7% |
 
-### Flux 2 Megapixel Pricing
-
-Flux 2 models use **Megapixel (MP)** based pricing where **Total MP = Input MP + Output MP**.
-
-- **Output MP**: `width × height / (1024 × 1024)`, rounded up. Default 1 MP if not specified.
-- **Input MP**: 0 if no images; each image = 1 MP for multiple images; actual size (max 4 MP) for single image.
-
-**Flux 2 Pro:** 20 credits for first MP + 10 credits per additional MP
-- Formula: `20 + (totalMP - 1) × 10`
-
-**Flux 2 Flex:** 40 credits per MP
-- Formula: `totalMP × 40`
-
-| Scenario | Input MP | Output MP | Total MP | Pro Credits | Flex Credits |
-|----------|----------|-----------|----------|-------------|--------------|
-| Text-to-Image 1024×1024 | 0 | 1 | 1 | 20 | 40 |
-| Text-to-Image 1920×1080 | 0 | 2 | 2 | 30 | 80 |
-| Text-to-Image 2048×2048 | 0 | 4 | 4 | 50 | 160 |
-| Image-to-Image (1 img 2MP + 1024×1024) | 2 | 1 | 3 | 40 | 120 |
-| Image-to-Image (3 imgs + 1024×1024) | 3 | 1 | 4 | 50 | 160 |
+<Note>
+  Seedream is billed per generated image: `batch_size` is pre-authorized and the difference is refunded after settlement. Input reference images are not billed.
+</Note>
 
 ## Video Generation
 
@@ -93,31 +74,14 @@ Pricing varies by resolution and audio generation:
 | 480p | 55 credits | 88 credits | 132 credits |
 | 720p | 125 credits | 200 credits | 300 credits |
 
-### WAN 2.5
+### Runway Gen-3
 
-| Resolution | Credits/second | 5s video | 10s video |
-|------------|----------------|----------|-----------|
-| **720p** | 60 | 300 credits ($0.30) | 600 credits ($0.60) |
-| **1080p** | 100 | 500 credits ($0.50) | 1000 credits ($1.00) |
+Fixed price per request.
 
-### WAN 2.6
-
-WAN 2.6 supports extended duration (up to 15 seconds) and longer prompts (up to 5000 characters), but only text-to-video mode.
-
-| Resolution | Credits/second | 5s video | 10s video | 15s video |
-|------------|----------------|----------|-----------|-----------|
-| **720p** | 80 | 400 credits ($0.40) | 800 credits ($0.80) | 1200 credits ($1.20) |
-| **1080p** | 110 | 550 credits ($0.55) | 1100 credits ($1.10) | 1650 credits ($1.65) |
-
-### WAN 2.2 Animate Move
-
-WAN 2.2 Animate Move combines an image with a video to create animated content. Fixed 5-second billing.
-
-| Resolution | Credits/second | Fixed cost (5s) |
-|------------|----------------|-----------------|
-| **480p** | 35 | 175 credits ($0.175) |
-| **580p** | 52 | 260 credits ($0.26) |
-| **720p** | 70 | 350 credits ($0.35) |
+| Resolution | Credits | Notes |
+|------------|---------|-------|
+| **720p** | 5 | 5s or 10s |
+| **1080p** | 10 | 5s only |
 
 ### Kling AI
 

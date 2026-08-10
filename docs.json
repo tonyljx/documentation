@@ -28,22 +28,17 @@
                   "models/kling-ai",
                   "models/seedance-pro-fast",
                   "models/seedance-1.5-pro",
-                  "models/runway-gen3",
-                  "models/wan-2-5",
-                  "models/wan-2-6",
-                  "models/wan22-animate-move"
+                  "models/runway-gen3"
                 ]
               },
               {
                 "group": "Image Generation",
                 "pages": [
-                  "models/flux-kontext",
-                  "models/flux-pro-1-1",
-                  "models/flux-2",
                   "models/seedream",
                   "models/nano-banana-pro",
                   "models/nano-banana",
-                  "models/virtual-try-on"
+                  "models/nano-banana-2",
+                  "models/nano-banana-2-lite"
                 ]
               },
               {
@@ -68,24 +63,16 @@
                   "api-reference/endpoint/submit-veo3",
                   "api-reference/endpoint/submit-kling-ai",
                   "api-reference/endpoint/submit-seedance-pro-fast",
-                  "api-reference/endpoint/submit-seedance-1.5-pro",
-                  "api-reference/endpoint/submit-wan-2-5",
-                  "api-reference/endpoint/submit-wan-2-6",
-                  "api-reference/endpoint/submit-wan22-animate-move"
+                  "api-reference/endpoint/submit-seedance-1.5-pro"
                 ]
               },
               {
                 "group": "Image Generation",
                 "pages": [
-                  "api-reference/endpoint/submit-flux-kontext-pro",
-                  "api-reference/endpoint/submit-flux-kontext-max",
-                  "api-reference/endpoint/submit-flux-2-pro",
-                  "api-reference/endpoint/submit-flux-2-flex",
                   "api-reference/endpoint/submit-seedream-4",
                   "api-reference/endpoint/submit-seedream-4-5",
                   "api-reference/endpoint/submit-nano-banana-pro",
-                  "api-reference/endpoint/submit-nano-banana",
-                  "api-reference/endpoint/submit-virtual-try-on"
+                  "api-reference/endpoint/submit-nano-banana"
                 ]
               },
               {
@@ -120,22 +107,17 @@
                   "zh/models/kling-ai",
                   "zh/models/seedance-pro-fast",
                   "zh/models/seedance-1.5-pro",
-                  "zh/models/runway-gen3",
-                  "zh/models/wan-2-5",
-                  "zh/models/wan-2-6",
-                  "zh/models/wan22-animate-move"
+                  "zh/models/runway-gen3"
                 ]
               },
               {
                 "group": "图像生成",
                 "pages": [
-                  "zh/models/flux-kontext",
-                  "zh/models/flux-pro-1-1",
-                  "zh/models/flux-2",
                   "zh/models/seedream",
                   "zh/models/nano-banana-pro",
                   "zh/models/nano-banana",
-                  "zh/models/virtual-try-on"
+                  "zh/models/nano-banana-2",
+                  "zh/models/nano-banana-2-lite"
                 ]
               },
               {
@@ -160,24 +142,16 @@
                   "zh/api-reference/endpoint/submit-veo3",
                   "zh/api-reference/endpoint/submit-kling-ai",
                   "zh/api-reference/endpoint/submit-seedance-pro-fast",
-                  "zh/api-reference/endpoint/submit-seedance-1.5-pro",
-                  "zh/api-reference/endpoint/submit-wan-2-5",
-                  "zh/api-reference/endpoint/submit-wan-2-6",
-                  "zh/api-reference/endpoint/submit-wan22-animate-move"
+                  "zh/api-reference/endpoint/submit-seedance-1.5-pro"
                 ]
               },
               {
                 "group": "图像生成",
                 "pages": [
-                  "zh/api-reference/endpoint/submit-flux-kontext-pro",
-                  "zh/api-reference/endpoint/submit-flux-kontext-max",
-                  "zh/api-reference/endpoint/submit-flux-2-pro",
-                  "zh/api-reference/endpoint/submit-flux-2-flex",
                   "zh/api-reference/endpoint/submit-seedream-4",
                   "zh/api-reference/endpoint/submit-seedream-4-5",
                   "zh/api-reference/endpoint/submit-nano-banana-pro",
-                  "zh/api-reference/endpoint/submit-nano-banana",
-                  "zh/api-reference/endpoint/submit-virtual-try-on"
+                  "zh/api-reference/endpoint/submit-nano-banana"
                 ]
               },
               {
