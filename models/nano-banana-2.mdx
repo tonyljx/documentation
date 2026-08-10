@@ -1,0 +1,103 @@
+---
+title: "Nano Banana 2 Image API"
+description: "Nano Banana 2 text/image-to-image with up to 14 reference images and 1K/2K/4K output"
+---
+
+## Overview
+
+- Model: Nano Banana 2 (`nano-banana-2`) by Google; text-to-image and image-to-image with up to 14 reference images.
+- Resolution: `1K` / `2K` / `4K`; default `1K` (higher resolutions cost more).
+- Aspect ratios: 14 options from `1:1` to `21:9`, plus `auto` (default).
+- Output: `png` / `jpg` (default `jpg`).
+- Async API: submit `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2`, poll `POST https://api.wizzx.ai/api/v1/task/status`.
+
+## Auth
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2`, `Content-Type: application/json`
+
+| Field | Type | Required | Default/Limit | Description |
+| --- | --- | --- | --- | --- |
+| `prompt` | string | Yes | ≤20000 chars | Text prompt |
+| `image_urls` | array&lt;string&gt; | No | Max 14 | Reference images |
+| `aspect_ratio` | string | No | Default `auto` | `1:1`, `1:4`, `1:8`, `2:3`, `3:2`, `3:4`, `4:1`, `4:3`, `4:5`, `5:4`, `8:1`, `9:16`, `16:9`, `21:9`, `auto` |
+| `resolution` | string | No | Default `1K` | `1K` / `2K` / `4K` |
+| `output_format` | string | No | Default `jpg` | `png` / `jpg` |
+
+### Example (text-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A futuristic city at night with neon lights",
+    "aspect_ratio": "16:9",
+    "resolution": "2K",
+    "output_format": "png"
+  }'
+```
+
+### Example (multi-reference)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Blend these references into one cohesive scene",
+    "image_urls": [
+      "https://example.com/ref1.jpg",
+      "https://example.com/ref2.jpg"
+    ],
+    "aspect_ratio": "auto",
+    "resolution": "4K"
+  }'
+```
+
+## Query status
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error_message`).
+
+## Pricing
+
+Billed per image, based on resolution:
+
+| Resolution | Credits |
+|------------|---------|
+| 1K         | 48      |
+| 2K         | 72      |
+| 4K         | 108     |
+
+1000 credits = $1. Unspecified `resolution` is billed as `1K`.
+
+## Nano Banana 2 vs Nano Banana 2 Lite
+
+| Feature | Nano Banana 2 | Nano Banana 2 Lite |
+| --- | --- | --- |
+| Model ID | `nano-banana-2` | `nano-banana-2-lite` |
+| Reference images | Up to 14 | Up to 10 |
+| Resolution control | `1K` / `2K` / `4K` | Not available |
+| Output format | `png` / `jpg` | Not available |
+| Credits | 48-108 by resolution | Fixed 24 |
+
+See [Nano Banana 2 Lite](/models/nano-banana-2-lite) for the budget option.
+
+## Best practices
+
+- Iterate with `1K`, finalize with `2K/4K`.
+- Keep references consistent in style; 1-3 typical, up to 14.
+- Use `auto` aspect ratio to let the model match the references.

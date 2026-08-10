@@ -1,0 +1,79 @@
+---
+title: "Nano Banana 2 Lite Image API"
+description: "Nano Banana 2 Lite budget image generation at a fixed 24 credits per image"
+---
+
+## Overview
+
+- Model: Nano Banana 2 Lite (`nano-banana-2-lite`) by Google; text-to-image and image-to-image with up to 10 reference images.
+- Simple and predictable: fixed 24 credits per image, no resolution or output format options.
+- Aspect ratios: 14 options from `1:1` to `21:9`, plus `auto` (default).
+- Async API: submit `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite`, poll `POST https://api.wizzx.ai/api/v1/task/status`.
+
+## Auth
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## Submit job
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite`, `Content-Type: application/json`
+
+| Field | Type | Required | Default/Limit | Description |
+| --- | --- | --- | --- | --- |
+| `prompt` | string | Yes | ≤20000 chars | Text prompt |
+| `image_urls` | array&lt;string&gt; | No | Max 10 | Reference images |
+| `aspect_ratio` | string | No | Default `auto` | `1:1`, `1:4`, `1:8`, `2:3`, `3:2`, `3:4`, `4:1`, `4:3`, `4:5`, `5:4`, `8:1`, `9:16`, `16:9`, `21:9`, `auto` |
+
+<Note>
+  Need `1K/2K/4K` resolution control or `png` output? Use [Nano Banana 2](/models/nano-banana-2) instead.
+</Note>
+
+### Example (text-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A cute cat wearing sunglasses, cartoon style",
+    "aspect_ratio": "1:1"
+  }'
+```
+
+### Example (image-to-image)
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "Turn this photo into watercolor style",
+    "image_urls": [
+      "https://example.com/photo.jpg"
+    ]
+  }'
+```
+
+## Query status
+
+Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error_message`).
+
+## Pricing
+
+Fixed **24 credits per image** (1000 credits = $1), regardless of parameters.
+
+## Best practices
+
+- Ideal for high-volume, cost-sensitive generation and quick drafts.
+- Upgrade to [Nano Banana 2](/models/nano-banana-2) when you need 2K/4K output or PNG format.
+- Keep references 1-3 for the most predictable results.

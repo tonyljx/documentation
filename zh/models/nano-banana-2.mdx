@@ -1,0 +1,103 @@
+---
+title: "Nano Banana 2 图像生成 API"
+description: "Nano Banana 2 文生图/图生图，最多 14 张参考图，支持 1K/2K/4K 输出"
+---
+
+## 概览
+
+- 模型：Nano Banana 2（`nano-banana-2`），Google 出品；支持文生图与图生图，最多 14 张参考图。
+- 分辨率：`1K` / `2K` / `4K`；默认 `1K`，高分辨率消耗更多积分。
+- 画幅：从 `1:1` 到 `21:9` 共 14 种选项，外加 `auto`（默认）。
+- 输出：`png` / `jpg`，默认 `jpg`。
+- 异步接口：提交 `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2`，查询 `POST https://api.wizzx.ai/api/v1/task/status`。
+
+## 认证
+
+```bash
+Authorization: Bearer <your_api_key>
+```
+
+## 提交任务
+
+接口：`POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2`，`Content-Type: application/json`
+
+| 字段 | 类型 | 必填 | 默认/限制 | 说明 |
+| --- | --- | --- | --- | --- |
+| `prompt` | string | 是 | ≤ 20000 字符 | 文本提示词 |
+| `image_urls` | array&lt;string&gt; | 否 | 最多 14 张 | 参考图 URL 列表 |
+| `aspect_ratio` | string | 否 | 默认 `auto` | `1:1`、`1:4`、`1:8`、`2:3`、`3:2`、`3:4`、`4:1`、`4:3`、`4:5`、`5:4`、`8:1`、`9:16`、`16:9`、`21:9`、`auto` |
+| `resolution` | string | 否 | 默认 `1K` | `1K` / `2K` / `4K` |
+| `output_format` | string | 否 | 默认 `jpg` | `png` / `jpg` |
+
+### 请求示例（文生图）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "霓虹灯下的未来主义城市夜景",
+    "aspect_ratio": "16:9",
+    "resolution": "2K",
+    "output_format": "png"
+  }'
+```
+
+### 请求示例（多参考图）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "将这些参考图融合为一个连贯的场景",
+    "image_urls": [
+      "https://example.com/ref1.jpg",
+      "https://example.com/ref2.jpg"
+    ],
+    "aspect_ratio": "auto",
+    "resolution": "4K"
+  }'
+```
+
+## 查询状态
+
+接口：`POST https://api.wizzx.ai/api/v1/task/status`
+
+```json
+{
+  "task_id": "task_123456789"
+}
+```
+
+状态流转：`pending` → `processing` → `succeeded`（返回 `result_urls`）或 `failed`（见 `error_message`）。
+
+## 计费
+
+按张计费，取决于分辨率：
+
+| 分辨率 | 积分 |
+|--------|------|
+| 1K     | 48   |
+| 2K     | 72   |
+| 4K     | 108  |
+
+1000 积分 = $1。未指定 `resolution` 时按 `1K` 计费。
+
+## Nano Banana 2 与 Lite 对比
+
+| 特性 | Nano Banana 2 | Nano Banana 2 Lite |
+| --- | --- | --- |
+| 模型 ID | `nano-banana-2` | `nano-banana-2-lite` |
+| 参考图 | 最多 14 张 | 最多 10 张 |
+| 分辨率控制 | `1K` / `2K` / `4K` | 不支持 |
+| 输出格式 | `png` / `jpg` | 不支持 |
+| 积分 | 按分辨率 48-108 | 固定 24 |
+
+预算优先可选 [Nano Banana 2 Lite](/zh/models/nano-banana-2-lite)。
+
+## 最佳实践
+
+- 用 `1K` 快速迭代，最终成图用 `2K/4K`。
+- 参考图保持风格一致，常用 1-3 张，最多 14 张。
+- 使用 `auto` 画幅让模型自动匹配参考图比例。
