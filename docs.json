@@ -13,6 +13,25 @@
       {
         "language": "en",
         "default": true,
+        "global": {
+          "anchors": [
+            {
+              "anchor": "Pricing",
+              "href": "/pricing",
+              "icon": "tag"
+            },
+            {
+              "anchor": "Changelog",
+              "href": "/changelog",
+              "icon": "list"
+            },
+            {
+              "anchor": "Introduction",
+              "href": "/introduction",
+              "icon": "book-open-cover"
+            }
+          ]
+        },
         "tabs": [
           {
             "tab": "Guides",
@@ -92,6 +111,25 @@
       },
       {
         "language": "zh",
+        "global": {
+          "anchors": [
+            {
+              "anchor": "定价",
+              "href": "/zh/pricing",
+              "icon": "tag"
+            },
+            {
+              "anchor": "更新日志",
+              "href": "/zh/changelog",
+              "icon": "list"
+            },
+            {
+              "anchor": "介绍",
+              "href": "/zh/introduction",
+              "icon": "book-open-cover"
+            }
+          ]
+        },
         "tabs": [
           {
             "tab": "指南",
@@ -169,26 +207,7 @@
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Pricing",
-          "href": "/pricing",
-          "icon": "tag"
-        },
-        {
-          "anchor": "Changelog",
-          "href": "/changelog",
-          "icon": "list"
-        },
-        {
-          "anchor": "Introduction",
-          "href": "/introduction",
-          "icon": "book-open-cover"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/logo.png",
