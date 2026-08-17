@@ -12,6 +12,21 @@ import AgentMediaRequestSchemas from '/snippets/agent-media-request-schemas.mdx'
 
 无需安装 SDK。以下接口统一使用 `https://api.wizzx.ai`。
 
+## 面向 AI 的文档入口
+
+优先给智能体最小且足够的上下文：中文任务先读取本指南的 Markdown 版本，再用 `llms.txt` 发现模型与 API 页面、用 OpenAPI 校验精确字段，最后通过 `/pricing` 确认实时可用性和积分档位。
+
+| 资源 | 用途 |
+| --- | --- |
+| [本指南的 Markdown 版本](https://docs.wizzx.ai/zh/ai-tools/media-generation-agents.md) | 不经过网页界面的中文智能体工作流。 |
+| [`llms.txt`](https://docs.wizzx.ai/llms.txt) | 自动更新的精简文档索引，用于发现模型与 API 页面；如果索引尚未列出所需语言，直接使用对应页面的 `.md` 链接。 |
+| [`llms-full.txt`](https://docs.wizzx.ai/llms-full.txt) | 全站文档上下文。只在智能体能容纳完整内容、且不会挤占用户需求上下文时使用。 |
+| [OpenAPI JSON](https://docs.wizzx.ai/api-reference/openapi.json) | 机器可读的请求、响应、枚举和条件参数 Schema。 |
+
+<Note>
+  `llms.txt` 只是文档发现入口，不能证明某个模型当前仍公开，也不能证明旧价格仍有效。请先通过 [`GET /pricing`](/zh/api-reference/endpoint/pricing) 确认可用性和积分，再结合 OpenAPI 与模型页面构造请求。
+</Note>
+
 ## 准备条件
 
 - 一个有足够积分的 Wizzx API Key。
@@ -47,15 +62,16 @@ export WIZZX_API_KEY
 - 不得打印、记录、提交或写入文件。
 
 执行契约：
-1. 请求 GET /pricing，确认选中的 model_key 当前公开可用。
-2. 使用 Bearer Key 请求 GET /api/v1/credits/balance。
-3. 只构造所选模型 Schema 允许的字段。model_key 放在 URL 路径中，不放进 JSON Body。
-4. 如果用户只要求方案、参数预览或费用估算，停在提交之前。
-5. 仅调用一次 POST /api/v1/task/submit/{model_key}。
-6. 必须同时满足 HTTP 成功、code == 0、data.task_id 非空；立即保存并告知用户 Task ID。
-7. 使用同一个 Bearer Key，通过 {"task_id":"..."} 轮询 POST /api/v1/task/status；采用退避，并遵守 429 的 retry_after。
-8. PENDING、QUEUED、PROCESSING 时继续查询；SUCCEEDED 时返回 result_urls；FAILED 时返回 error；REVIEW_REQUIRED 时停止并报告，禁止重新提交。
-9. 查询超时时返回 Task ID，方便稍后继续；禁止自动创建替代任务。
+1. 中文任务先读取 https://docs.wizzx.ai/zh/ai-tools/media-generation-agents.md；需要发现模型或 API 页面时，再读取 https://docs.wizzx.ai/llms.txt，并通过 https://docs.wizzx.ai/api-reference/openapi.json 获取精确 Schema。llms.txt 不能作为可用性或价格依据。
+2. 请求 GET /pricing，确认选中的 model_key 当前公开可用。
+3. 使用 Bearer Key 请求 GET /api/v1/credits/balance。
+4. 只构造所选模型 Schema 允许的字段。model_key 放在 URL 路径中，不放进 JSON Body。
+5. 如果用户只要求方案、参数预览或费用估算，停在提交之前。
+6. 仅调用一次 POST /api/v1/task/submit/{model_key}。
+7. 必须同时满足 HTTP 成功、code == 0、data.task_id 非空；立即保存并告知用户 Task ID。
+8. 使用同一个 Bearer Key，通过 {"task_id":"..."} 轮询 POST /api/v1/task/status；采用退避，并遵守 429 的 retry_after。
+9. PENDING、QUEUED、PROCESSING 时继续查询；SUCCEEDED 时返回 result_urls；FAILED 时返回 error；REVIEW_REQUIRED 时停止并报告，禁止重新提交。
+10. 查询超时时返回 Task ID，方便稍后继续；禁止自动创建替代任务。
 
 如果提交请求发生网络超时或结果不明确的 5xx，不得自动重试，因为可能产生第二个付费任务。任何第二次提交都必须先询问用户。
 ```
@@ -64,10 +80,10 @@ export WIZZX_API_KEY
 
 | 用途 | 方法和路径 | 鉴权 |
 | --- | --- | --- |
-| 获取当前公开模型和价格 | `GET /pricing` | 无需鉴权 |
-| 查询积分余额 | `GET /api/v1/credits/balance` | Bearer API Key |
+| 获取当前公开模型和价格 | [`GET /pricing`](/zh/api-reference/endpoint/pricing) | 无需鉴权 |
+| 查询积分余额 | [`GET /api/v1/credits/balance`](/zh/api-reference/endpoint/credit-balance) | Bearer API Key |
 | 提交生成任务 | `POST /api/v1/task/submit/{model_key}` | Bearer API Key |
-| 查询任务状态 | `POST /api/v1/task/status` | Bearer API Key |
+| 查询任务状态 | [`POST /api/v1/task/status`](/zh/api-reference/endpoint/task-status) | Bearer API Key |
 
 只有当模型仍出现在 `/pricing` 时，才将 `gpt-image-2` 作为通用图片预设、`veo3` 作为通用视频预设。如果用户指定其他模型，必须阅读该模型的 API 参考，不能复用预设 Schema。
 

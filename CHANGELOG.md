@@ -12,6 +12,7 @@
 
 - Aligned the OpenAPI submit, status, success, and error schemas with the backend contract, including six client-visible task states and Wizzx API key authentication.
 - Corrected current public endpoint parameter names, required fields, enum values, runtime limitations, and high-risk pricing examples for Veo, Seedance, Kling, Seedream, Nano Banana Pro, and ElevenLabs TTS.
+- Added visible `llms.txt`, `llms-full.txt`, Markdown, and OpenAPI entrypoints to the bilingual agent guides, plus local and live checks that keep those references verifiable.
 
 ## 2026-08-11
 

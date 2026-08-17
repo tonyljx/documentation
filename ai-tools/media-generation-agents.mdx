@@ -12,6 +12,21 @@ This guide gives Codex, Claude Code, and other shell-capable agents a determinis
 
 No SDK is required. All examples use `https://api.wizzx.ai`.
 
+## AI-readable documentation entrypoints
+
+Give an agent the smallest useful source first. Use the index to discover a page, the Markdown page for readable model guidance, the OpenAPI document for exact fields, and `/pricing` for live availability and credit tiers.
+
+| Resource | Use it for |
+| --- | --- |
+| [`llms.txt`](https://docs.wizzx.ai/llms.txt) | Compact, automatically updated documentation index. Start here when the model or page is unknown. |
+| [`llms-full.txt`](https://docs.wizzx.ai/llms-full.txt) | Full documentation context. Use only when the agent can load the whole site without crowding out the user's request. |
+| [This guide as Markdown](https://docs.wizzx.ai/ai-tools/media-generation-agents.md) | Agent-readable version of this workflow without the web interface. |
+| [OpenAPI JSON](https://docs.wizzx.ai/api-reference/openapi.json) | Machine-readable request, response, enum, and conditional parameter schemas. |
+
+<Note>
+  `llms.txt` is a discovery index, not proof that a model is currently public or that an old price is still valid. Confirm availability and pricing with [`GET /pricing`](/api-reference/endpoint/pricing), then use OpenAPI and the selected model page to construct the payload.
+</Note>
+
 ## Prerequisites
 
 - A Wizzx API key with enough credits.
@@ -47,15 +62,16 @@ Security:
 - Never print, log, commit, or write the key to a file.
 
 Execution contract:
-1. Read GET /pricing and confirm the selected model_key is currently public.
-2. Read GET /api/v1/credits/balance with the Bearer key.
-3. Build only fields allowed by the selected model schema. model_key belongs in the URL path, not the JSON body.
-4. If the user asked only for a plan, payload preview, or cost estimate, stop before submission.
-5. Submit exactly once with POST /api/v1/task/submit/{model_key}.
-6. Require HTTP success, code == 0, and a non-empty data.task_id. Save and report that Task ID immediately.
-7. Poll POST /api/v1/task/status with {"task_id":"..."} and the same Bearer key. Use backoff and honor retry_after on 429.
-8. Continue for PENDING, QUEUED, or PROCESSING. Return result_urls for SUCCEEDED. Return error for FAILED. Stop and report REVIEW_REQUIRED without resubmitting.
-9. If polling times out, return the Task ID so polling can resume. Never create a replacement task automatically.
+1. Read https://docs.wizzx.ai/llms.txt to discover the relevant model page and https://docs.wizzx.ai/api-reference/openapi.json for its exact schema. Treat llms.txt as an index, not an availability or pricing source.
+2. Read GET /pricing and confirm the selected model_key is currently public.
+3. Read GET /api/v1/credits/balance with the Bearer key.
+4. Build only fields allowed by the selected model schema. model_key belongs in the URL path, not the JSON body.
+5. If the user asked only for a plan, payload preview, or cost estimate, stop before submission.
+6. Submit exactly once with POST /api/v1/task/submit/{model_key}.
+7. Require HTTP success, code == 0, and a non-empty data.task_id. Save and report that Task ID immediately.
+8. Poll POST /api/v1/task/status with {"task_id":"..."} and the same Bearer key. Use backoff and honor retry_after on 429.
+9. Continue for PENDING, QUEUED, or PROCESSING. Return result_urls for SUCCEEDED. Return error for FAILED. Stop and report REVIEW_REQUIRED without resubmitting.
+10. If polling times out, return the Task ID so polling can resume. Never create a replacement task automatically.
 
 Do not automatically retry a submit request after a network timeout or ambiguous 5xx response; it may create a second paid task. Ask the user before any second submission.
 ```
@@ -64,10 +80,10 @@ Do not automatically retry a submit request after a network timeout or ambiguous
 
 | Purpose | Method and path | Authentication |
 | --- | --- | --- |
-| Discover public models and current pricing | `GET /pricing` | None |
-| Check the current credit balance | `GET /api/v1/credits/balance` | Bearer API key |
+| Discover public models and current pricing | [`GET /pricing`](/api-reference/endpoint/pricing) | None |
+| Check the current credit balance | [`GET /api/v1/credits/balance`](/api-reference/endpoint/credit-balance) | Bearer API key |
 | Submit a generation | `POST /api/v1/task/submit/{model_key}` | Bearer API key |
-| Query a task | `POST /api/v1/task/status` | Bearer API key |
+| Query a task | [`POST /api/v1/task/status`](/api-reference/endpoint/task-status) | Bearer API key |
 
 Use `gpt-image-2` as the general image preset and `veo3` as the general video preset only while each key appears in `/pricing`. If the user names another model, read that model's API reference and do not reuse a preset schema.
 
