@@ -1,0 +1,22 @@
+---
+title: "Submit Nano Banana 2 Lite task"
+description: "POST a Nano Banana 2 Lite image generation or editing task"
+openapi: "POST /api/v1/task/submit/nano-banana-2-lite"
+---
+
+## Submit task
+
+`prompt` is required. Omit `image_urls` for text-to-image, or provide up to 10 public HTTP(S) image URLs. This Lite model does not accept `resolution` or `output_format`.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "A playful orange robot sticker",
+    "aspect_ratio": "1:1"
+  }'
+```
+
+If omitted, `aspect_ratio` defaults to `auto`.

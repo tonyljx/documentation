@@ -1,0 +1,36 @@
+---
+title: "GPT Image 2"
+description: "使用 GPT Image 2 生成或编辑一张图片"
+icon: "image"
+---
+
+## GPT Image 2
+
+GPT Image 2 使用同一个 model key 处理图片生成和编辑。文生图时省略 `image_urls`；图片编辑时最多传入 10 张公网 HTTP(S) 图片。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空 UTF-8 文本，网关最多 32,000 bytes |
+| `image_urls` | 否 | 1–10 个公网 HTTP(S) 图片 URL |
+| `size` | 否 | `auto`、`1024x1024`、`1536x1024`、`1024x1536` |
+| `quality` | 否 | `auto`、`low`、`medium`、`high` |
+| `output_format` | 否 | `png`、`jpeg`、`webp` |
+
+```json
+{
+  "prompt": "橙色机械键盘的电影感产品摄影",
+  "size": "1536x1024",
+  "quality": "high",
+  "output_format": "png"
+}
+```
+
+提交到 `POST /api/v1/task/submit/gpt-image-2`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+<Note>
+  每个请求生成一张图片。当前网关价格不受可选参数影响，但仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [GPT Image 2 API 参考](/zh/api-reference/endpoint/submit-gpt-image-2)。

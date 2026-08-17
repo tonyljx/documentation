@@ -1,0 +1,24 @@
+---
+title: "Submit Runway Gen-3 task"
+description: "POST a Runway Gen-3 text-to-video or image-to-video task"
+openapi: "POST /api/v1/task/submit/runway-gen3"
+---
+
+## Submit task
+
+`prompt` and `type` are required. For `image-to-video`, provide exactly one public HTTP(S) URL in `image_urls`; for `text-to-video`, omit `image_urls`.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "A paper boat crosses a moonlit lake",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "720p"
+  }'
+```
+
+The `10`-second duration cannot be combined with `1080p`. Save `data.task_id` and poll the task status endpoint.

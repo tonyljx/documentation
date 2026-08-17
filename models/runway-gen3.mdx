@@ -27,6 +27,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3`, `Content-T
 | `image_urls` | array | Conditional | - | Image URLs (required for `image-to-video`, max 1) |
 | `duration` | int | No | 5 | Video duration: `5` or `10` seconds |
 | `resolution` | string | No | `720p` | `720p` or `1080p` (10s does not support 1080p) |
+| `fps` | int | No | 24 | Frame rate: `24`, `30`, or `60` |
 | `aspect_ratio` | string | No | auto | `16:9`, `9:16`, or `1:1` |
 
 <Warning>
@@ -67,13 +68,14 @@ Success response:
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "pending",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "runway-gen3",
     "credits_deducted": 5
-  }
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -83,7 +85,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -91,17 +93,20 @@ Response (succeeded):
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "succeeded",
-    "result_urls": ["https://cdn.example.com/video.mp4"]
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": ["https://cdn.example.com/video.mp4"],
+    "error": "",
+    "credits_deducted": 5
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error`).
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`. See the task status API reference.
 
 ### Pricing
 
@@ -127,3 +132,5 @@ Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) 
    - Use `9:16` for portrait/vertical videos
    - Use `1:1` for square videos
    - Leave empty for auto-detection (recommended for image-to-video)
+
+4. **Frame Rate:** Use `24` for a cinematic look, or `30`/`60` when smoother motion is more important.

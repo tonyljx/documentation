@@ -6,14 +6,18 @@ openapi: "POST /api/v1/task/status"
 
 ## Query task
 
-- Send `task_id`; include `Authorization: Bearer <your_api_key>`.
-- Returns `status` (`PROCESSING`/`SUCCEEDED`/`FAILED`); success includes `result_urls`.
+Send the Wizzx `task_id` returned by submit with the same API key. This endpoint reads the stored task state and does not submit work to the provider.
 
 ```bash
-curl -X POST https://api.wizzx.ai/api/v1/task/status \
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/status \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
-  -d '{
-    "task_id": "task_123456789"
+  --data '{
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
   }'
 ```
+
+Client-visible states are `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`. Internal `DISPATCHING` is returned as `PROCESSING`.
+
+Continue polling the same Task ID for non-terminal states. Do not automatically create a replacement task for an unknown state, `REVIEW_REQUIRED`, or an ambiguous submit response.

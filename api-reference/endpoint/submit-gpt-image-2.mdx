@@ -1,0 +1,24 @@
+---
+title: "Submit GPT Image 2 task"
+description: "POST a GPT Image 2 generation or image editing task"
+openapi: "POST /api/v1/task/submit/gpt-image-2"
+---
+
+## Submit task
+
+`prompt` is required. Omit `image_urls` for generation, or provide up to 10 public HTTP(S) image URLs for editing. Each accepted request produces one image.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/gpt-image-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "An orange mechanical keyboard on a dark desk",
+    "size": "1536x1024",
+    "quality": "high",
+    "output_format": "png"
+  }'
+```
+
+The gateway currently charges a fixed amount regardless of `size`, `quality`, format, or input image count. Read `/pricing` for the current amount.

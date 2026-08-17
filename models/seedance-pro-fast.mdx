@@ -9,7 +9,7 @@ description: "Unified Seedance Pro Fast text-to-video / image-to-video submissio
 - Platform: Wizzx gateway; `Authorization: Bearer <your_api_key>`.
 - Submit: `POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast` → returns `task_id`.
 - Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id`.
-- Modes: `text-to-video` / `image-to-video`; fixed 24fps; duration 5s or 10s; resolutions 480p/720p/1080p.
+- Modes: `text-to-video` / `image-to-video`; fixed 24fps; duration 5s or 10s. Omit `resolution` for the current 480p default; explicit values may be 720p or 1080p.
 
 ### Auth
 
@@ -34,7 +34,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast`, `Con
 | --- | --- | --- | --- |
 | `image_urls` | []string | - | Required for `image-to-video`, max 1 image |
 | `duration` | int | 5 | `5` or `10` seconds |
-| `resolution` | string | 480p | `480p` / `720p` / `1080p` |
+| `resolution` | string | Omit → 480p | Explicit `720p` / `1080p`; explicit `480p` is temporarily rejected by gateway binding |
 | `aspect_ratio` | string | 16:9 / adaptive | text-to-video default `16:9`, image-to-video default `adaptive` |
 | `seed` | int | -1 | RNG seed; -1 for random, range [-1, 4294967295] |
 | `watermark` | bool | false | Add watermark |
@@ -58,7 +58,6 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
     "prompt": "A cat playing piano in a cozy living room",
     "type": "text-to-video",
     "duration": 5,
-    "resolution": "480p",
     "aspect_ratio": "16:9"
   }'
 ```
@@ -84,10 +83,13 @@ Success response:
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "seedance-pro-fast"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "seedance-pro-fast",
+    "credits_deducted": 200
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -97,7 +99,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -106,20 +108,27 @@ Response example:
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 200
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-Status values: `PROCESSING`, `SUCCEEDED`, `FAILED`.
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`.
 
 ### Pricing
+
+<Warning>
+  The 480p tier is reached by omitting `resolution`. Explicit `resolution: "480p"` is currently rejected by the shared gateway binding.
+</Warning>
 
 | Resolution | Credits/second | vs Official |
 |------------|----------------|-------------|

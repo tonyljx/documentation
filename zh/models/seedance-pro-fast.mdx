@@ -9,7 +9,7 @@ description: "统一字段的 Seedance Pro Fast 文生/图生视频提交与查�
 - 品牌：Wizzx（第三方 API 聚合），统一使用 `Authorization: Bearer <your_api_key>`.
 - 提交生成：`POST /api/v1/task/submit/seedance-pro-fast`，异步返回 `task_id`。
 - 轮询状态：`POST /api/v1/task/status`，传入 `task_id` 获取结果或错误。
-- 支持 `text-to-video` 与 `image-to-video` 两种模式；固定 24fps，时长 5s/10s，分辨率 480p/720p/1080p。
+- 支持 `text-to-video` 与 `image-to-video` 两种模式；固定 24fps，时长 5s/10s。省略 `resolution` 使用当前 480p 默认值；显式值只能使用 720p 或 1080p。
 
 ### 认证
 
@@ -38,7 +38,7 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 | --- | --- | --- | --- |
 | `image_urls` | []string | - | `image-to-video` 必填，最多 1 张 |
 | `duration` | int | 5 | 视频时长：`5` 或 `10` 秒 |
-| `resolution` | string | 480p | 视频分辨率：`480p` / `720p` / `1080p` |
+| `resolution` | string | 省略 → 480p | 显式 `720p` / `1080p`；显式 `480p` 暂时会被网关 binding 拒绝 |
 | `aspect_ratio` | string | 16:9 / adaptive | text-to-video 默认 `16:9`，image-to-video 默认 `adaptive` |
 | `seed` | int | -1 | 随机种子，-1 表示随机，范围 [-1, 4294967295] |
 | `watermark` | bool | false | 是否添加水印 |
@@ -62,7 +62,6 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
     "prompt": "A cat playing piano in a cozy living room",
     "type": "text-to-video",
     "duration": 5,
-    "resolution": "480p",
     "aspect_ratio": "16:9"
   }'
 ```
@@ -88,10 +87,13 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "seedance-pro-fast"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "seedance-pro-fast",
+    "credits_deducted": 200
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -103,7 +105,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -112,20 +114,27 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 200
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-状态值：`PROCESSING`（生成中）、`SUCCEEDED`（可用 `result_urls`）、`FAILED`（查看 `error`）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。
 
 ### 计费详情
+
+<Warning>
+  480p 档位需要省略 `resolution`。显式提交 `resolution: "480p"` 目前会被公共网关 binding 拒绝。
+</Warning>
 
 按秒计费：
 

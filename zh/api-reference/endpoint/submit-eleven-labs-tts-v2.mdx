@@ -38,8 +38,5 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-v2 \
 ```
 
 <Note>
-- **文本**: 1-5000 字符，支持多语言。
-- **语音**: 21 种选择（Rachel, Brian, Sarah 等）。默认: Rachel。
-- **语速**: 0.7-1.2（默认: 1.0）。
-- **价格**: 每 1000 字符 80 积分（向上取整）。
+  文本最多 5,000 个 Unicode code point。`voice` 默认 `Rachel`；其他未传的合成控制项使用上游默认值，Wizzx 当前不固定这些默认值。每 1,000 个 Unicode code point 计 80 积分并向上取整。
 </Note>

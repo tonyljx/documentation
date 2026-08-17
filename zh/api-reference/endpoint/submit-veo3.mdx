@@ -1,28 +1,28 @@
 ---
-title: "Submit Veo 3.1 task"
-description: "POST Veo 3.1 text/image-to-video任务"
+title: "提交 Veo 3.1 Fast 任务"
+description: "POST Veo 3.1 Fast 文本、帧或参考图视频任务"
 openapi: "POST /api/v1/task/submit/veo3"
 ---
 
 ## 提交任务
 
-- 传 `Authorization: Bearer <your_api_key>`。
-- 必填 `prompt`；可选 `image_urls`、`generation_type`、`model`、`aspect_ratio`、`seeds`、`enable_translation`、`watermark`。
-- 异步返回 `task_id`，使用 `/api/v1/task/status` 轮询。
+`prompt` 和 `type` 必填。文生视频使用 `text-to-video` 且不传图片；首尾帧使用 `image-to-video` 并传一至两张图；参考图视频使用 `reference-to-video` 并传一至三张图。
 
 ```bash
-curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
-  -d '{
-    "prompt": "A dog running through a neon city at night",
+  --data '{
+    "prompt": "一只狗在夜晚的霓虹城市中奔跑",
+    "type": "text-to-video",
+    "duration": 6,
+    "resolution": "720p",
     "model": "veo3_fast",
     "aspect_ratio": "16:9"
   }'
 ```
 
 <Note>
-- `TEXT_2_VIDEO` 不传 `image_urls`；参考图最多 2 张（`REFERENCE_2_VIDEO` 最多 3 张且 16:9、`veo3_fast`）。
-- 已弃用 `callBackUrl`，统一用轮询查询。
+  当前唯一公开档位是 `veo3_fast` 和 `720p`。时长可选 `4`、`6`、`8` 秒。参考图视频必须使用 `16:9` 和 8 秒。保存 `data.task_id` 后查询 `/api/v1/task/status`。
 </Note>
-

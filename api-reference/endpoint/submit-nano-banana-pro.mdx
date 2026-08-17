@@ -28,7 +28,5 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-pro \
 ```
 
 <Note>
-- Aspect ratios: `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `auto` (default `1:1`).  
-- Credits: `1K/2K = 10`, `4K = 20`.  
-- Output formats: `png` / `jpg` (default `png`).
+  Aspect ratio defaults to `1:1`; the runtime resolution default is `1K`; output format defaults to `png`. Accepted output aliases are `png`, `jpg`, and `jpeg`. Current tiers are 1K=`108`, 2K=`108`, and 4K=`144` credits; always re-read `/pricing` before submission.
 </Note>

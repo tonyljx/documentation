@@ -1,0 +1,16 @@
+---
+title: "获取公开模型和价格"
+description: "GET 当前公开模型目录和积分档位"
+openapi: "GET /pricing"
+---
+
+## 获取公开模型和价格
+
+该接口无需鉴权。构造付费请求前，应以返回的 `model_key`、可用性和 `tiers` 作为当前事实依据。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.wizzx.ai/pricing
+```
+
+Hidden 兼容模型不会出现在结果中。对于结果中不存在的模型，智能体不得自动选择并创建新任务。

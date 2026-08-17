@@ -8,7 +8,7 @@ description: "ByteDance Seedream 4.0 与 4.5 文生图/多图融合参数、计�
 - 模型：Seedream 4.0（`seedream-4`）与 Seedream 4.5（`seedream-4.5`），质量 4.5 更高，速度略慢。
 - 能力：文生图、多图融合（最多 14 张）、批量生成（最多 15 张输出）。
 - 分辨率：`1K` / `2K` / `4K`（默认 `2K`）；新增 `aspect_ratio` 控制画幅。
-- 计费：基础积分按分辨率，输入图与批量输出按张收费；总输入图 + 输出张数 ≤ 15。
+- 计费：Seedream 4.0 每张输出 30 积分，Seedream 4.5 每张输出 40 积分；分辨率不影响价格，输入参考图不收费。总输入图 + 输出张数 ≤ 15。
 - 接口：`POST /api/v1/task/submit/seedream-4` 与 `/seedream-4.5`，查询统一用 `/api/v1/task/status`。
 
 <Warning>
@@ -31,10 +31,9 @@ Authorization: Bearer <your_api_key>
 | 模型 ID        | `seedream-4` | `seedream-4.5` |
 | 质量           | 高           | 更高           |
 | 速度           | 快           | 稍慢但质量更好 |
-| 基础积分       | 30           | 40             |
-| 对比官方       | 节省 16%     | 节省 12%       |
+| 每张输出积分   | 30           | 40             |
 
-官方价格：Seedream 4.0 $0.035/张，Seedream 4.5 $0.045/张。我们的价格：30/40 积分（1000 积分 = $1）。
+每张输出分别为 30/40 积分（1000 积分 = $1）。分辨率和输入参考图数量不改变价格；`batch_size` 按输出张数倍增。
 
 ### 提交任务
 
@@ -117,13 +116,14 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "pending",
-    "credits_deducted": 15
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "seedream-4",
+    "credits_deducted": 120
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -133,11 +133,11 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
-状态值：`pending` → `processing` → `succeeded`（返回 `result_urls`）或 `failed`（查看 `error_message`）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。详见任务状态 API 参考。
 
 ### 迁移指引（size → resolution + aspect_ratio）
 
@@ -170,6 +170,6 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 - 分辨率：草稿用 `1K`/`2K`，定稿用 `4K`。
 - 画幅：`1:1` 社媒头像/封面，`16:9` 横屏，`9:16` 竖屏，`21:9` 电影感宽屏。
 - 批量：用 `batch_size` 生成变体，记得确保输入 + 输出张数 ≤ 15。
-- 多图融合：控制在 1-3 张核心参考图，超过 8 张时注意风格一致性与尺寸；每张 +5 积分。
+- 多图融合：控制在 1-3 张核心参考图，超过 8 张时注意风格一致性与尺寸；输入参考图不额外收费。
 - 种子：固定 seed 可复现，-1 或省略则随机。
 - 水印：默认关闭，合规场景可开启。

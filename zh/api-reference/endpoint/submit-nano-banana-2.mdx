@@ -1,0 +1,24 @@
+---
+title: "提交 Nano Banana 2 任务"
+description: "POST Nano Banana 2 图片生成或编辑任务"
+openapi: "POST /api/v1/task/submit/nano-banana-2"
+---
+
+## 提交任务
+
+`prompt` 必填。文生图时省略 `image_urls`；图片编辑或参考生成时最多传入 14 个公网 HTTP(S) 图片 URL。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "暖色午后光线下的等距城市插画",
+    "aspect_ratio": "16:9",
+    "resolution": "1K",
+    "output_format": "jpg"
+  }'
+```
+
+省略时，`aspect_ratio` 默认 `auto`，`resolution` 默认 `1K`，`output_format` 默认 `jpg`。提交前从 `/pricing` 获取当前分辨率价格档位。

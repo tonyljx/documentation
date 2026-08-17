@@ -30,17 +30,19 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/veo3`, `Content-Type: ap
 | Field | Type | Notes |
 | --- | --- | --- |
 | `prompt` | string | Video description |
+| `type` | string | `text-to-video` / `image-to-video` / `reference-to-video` |
 
 ### Optional
 
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
-| `type` | string | Auto | `text-to-video` / `image-to-video` / `reference-to-video` |
 | `image_urls` | []string | - | 1-3 images (see rules below) |
-| `model` | string | `veo3_fast` | `veo3` / `veo3_fast` / `veo3.1_fast` |
+| `duration` | int | `8` | `4` / `6` / `8` seconds |
+| `resolution` | string | `720p` | Only `720p` is currently public |
+| `model` | string | `veo3_fast` | Only `veo3_fast` is currently public |
 | `aspect_ratio` | string | `16:9` | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999 |
-| `enable_translation` | bool | true | Auto-translate prompt to English |
+| `enable_translation` | bool | - | Optional provider translation hint |
 | `watermark` | string | - | Custom watermark text |
 
 ### Type rules
@@ -51,13 +53,8 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/veo3`, `Content-Type: ap
 | `image-to-video` | First frame / first+last | 1-2 images (1 = first frame, 2 = first+last) |
 | `reference-to-video` | Reference images | 1-3 images, must be `16:9` + `model=veo3_fast` |
 
-Auto inference:
-- No `image_urls`: default `text-to-video`
-- 1-2 `image_urls`: default `image-to-video`
-- 1-3 `image_urls` + explicit `type="reference-to-video"`: reference mode
-
 <Warning>
-  `reference-to-video` requires `veo3_fast` and `aspect_ratio`=`16:9`.
+  `type` is always required. `reference-to-video` requires `veo3_fast`, `aspect_ratio=16:9`, and `duration=8`.
 </Warning>
 
 #### Request: Text-to-Video
@@ -117,10 +114,13 @@ Success response:
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "veo3"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "veo3",
+    "credits_deducted": 720
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -132,7 +132,7 @@ Body:
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -141,32 +141,34 @@ Response:
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 720
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-Status: `PROCESSING`, `SUCCEEDED` (use `result_urls`), `FAILED` (see `error`).
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`.
 
 ### Pricing
 
-| Model | Credits | vs Official |
-|-------|---------|-------------|
-| veo3_fast | 120 credits/s | Save 20% |
-| veo3.1_fast | 120 credits/s | Save 20% |
+| Model | Resolution | Credits |
+|-------|------------|---------|
+| veo3_fast | 720p | 120 credits/second |
 
-Official price: $0.15/second. Our price: 120 credits/second (1000 credits = $1).
+Read `/pricing` before submission for the current tier.
 
 ### FAQ
 
 - Where did `generation_type` go? Unified to `type`, enum now lower-case with hyphens.
 - Need callback URL? No, poll `task/status`.
 - How to reproduce results? Provide `seeds` (10000-99999).
-- Non-English prompt? Auto-translated when `enable_translation=true` (default).
+- Non-English prompt? Set `enable_translation=true` explicitly if provider translation is wanted.
 - Difference between 1 vs 2 images in image-to-video? One image = first frame; two images = first + last frame with auto transition.

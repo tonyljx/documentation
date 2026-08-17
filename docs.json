@@ -41,6 +41,10 @@
                 "pages": ["index"]
               },
               {
+                "group": "Agent integrations",
+                "pages": ["ai-tools/media-generation-agents"]
+              },
+              {
                 "group": "Video Generation",
                 "pages": [
                   "models/veo-3-1",
@@ -57,7 +61,8 @@
                   "models/nano-banana-pro",
                   "models/nano-banana",
                   "models/nano-banana-2",
-                  "models/nano-banana-2-lite"
+                  "models/nano-banana-2-lite",
+                  "models/gpt-image-2"
                 ]
               },
               {
@@ -74,7 +79,11 @@
             "groups": [
               {
                 "group": "Overview",
-                "pages": ["api-reference/error-codes"]
+                "pages": [
+                  "api-reference/endpoint/pricing",
+                  "api-reference/endpoint/credit-balance",
+                  "api-reference/error-codes"
+                ]
               },
               {
                 "group": "Video Generation",
@@ -82,7 +91,8 @@
                   "api-reference/endpoint/submit-veo3",
                   "api-reference/endpoint/submit-kling-ai",
                   "api-reference/endpoint/submit-seedance-pro-fast",
-                  "api-reference/endpoint/submit-seedance-1.5-pro"
+                  "api-reference/endpoint/submit-seedance-1.5-pro",
+                  "api-reference/endpoint/submit-runway-gen3"
                 ]
               },
               {
@@ -91,7 +101,10 @@
                   "api-reference/endpoint/submit-seedream-4",
                   "api-reference/endpoint/submit-seedream-4-5",
                   "api-reference/endpoint/submit-nano-banana-pro",
-                  "api-reference/endpoint/submit-nano-banana"
+                  "api-reference/endpoint/submit-nano-banana",
+                  "api-reference/endpoint/submit-nano-banana-2",
+                  "api-reference/endpoint/submit-nano-banana-2-lite",
+                  "api-reference/endpoint/submit-gpt-image-2"
                 ]
               },
               {
@@ -139,6 +152,10 @@
                 "pages": ["zh/index"]
               },
               {
+                "group": "智能体集成",
+                "pages": ["zh/ai-tools/media-generation-agents"]
+              },
+              {
                 "group": "视频生成",
                 "pages": [
                   "zh/models/veo-3-1",
@@ -155,7 +172,8 @@
                   "zh/models/nano-banana-pro",
                   "zh/models/nano-banana",
                   "zh/models/nano-banana-2",
-                  "zh/models/nano-banana-2-lite"
+                  "zh/models/nano-banana-2-lite",
+                  "zh/models/gpt-image-2"
                 ]
               },
               {
@@ -172,7 +190,11 @@
             "groups": [
               {
                 "group": "概览",
-                "pages": ["zh/api-reference/error-codes"]
+                "pages": [
+                  "zh/api-reference/endpoint/pricing",
+                  "zh/api-reference/endpoint/credit-balance",
+                  "zh/api-reference/error-codes"
+                ]
               },
               {
                 "group": "视频生成",
@@ -180,7 +202,8 @@
                   "zh/api-reference/endpoint/submit-veo3",
                   "zh/api-reference/endpoint/submit-kling-ai",
                   "zh/api-reference/endpoint/submit-seedance-pro-fast",
-                  "zh/api-reference/endpoint/submit-seedance-1.5-pro"
+                  "zh/api-reference/endpoint/submit-seedance-1.5-pro",
+                  "zh/api-reference/endpoint/submit-runway-gen3"
                 ]
               },
               {
@@ -189,7 +212,10 @@
                   "zh/api-reference/endpoint/submit-seedream-4",
                   "zh/api-reference/endpoint/submit-seedream-4-5",
                   "zh/api-reference/endpoint/submit-nano-banana-pro",
-                  "zh/api-reference/endpoint/submit-nano-banana"
+                  "zh/api-reference/endpoint/submit-nano-banana",
+                  "zh/api-reference/endpoint/submit-nano-banana-2",
+                  "zh/api-reference/endpoint/submit-nano-banana-2-lite",
+                  "zh/api-reference/endpoint/submit-gpt-image-2"
                 ]
               },
               {

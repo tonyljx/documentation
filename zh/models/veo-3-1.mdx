@@ -30,17 +30,19 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `prompt` | string | 视频描述 |
+| `type` | string | `text-to-video` / `image-to-video` / `reference-to-video` |
 
 ### 可选参数
 
 | 字段 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
-| `type` | string | 自动推断 | `text-to-video` / `image-to-video` / `reference-to-video` |
 | `image_urls` | []string | - | 1-3 张图片（规则见下） |
-| `model` | string | veo3_fast | `veo3` / `veo3_fast` / `veo3.1_fast` |
+| `duration` | int | `8` | `4` / `6` / `8` 秒 |
+| `resolution` | string | `720p` | 当前只公开 `720p` |
+| `model` | string | `veo3_fast` | 当前只公开 `veo3_fast` |
 | `aspect_ratio` | string | 16:9 | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999，可复现 |
-| `enable_translation` | bool | true | 是否自动翻译提示词 |
+| `enable_translation` | bool | - | 可选的上游翻译提示 |
 | `watermark` | string | - | 自定义水印文字 |
 
 ### type 字段规则
@@ -51,13 +53,8 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 | `image-to-video` | 首帧/首尾帧生成 | 1-2 张图（1 张=首帧，2 张=首尾帧） |
 | `reference-to-video` | 参考图生成 | 1-3 张参考图，需 16:9 + `model=veo3_fast` |
 
-自动推断规则：
-- 不传 `image_urls`：默认 `text-to-video`
-- 传 1-2 张 `image_urls`：默认 `image-to-video`
-- 传 1-3 张且显式 `type="reference-to-video"`：参考图模式
-
 <Warning>
-  `reference-to-video` 必须使用 `veo3_fast` 且 `aspect_ratio` 固定 16:9。
+  `type` 始终必填。`reference-to-video` 必须使用 `veo3_fast`、`aspect_ratio=16:9` 和 `duration=8`。
 </Warning>
 
 #### 请求示例（Text2Video）
@@ -117,10 +114,13 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "veo3"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "veo3",
+    "credits_deducted": 720
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -132,7 +132,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -141,32 +141,34 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 720
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-状态值：`PROCESSING`（生成中）、`SUCCEEDED`（可用 `result_urls`）、`FAILED`（查看 `error`）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。
 
 ### 计费
 
-| 模型 | 积分 | 对比官方 |
-|------|------|----------|
-| veo3_fast | 120 积分/秒 | 节省 20% |
-| veo3.1_fast | 120 积分/秒 | 节省 20% |
+| 模型 | 分辨率 | 积分 |
+|------|--------|------|
+| veo3_fast | 720p | 120 积分/秒 |
 
-官方价格：$0.15/秒。我们的价格：120 积分/秒（1000 积分 = $1）。
+提交前通过 `/pricing` 获取当前档位。
 
 ### 常见问题
 
 - **`generation_type` 字段去哪了？** 统一改为 `type`，枚举改为小写连字符格式。
 - **需要回调 URL 吗？** 不需要，直接轮询 `task/status`。
 - **如何复现结果？** 传 `seeds`（10000-99999）。
-- **非英文提示词会怎样？** 默认 `enable_translation=true` 自动翻译，可关闭。
+- **非英文提示词会怎样？** 如需上游翻译，应显式传入 `enable_translation=true`。
 - **image-to-video 下 1 张 vs 2 张图？** 1 张作为首帧参考，2 张为首帧+尾帧，系统生成过渡。

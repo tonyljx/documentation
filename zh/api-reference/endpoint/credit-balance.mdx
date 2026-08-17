@@ -1,0 +1,17 @@
+---
+title: "查询积分余额"
+description: "GET 当前 API Key 对应的积分余额"
+openapi: "GET /api/v1/credits/balance"
+---
+
+## 查询积分余额
+
+使用与任务提交相同的 Wizzx API Key。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.wizzx.ai/api/v1/credits/balance \
+  -H "Authorization: Bearer <api_key>"
+```
+
+余额位于 `data.balance`。查询成功不会预留积分；只有任务提交被接受后才会预留积分。

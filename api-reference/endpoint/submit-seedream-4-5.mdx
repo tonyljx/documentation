@@ -25,8 +25,5 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4.5 \
 ```
 
 <Note>
-- Pricing: 1K=10, 2K=15, 4K=25 credits.  
-- Fusion: each input ref +5 credits; `image_urls` max 14.  
-- Batch: each extra output +15 credits; `input count + batch_size <= 15`.  
-- 4.5 offers higher quality, slightly slower; use for premium outputs.
+  Seedream 4.5 reserves 40 credits per requested output image. Resolution and input image count do not add credits. `image_urls` supports up to 14 items, and `input count + batch_size` must be at most 15. Read `/pricing` before submission for the current tier.
 </Note>

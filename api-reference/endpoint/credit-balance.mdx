@@ -1,0 +1,17 @@
+---
+title: "Get credit balance"
+description: "GET the authenticated API key's current credit balance"
+openapi: "GET /api/v1/credits/balance"
+---
+
+## Get credit balance
+
+Send the same Wizzx API key used for task submission.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.wizzx.ai/api/v1/credits/balance \
+  -H "Authorization: Bearer <api_key>"
+```
+
+The response returns `data.balance`. A successful balance check does not reserve credits; credits are reserved only after a task submission is accepted.

@@ -63,7 +63,6 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/kling-ai`, `Content-Type
 | `kling-v1` | ✅ | ✅ | ❌ | ❌ | Base version |
 | `kling-v1-5` | ❌ | ✅ | ❌ | ❌ | Iterative (image-to-video only) |
 | `kling-v1-6` | ✅ | ✅ | ❌ | ❌ | Iterative version |
-| `kling-v2-master` | ✅ | ✅ | ❌ | ❌ | High-quality version |
 | `kling-v2-1` | ❌ | ✅ | ❌ | ❌ | High-quality (image-to-video only) |
 | `kling-v2-1-master` | ✅ | ✅ | ❌ | ❌ | High-quality version |
 | `kling-v2-5-turbo` | ✅ | ✅ | ❌ | ❌ | Faster turbo version |
@@ -146,7 +145,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
     "image_urls": ["https://example.com/forest.jpg"],
     "quality_mode": "pro",
     "duration": 10,
-    "model_name": "kling-v2-master",
+    "model_name": "kling-v2-1-master",
     "camera_control": {
       "type": "forward_up"
     }
@@ -182,10 +181,13 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "kling-ai"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "kling-ai",
+    "credits_deducted": 230
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -196,7 +198,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -205,18 +207,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 230
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-Status: `PROCESSING` (submitted/processing), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`.
 
 ## Camera control
 
@@ -294,11 +299,11 @@ Official: std $0.04/s, pro $0.07/s.
 
 ## FAQ
 
-- **Which models support text-to-video?** Models that support `text-to-video`: `kling-v1`, `kling-v1-6`, `kling-v2-master`, `kling-v2-1-master`, `kling-v2-5-turbo`, `kling-v2-6`. Note that `kling-v1-5` and `kling-v2-1` only support image-to-video.
+- **Which models support text-to-video?** Models that support `text-to-video`: `kling-v1`, `kling-v1-6`, `kling-v2-1-master`, `kling-v2-5-turbo`, `kling-v2-6`. Note that `kling-v1-5` and `kling-v2-1` only support image-to-video.
 - **How to generate video with sound?** Use `kling-v2-6` model and set `sound: "on"`. Note that sound doubles the credit cost.
 - **When is aspect_ratio available?** `aspect_ratio` is only supported by `kling-v2-6` model; other models will return an error.
 - **Why was `mode` renamed to `quality_mode`?** To avoid conflict with new `type`. `type` is the generation category; `quality_mode` is quality level (`std`/`pro`).
 - **When is cfg_scale available?** `cfg_scale` is only supported by V1.x models; V2.x models will return an error.
 - **How to use camera control?** Set `camera_control` with a supported `type`. Camera control works for both text-to-video and image-to-video. `simple` type uses `config` with exactly one non-zero field.
 - **Dynamic vs static masks?** `static_mask` sets a fixed region; `dynamic_masks` add trajectory points for motion control. Only supported for image-to-video.
-- **How long are videos retained?** 30 days; please archive promptly.
+- **How long are videos retained?** Result URL lifetime can depend on storage configuration and the upstream provider; archive outputs you need to keep.

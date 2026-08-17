@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-08-17
+
+### Added
+
+- Added English and Chinese guides for generating images and videos from Codex, Claude Code, and other shell-capable agents with one Wizzx API key.
+- Documented strict `gpt-image-2` and `veo3` request schemas, safe parameter construction, asynchronous Task ID polling, terminal states, and duplicate-submission safeguards.
+- Added machine-readable OpenAPI request schemas and endpoint pages for every public model, plus `/pricing` and credit balance endpoints.
+
+### Changed
+
+- Aligned the OpenAPI submit, status, success, and error schemas with the backend contract, including six client-visible task states and Wizzx API key authentication.
+- Corrected current public endpoint parameter names, required fields, enum values, runtime limitations, and high-risk pricing examples for Veo, Seedance, Kling, Seedream, Nano Banana Pro, and ElevenLabs TTS.
+
 ## 2026-08-11
 
 ### Fixed

@@ -27,6 +27,7 @@ Authorization: Bearer <your_api_key>
 | `image_urls` | array | 条件必填 | - | 图片 URL 数组（`image-to-video` 必填，最多 1 张） |
 | `duration` | int | 否 | 5 | 视频时长：`5` 或 `10` 秒 |
 | `resolution` | string | 否 | `720p` | `720p` 或 `1080p`（10 秒不支持 1080p） |
+| `fps` | int | 否 | 24 | 帧率：`24`、`30` 或 `60` |
 | `aspect_ratio` | string | 否 | auto | `16:9`、`9:16` 或 `1:1` |
 
 <Warning>
@@ -67,13 +68,14 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "pending",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "runway-gen3",
     "credits_deducted": 5
-  }
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -83,7 +85,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -91,17 +93,20 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "succeeded",
-    "result_urls": ["https://cdn.example.com/video.mp4"]
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": ["https://cdn.example.com/video.mp4"],
+    "error": "",
+    "credits_deducted": 5
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-状态流程：`pending`（排队中）→ `processing`（生成中）→ `succeeded`（成功，返回 `result_urls`）或 `failed`（失败，查看 `error`）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。详见任务状态 API 参考。
 
 ### 计费
 
@@ -127,3 +132,5 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
    - 竖屏视频使用 `9:16`
    - 方形视频使用 `1:1`
    - 图生视频建议留空由系统自动检测
+
+4. **帧率：** 电影感可用 `24`，需要更流畅动作时可用 `30` 或 `60`。
