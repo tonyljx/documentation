@@ -33,21 +33,21 @@ description: "ElevenLabs 文本转语音 Turbo 2.5 - 更快速、更实惠的文
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| `text` | string | 要转换的文本（1-5000 字符） |
+| `text` | string | 要转换的文本（1-5000 个 Unicode code point） |
 
 ### 可选参数
 
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|--------|------|
 | `voice` | string | `Rachel` | 语音选择（见下方语音列表） |
-| `stability` | number | 0.5 | 语音稳定性（0-1） |
-| `similarity_boost` | number | 0.75 | 相似度增强（0-1） |
-| `style` | number | 0 | 风格夸张程度（0-1） |
-| `speed` | number | 1.0 | 语速（0.7-1.2） |
-| `timestamps` | boolean | false | 是否返回时间戳 |
+| `stability` | number | 上游默认 | 语音稳定性（0-1） |
+| `similarity_boost` | number | 上游默认 | 相似度增强（0-1） |
+| `style` | number | 上游默认 | 风格夸张程度（0-1） |
+| `speed` | number | 上游默认 | 语速（0.7-1.2） |
+| `timestamps` | boolean | 上游默认 | 请求时间戳产物；当前任务状态只返回结果 URL |
 | `previous_text` | string | - | 前文（用于连贯性） |
 | `next_text` | string | - | 后文（用于连贯性） |
-| `language_code` | string | - | 语言代码（ISO 639-1） |
+| `language_code` | string | - | 上游语言提示；网关当前不校验是否属于 ISO 639-1 |
 
 ### 可用语音列表
 
@@ -95,10 +95,13 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "eleven-labs-tts-turbo-25"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "eleven-labs-tts-turbo-25",
+    "credits_deducted": 40
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -109,7 +112,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -118,18 +121,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.wizzx.ai/audio/output.mp3"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 40
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-状态: `PROCESSING`（生成中）, `SUCCEEDED`（成功，使用 `result_urls`）, `FAILED`（失败，`error` 包含错误信息）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。
 
 ## 价格
 
@@ -143,7 +149,7 @@ ElevenLabs TTS Turbo 2.5 定价 - 比 TTS V2 **便宜 50%**。
 | 3001-4000 | 160 | $0.16 |
 | 4001-5000 | 200 | $0.20 |
 
-**计算公式**: `向上取整(字符数 / 1000) × 40 积分`
+**计算公式**: `向上取整(Unicode code point 数 / 1000) × 40 积分`
 
 **示例：**
 - 500 字符 → 40 积分（$0.04）

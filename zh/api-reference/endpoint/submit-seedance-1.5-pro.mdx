@@ -6,17 +6,14 @@ openapi: "POST /api/v1/task/submit/seedance-1.5-pro"
 
 ## 提交任务
 
-- 发送 `Authorization: Bearer <your_api_key>`.
-- 必填: `prompt`, `type`.
-- `image-to-video` 模式需要 `image_urls`（1-2 张图片用于首帧/尾帧控制）.
-- 可选: `duration`, `resolution`, `aspect_ratio`, `seed`, `watermark`, `camera_fixed`, `generate_audio`, `return_last_frame`.
-- 异步返回 `task_id`; 轮询 `/api/v1/task/status`.
+`prompt` 和 `type` 必填。`image-to-video` 需要一至两个公网 HTTP(S) 图片 URL，用于首帧或首尾帧控制；`text-to-video` 必须省略 `image_urls`。
 
 ```bash
-curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
-  -d '{
+  --data '{
     "prompt": "一只猫在弹钢琴，伴随着轻柔的爵士乐",
     "type": "text-to-video",
     "duration": 8,
@@ -26,12 +23,6 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-1.5-pro \
   }'
 ```
 
-<Note>
-- `text-to-video`: 无需 `image_urls`.
-- `image-to-video`: 必须提供 `image_urls`; 1 张图片 = 仅首帧, 2 张图片 = 首帧 + 尾帧.
-- 图片要求: jpeg/png/webp/bmp/tiff/gif, 宽高比 0.4-2.5, 短边 >300px, 长边 &lt;6000px, 大小 &lt;30MB.
-- `generate_audio`: 默认 `true`, 生成同步音频（人声、音效、音乐）.
-- 分辨率: 仅支持 480p, 720p（不支持 1080p）.
-- 时长: 4-12 秒或 -1（自动）.
-- 固定 24fps.
-</Note>
+<Warning>
+  当前 HTTP 合同只接受 `4`–`12` 秒和显式 `720p`。模型层虽然计划支持 `duration=-1` 和 `480p`，但公共网关 binding 目前会拒绝这两个值。`generate_audio` 默认 `true`，后端固定使用 24fps。
+</Warning>

@@ -1,0 +1,24 @@
+---
+title: "提交 GPT Image 2 任务"
+description: "POST GPT Image 2 图片生成或编辑任务"
+openapi: "POST /api/v1/task/submit/gpt-image-2"
+---
+
+## 提交任务
+
+`prompt` 必填。图片生成时省略 `image_urls`；图片编辑时最多传入 10 个公网 HTTP(S) 图片 URL。每个被接受的请求生成一张图片。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/gpt-image-2 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "深色桌面上的橙色机械键盘",
+    "size": "1536x1024",
+    "quality": "high",
+    "output_format": "png"
+  }'
+```
+
+当前网关按请求固定计费，不受 `size`、`quality`、格式或输入图数量影响。具体积分以 `/pricing` 为准。

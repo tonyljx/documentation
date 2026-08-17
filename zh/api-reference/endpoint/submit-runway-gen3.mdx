@@ -1,0 +1,24 @@
+---
+title: "提交 Runway Gen-3 任务"
+description: "POST Runway Gen-3 文生视频或图生视频任务"
+openapi: "POST /api/v1/task/submit/runway-gen3"
+---
+
+## 提交任务
+
+`prompt` 和 `type` 必填。`image-to-video` 必须在 `image_urls` 中传入恰好一个公网 HTTP(S) URL；`text-to-video` 必须省略 `image_urls`。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/runway-gen3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "一艘纸船穿过月光下的湖面",
+    "type": "text-to-video",
+    "duration": 5,
+    "resolution": "720p"
+  }'
+```
+
+`10` 秒不能与 `1080p` 组合。保存 `data.task_id`，然后查询任务状态。

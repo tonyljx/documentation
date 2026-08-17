@@ -2,19 +2,28 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Wizzx AI API",
-    "version": "1.1.0",
-    "description": "Wizzx AI multi-model API: Veo 3.1 video generation, Kling AI image-to-video, Seedance Pro Fast video generation, Flux Kontext image generation, Nano Banana Pro image generation, Seedream 4.0/4.5 image generation, Kolors Virtual Try-On.\n**Breaking Changes (2025-12-10)**: Kling `mode`\u2192`quality_mode` + `image`\u2192`image_urls` (array); Veo `generation_type`\u2192`type` with new enums; Seedance `mode`\u2192`type` + `input_image_url`\u2192`image_urls`.\nAuthentication: Bearer API key in `Authorization` header."
+    "version": "1.2.0",
+    "description": "Wizzx asynchronous image, video, and audio generation API. Model keys are placed in the submit URL. Submit returns a Wizzx task_id; poll that ID through /api/v1/task/status. Authentication uses a Wizzx API key in the Authorization: Bearer <key> header.",
+    "license": {
+      "name": "MIT",
+      "url": "https://github.com/tonyljx/documentation/blob/main/LICENSE"
+    }
   },
   "servers": [
     {
       "url": "https://api.wizzx.ai",
-      "description": "Replace with your deployed host"
+      "description": "Production API"
     }
   ],
   "paths": {
     "/api/v1/task/submit/veo3": {
       "post": {
-        "summary": "Submit Veo 3.1 video task",
+        "operationId": "submitVeo3Task",
+        "summary": "Submit Veo 3.1 Fast task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -27,44 +36,11 @@
               "schema": {
                 "$ref": "#/components/schemas/Veo3SubmitRequest"
               },
-              "examples": {
-                "text2video": {
-                  "summary": "\u6587\u751f\u89c6\u9891",
-                  "value": {
-                    "prompt": "A dog running through a neon city at night",
-                    "type": "text-to-video",
-                    "aspect_ratio": "16:9",
-                    "model": "veo3_fast",
-                    "seeds": 12345
-                  }
-                },
-                "image2video": {
-                  "summary": "\u9996\u5c3e\u5e27\u751f\u6210",
-                  "value": {
-                    "prompt": "Make the scene dynamic while keeping the character consistent",
-                    "type": "image-to-video",
-                    "image_urls": [
-                      "https://example.com/frame1.jpg",
-                      "https://example.com/frame2.jpg"
-                    ],
-                    "aspect_ratio": "9:16"
-                  }
-                },
-                "reference2video": {
-                  "summary": "\u53c2\u8003\u56fe\u751f\u6210",
-                  "value": {
-                    "prompt": "Product turntable style, soft studio light",
-                    "type": "reference-to-video",
-                    "image_urls": [
-                      "https://example.com/ref1.jpg",
-                      "https://example.com/ref2.jpg",
-                      "https://example.com/ref3.jpg"
-                    ],
-                    "model": "veo3_fast",
-                    "aspect_ratio": "16:9",
-                    "enable_translation": true
-                  }
-                }
+              "example": {
+                "prompt": "A paper boat in a neon canal",
+                "type": "text-to-video",
+                "duration": 6,
+                "model": "veo3_fast"
               }
             }
           }
@@ -75,29 +51,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Veo3SubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/submit/seedance-pro-fast": {
       "post": {
-        "summary": "Submit Seedance Pro Fast video task",
+        "operationId": "submitSeedanceProFastTask",
+        "summary": "Submit Seedance Pro Fast task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -110,30 +168,10 @@
               "schema": {
                 "$ref": "#/components/schemas/SeedanceSubmitRequest"
               },
-              "examples": {
-                "text2video": {
-                  "summary": "\u6587\u751f\u89c6\u9891",
-                  "value": {
-                    "prompt": "A cat playing piano in a cozy living room",
-                    "type": "text-to-video",
-                    "duration": 5,
-                    "resolution": "480p",
-                    "aspect_ratio": "16:9"
-                  }
-                },
-                "image2video": {
-                  "summary": "\u56fe\u751f\u89c6\u9891",
-                  "value": {
-                    "prompt": "Make the character walk forward gracefully",
-                    "type": "image-to-video",
-                    "image_urls": [
-                      "https://example.com/character.jpg"
-                    ],
-                    "duration": 10,
-                    "resolution": "720p",
-                    "aspect_ratio": "adaptive"
-                  }
-                }
+              "example": {
+                "prompt": "A cat plays piano",
+                "type": "text-to-video",
+                "duration": 5
               }
             }
           }
@@ -144,30 +182,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SeedanceSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/submit/seedance-1.5-pro": {
       "post": {
-        "summary": "Submit Seedance 1.5 Pro video task",
-        "description": "Submit a video generation task using Seedance 1.5 Pro model (ByteDance). Key features: audio generation, first+last frame control. Supports text-to-video and image-to-video modes. Resolutions: 480p, 720p only. Duration: 4-12 seconds or auto. Pricing: 480p = 22/11 credits/s (with/without audio), 720p = 50/25 credits/s.",
+        "operationId": "submitSeedance15ProTask",
+        "summary": "Submit Seedance 1.5 Pro task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -180,42 +299,11 @@
               "schema": {
                 "$ref": "#/components/schemas/Seedance15ProSubmitRequest"
               },
-              "examples": {
-                "text2video_with_audio": {
-                  "summary": "文生视频（带音频）",
-                  "value": {
-                    "prompt": "A cat playing piano with soft jazz music",
-                    "type": "text-to-video",
-                    "duration": 8,
-                    "resolution": "720p",
-                    "aspect_ratio": "16:9",
-                    "generate_audio": true
-                  }
-                },
-                "text2video_no_audio": {
-                  "summary": "文生视频（无音频）",
-                  "value": {
-                    "prompt": "A serene mountain landscape with flowing clouds",
-                    "type": "text-to-video",
-                    "duration": 5,
-                    "resolution": "480p",
-                    "generate_audio": false
-                  }
-                },
-                "image2video_first_last_frame": {
-                  "summary": "首帧+尾帧图生视频",
-                  "value": {
-                    "prompt": "The character walks forward gracefully and waves at the camera",
-                    "type": "image-to-video",
-                    "image_urls": [
-                      "https://example.com/first_frame.jpg",
-                      "https://example.com/last_frame.jpg"
-                    ],
-                    "duration": 6,
-                    "resolution": "720p",
-                    "generate_audio": true
-                  }
-                }
+              "example": {
+                "prompt": "Ocean waves at sunrise",
+                "type": "text-to-video",
+                "duration": 5,
+                "resolution": "720p"
               }
             }
           }
@@ -226,22 +314,99 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Seedance15ProSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -249,7 +414,7 @@
     "/api/v1/task/submit/wan-2-6": {
       "post": {
         "summary": "Submit WAN 2.6 video task",
-        "description": "Submit a video generation task using Alibaba WAN 2.6 model. Supports text-to-video and image-to-video modes with extended duration (up to 15s) and longer prompts (up to 5000 chars). Pricing: 720p = 80 credits/s, 1080p = 110 credits/s.",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -277,7 +442,9 @@
                   "value": {
                     "prompt": "Anthropomorphic fox singing a Christmas song at the rubbish dump in the rain.",
                     "type": "image-to-video",
-                    "image_urls": ["https://example.com/fox.jpg"],
+                    "image_urls": [
+                      "https://example.com/fox.jpg"
+                    ],
                     "duration": 5,
                     "resolution": "1080p"
                   }
@@ -310,30 +477,112 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Wan26SubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitWan26Task",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/wan-2-5": {
       "post": {
         "summary": "Submit WAN 2.5 video task",
-        "description": "Submit a video generation task using Alibaba WAN 2.5 model. Supports text-to-video and image-to-video modes. Pricing: 720p = 60 credits/s, 1080p = 100 credits/s.",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -362,7 +611,9 @@
                   "value": {
                     "prompt": "The character turns around and smiles at the camera",
                     "type": "image-to-video",
-                    "image_urls": ["https://example.com/character.jpg"],
+                    "image_urls": [
+                      "https://example.com/character.jpg"
+                    ],
                     "duration": 5,
                     "resolution": "720p"
                   }
@@ -390,29 +641,116 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Wan25SubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitWan25Task",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/kling-ai": {
       "post": {
-        "summary": "Submit Kling AI video generation task",
+        "operationId": "submitKlingAiTask",
+        "summary": "Submit Kling AI task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -425,66 +763,12 @@
               "schema": {
                 "$ref": "#/components/schemas/KlingSubmitRequest"
               },
-              "examples": {
-                "text2video_basic": {
-                  "summary": "Basic Text-to-Video (V1)",
-                  "value": {
-                    "prompt": "A cat playing piano",
-                    "type": "text-to-video",
-                    "quality_mode": "std",
-                    "duration": 5
-                  }
-                },
-                "text2video_v26_sound": {
-                  "summary": "V2.6 Text-to-Video with Sound",
-                  "value": {
-                    "prompt": "A cat playing piano with pleasant background music",
-                    "type": "text-to-video",
-                    "model_name": "kling-v2-6",
-                    "quality_mode": "std",
-                    "duration": 5,
-                    "aspect_ratio": "16:9",
-                    "sound": "on"
-                  }
-                },
-                "img2video_v26": {
-                  "summary": "V2.6 Image-to-Video",
-                  "value": {
-                    "prompt": "The astronaut stands up and walks away",
-                    "type": "image-to-video",
-                    "image_urls": ["https://example.com/astronaut.jpg"],
-                    "model_name": "kling-v2-6",
-                    "quality_mode": "pro",
-                    "duration": 10,
-                    "aspect_ratio": "9:16",
-                    "sound": "off"
-                  }
-                },
-                "basic_img2video": {
-                  "summary": "Basic Image-to-Video (V1.x)",
-                  "value": {
-                    "prompt": "The astronaut stands up and walks away",
-                    "type": "image-to-video",
-                    "image_urls": ["https://example.com/astronaut.jpg"],
-                    "quality_mode": "std",
-                    "duration": 5,
-                    "cfg_scale": 0.5
-                  }
-                },
-                "pro_with_camera": {
-                  "summary": "Pro mode with camera control",
-                  "value": {
-                    "prompt": "The character walks through the forest",
-                    "type": "image-to-video",
-                    "image_urls": ["https://example.com/forest.jpg"],
-                    "quality_mode": "pro",
-                    "duration": 10,
-                    "model_name": "kling-v2-master",
-                    "camera_control": {
-                      "type": "forward_up"
-                    }
-                  }
-                }
+              "example": {
+                "prompt": "A character walks through a forest",
+                "type": "text-to-video",
+                "quality_mode": "pro",
+                "duration": 5,
+                "model_name": "kling-v2-1-master"
               }
             }
           }
@@ -495,29 +779,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/KlingSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/status": {
       "post": {
+        "operationId": "getTaskStatus",
         "summary": "Query task status",
+        "description": "Pure database read for the authenticated task owner. Poll the same task_id; never create a replacement task automatically.",
+        "tags": [
+          "Tasks"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -535,7 +901,7 @@
         },
         "responses": {
           "200": {
-            "description": "Status returned",
+            "description": "Current task state",
             "content": {
               "application/json": {
                 "schema": {
@@ -544,14 +910,84 @@
               }
             }
           },
+          "400": {
+            "description": "Malformed JSON or missing task_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404": {
-            "description": "Task not found"
+            "description": "Task not found for the authenticated owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -559,7 +995,7 @@
     "/api/v1/task/submit/flux-kontext-pro": {
       "post": {
         "summary": "Submit Flux Kontext Pro image task",
-        "description": "Submit an image generation task using Flux Kontext Pro model. Costs 15-20 credits depending on parameters. Uses image_urls array for multi-reference (max 4).",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -581,33 +1017,112 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FluxKontextSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitFluxKontextProTask",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/flux-kontext-max": {
       "post": {
         "summary": "Submit Flux Kontext Max image task",
-        "description": "Submit an image generation task using Flux Kontext Max model (premium quality). Costs 20-28 credits depending on parameters. Uses image_urls array for multi-reference (max 4).",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -629,33 +1144,116 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/FluxKontextSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitFluxKontextMaxTask",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/nano-banana-pro": {
       "post": {
-        "summary": "Submit Nano Banana Pro image task",
-        "description": "Submit an image generation task using Nano Banana Pro model. Supports text-to-image and multi-reference image input (image_urls array). Costs 10-20 credits depending on resolution.",
+        "operationId": "submitNanoBananaProTask",
+        "summary": "Submit Nano Banana Pro task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -667,6 +1265,11 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/NanoBananaProSubmitRequest"
+              },
+              "example": {
+                "prompt": "A studio product photo",
+                "resolution": "2K",
+                "output_format": "png"
               }
             }
           }
@@ -677,33 +1280,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NanoBananaProSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/submit/nano-banana": {
       "post": {
-        "summary": "Submit Nano Banana image task",
-        "description": "Submit an image generation task using Nano Banana (Google) model. Supports text-to-image and multi-reference image input (up to 10 images). Fixed cost: 24 credits.",
+        "operationId": "submitNanoBananaTask",
+        "summary": "Submit Nano Banana task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -716,24 +1397,9 @@
               "schema": {
                 "$ref": "#/components/schemas/NanoBananaSubmitRequest"
               },
-              "examples": {
-                "text-to-image": {
-                  "summary": "Text-to-image generation",
-                  "value": {
-                    "prompt": "A surreal painting of a giant banana floating in space",
-                    "aspect_ratio": "16:9",
-                    "output_format": "png"
-                  }
-                },
-                "image-to-image": {
-                  "summary": "Image-to-image with reference",
-                  "value": {
-                    "prompt": "Transform this into a watercolor painting style",
-                    "image_urls": ["https://example.com/reference.jpg"],
-                    "aspect_ratio": "1:1",
-                    "output_format": "png"
-                  }
-                }
+              "example": {
+                "prompt": "A warm editorial portrait",
+                "output_format": "png"
               }
             }
           }
@@ -744,33 +1410,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NanoBananaSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/submit/seedream-4": {
       "post": {
-        "summary": "Submit Seedream 4.0 image task",
-        "description": "Submit an image generation task using Seedream 4.0 model. Supports multi-image fusion (image_urls), batch generation, aspect ratios, and resolutions.",
+        "operationId": "submitSeedream4Task",
+        "summary": "Submit Seedream 4.0 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -782,6 +1526,11 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SeedreamSubmitRequest"
+              },
+              "example": {
+                "prompt": "A neon city at night",
+                "resolution": "2K",
+                "batch_size": 1
               }
             }
           }
@@ -792,33 +1541,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SeedreamSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/submit/seedream-4.5": {
       "post": {
-        "summary": "Submit Seedream 4.5 image task",
-        "description": "Submit an image generation task using Seedream 4.5 model (higher quality). Supports multi-image fusion (image_urls), batch generation, aspect ratios, and resolutions.",
+        "operationId": "submitSeedream45Task",
+        "summary": "Submit Seedream 4.5 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -830,6 +1657,10 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SeedreamSubmitRequest"
+              },
+              "example": {
+                "prompt": "A cinematic mountain landscape",
+                "resolution": "2K"
               }
             }
           }
@@ -840,25 +1671,99 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SeedreamSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -866,7 +1771,7 @@
     "/api/v1/task/submit/flux-2-pro": {
       "post": {
         "summary": "Submit Flux 2 Pro image task",
-        "description": "Submit an image generation task using Flux 2 Pro model. Supports text-to-image and image-to-image (up to 8 reference images). Pricing: Megapixel (MP) based - 20 credits for first MP + 10 credits per additional MP. Total MP = Input MP + Output MP.",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -894,7 +1799,9 @@
                   "summary": "Image-to-image transformation",
                   "value": {
                     "prompt": "Transform this into a watercolor painting",
-                    "image_urls": ["https://example.com/source.jpg"],
+                    "image_urls": [
+                      "https://example.com/source.jpg"
+                    ],
                     "width": 1024,
                     "height": 1024,
                     "output_format": "png"
@@ -910,33 +1817,112 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Flux2SubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitFlux2ProTask",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/flux-2-flex": {
       "post": {
         "summary": "Submit Flux 2 Flex image task",
-        "description": "Submit an image generation task using Flux 2 Flex model with fine-tuned control over guidance and steps. Supports text-to-image and image-to-image (up to 8 reference images). Pricing: Megapixel (MP) based - 40 credits per MP. Total MP = Input MP + Output MP.",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -973,7 +1959,7 @@
                     ],
                     "width": 1024,
                     "height": 1024,
-                    "guidance": 5.0,
+                    "guidance": 5,
                     "steps": 40,
                     "output_format": "png"
                   }
@@ -988,33 +1974,116 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Flux2SubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
-          "404": {
-            "description": "Model not found"
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitFlux2FlexTask",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/eleven-labs-tts-turbo-25": {
       "post": {
+        "operationId": "submitElevenLabsTtsTurbo25Task",
         "summary": "Submit ElevenLabs TTS Turbo 2.5 task",
-        "description": "Submit a text-to-speech task using ElevenLabs Turbo 2.5 model. Faster and 50% cheaper than V2. Supports 21 voices and multiple languages. Pricing: 40 credits per 1000 characters (rounded up).",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Audio generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -1027,22 +2096,9 @@
               "schema": {
                 "$ref": "#/components/schemas/ElevenLabsTTSRequest"
               },
-              "examples": {
-                "basic": {
-                  "summary": "Basic TTS request",
-                  "value": {
-                    "text": "Hello, welcome to our AI platform."
-                  }
-                },
-                "with-voice": {
-                  "summary": "With voice and speed",
-                  "value": {
-                    "text": "Unlock powerful API with our platform.",
-                    "voice": "Brian",
-                    "stability": 0.5,
-                    "speed": 1.0
-                  }
-                }
+              "example": {
+                "text": "Welcome to Wizzx.",
+                "voice": "Rachel"
               }
             }
           }
@@ -1053,30 +2109,111 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ElevenLabsTTSTurboResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v1/task/submit/eleven-labs-tts-v2": {
       "post": {
-        "summary": "Submit ElevenLabs TTS V2 task",
-        "description": "Submit a text-to-speech task using ElevenLabs Multilingual V2 model. Supports 21 voices and multiple languages. Pricing: 80 credits per 1000 characters (rounded up).",
+        "operationId": "submitElevenLabsTtsV2Task",
+        "summary": "Submit ElevenLabs TTS Multilingual V2 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Audio generation"
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -1089,31 +2226,9 @@
               "schema": {
                 "$ref": "#/components/schemas/ElevenLabsTTSRequest"
               },
-              "examples": {
-                "basic": {
-                  "summary": "Basic TTS request",
-                  "value": {
-                    "text": "Hello, welcome to our AI platform."
-                  }
-                },
-                "with-voice": {
-                  "summary": "With voice and speed",
-                  "value": {
-                    "text": "Unlock powerful API with our platform.",
-                    "voice": "Brian",
-                    "stability": 0.5,
-                    "similarity_boost": 0.75,
-                    "speed": 1.0
-                  }
-                },
-                "chinese": {
-                  "summary": "Chinese text",
-                  "value": {
-                    "text": "欢迎使用我们的人工智能平台。",
-                    "voice": "Rachel",
-                    "speed": 0.9
-                  }
-                }
+              "example": {
+                "text": "Welcome to Wizzx.",
+                "voice": "Rachel"
               }
             }
           }
@@ -1124,22 +2239,99 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ElevenLabsTTSResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1147,7 +2339,7 @@
     "/api/v1/task/submit/wan22-animate-move": {
       "post": {
         "summary": "Submit WAN 2.2 Animate Move video task",
-        "description": "Submit a video generation task using Alibaba WAN 2.2 Animate Move model. Combines an image with a video to create animated content. No prompt required. Fixed 5-second billing. Pricing: 480p = 35 credits/s, 580p = 52 credits/s, 720p = 70 credits/s.",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -1186,30 +2378,112 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Wan22AnimateMoveResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }
+        },
+        "operationId": "submitWan22AnimateMoveTask",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
       }
     },
     "/api/v1/task/submit/virtual-try-on": {
       "post": {
         "summary": "Submit Virtual Try-On task",
-        "description": "Submit virtual try-on task to compose garment and human images.",
+        "description": "Compatibility-only endpoint hidden from /pricing. Do not select it automatically for new integrations.",
         "security": [
           {
             "bearerAuth": []
@@ -1248,22 +2522,722 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/VirtualTryOnSubmitResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error - missing required fields or invalid format"
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Unauthorized - invalid or expired API key"
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "402": {
-            "description": "Insufficient credits"
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
           },
           "500": {
-            "description": "Server error"
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "operationId": "submitVirtualTryOnTask",
+        "deprecated": true,
+        "tags": [
+          "Legacy models"
+        ]
+      }
+    },
+    "/api/v1/task/submit/nano-banana-2": {
+      "post": {
+        "operationId": "submitNanoBanana2Task",
+        "summary": "Submit Nano Banana 2 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NanoBanana2SubmitRequest"
+              },
+              "example": {
+                "prompt": "A clean isometric city",
+                "resolution": "1K"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/nano-banana-2-lite": {
+      "post": {
+        "operationId": "submitNanoBanana2LiteTask",
+        "summary": "Submit Nano Banana 2 Lite task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NanoBanana2LiteSubmitRequest"
+              },
+              "example": {
+                "prompt": "A playful sticker illustration",
+                "aspect_ratio": "1:1"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/gpt-image-2": {
+      "post": {
+        "operationId": "submitGptImage2Task",
+        "summary": "Submit GPT Image 2 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPTImage2SubmitRequest"
+              },
+              "example": {
+                "prompt": "An orange mechanical keyboard on a dark desk",
+                "quality": "high"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/runway-gen3": {
+      "post": {
+        "operationId": "submitRunwayGen3Task",
+        "summary": "Submit Runway Gen-3 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunwayGen3SubmitRequest"
+              },
+              "example": {
+                "prompt": "A paper boat crosses a moonlit lake",
+                "type": "text-to-video",
+                "duration": 5
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/pricing": {
+      "get": {
+        "operationId": "getPublicPricing",
+        "summary": "List public models and current pricing",
+        "tags": [
+          "Discovery"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Current public pricing catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/credits/balance": {
+      "get": {
+        "operationId": "getCreditBalance",
+        "summary": "Get current credit balance",
+        "tags": [
+          "Credits"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalanceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1274,23 +3248,25 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "bearerFormat": "JWT"
+        "description": "Wizzx API key. This is not a JWT."
       }
     },
     "schemas": {
       "Veo3SubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
-          "prompt"
+          "prompt",
+          "type"
         ],
+        "description": "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images, duration 8, and aspect_ratio 16:9.",
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt describing the video to generate."
+            "minLength": 1
           },
           "type": {
             "type": "string",
-            "description": "Generation type (unified field). Defaults based on image_urls presence.",
             "enum": [
               "text-to-video",
               "image-to-video",
@@ -1299,90 +3275,162 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Image URL array. 1-2 for first/last frames (image-to-video), 1-3 for reference images (reference-to-video).",
+            "maxItems": 3,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "minItems": 1,
-            "maxItems": 3
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              4,
+              6,
+              8
+            ],
+            "default": 8
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p"
+            ],
+            "default": "720p"
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "Auto",
+              "auto"
+            ],
+            "default": "16:9"
           },
           "model": {
             "type": "string",
-            "description": "Model choice. reference-to-video requires veo3_fast.",
             "enum": [
-              "veo3",
               "veo3_fast"
             ],
             "default": "veo3_fast"
           },
-          "aspect_ratio": {
-            "type": "string",
-            "description": "Output aspect ratio. reference-to-video requires 16:9.",
-            "enum": [
-              "16:9",
-              "9:16",
-              "Auto"
-            ],
-            "default": "16:9"
-          },
           "seeds": {
             "type": "integer",
-            "format": "int32",
             "minimum": 10000,
-            "maximum": 99999,
-            "description": "Optional seed for reproducibility."
+            "maximum": 99999
           },
           "enable_translation": {
-            "type": "boolean",
-            "description": "Translate prompt to English for better results.",
-            "default": true
+            "type": "boolean"
           },
           "watermark": {
             "type": "string",
-            "description": "Custom watermark text."
+            "maxLength": 128
           }
-        }
-      },
-      "Veo3SubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling."
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
               },
-              "model_key": {
-                "type": "string",
-                "example": "veo3"
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "reference-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "enum": [
+                      8
+                    ],
+                    "default": 8
+                  },
+                  "aspect_ratio": {
+                    "type": "string",
+                    "enum": [
+                      "16:9"
+                    ],
+                    "default": "16:9"
+                  }
+                }
               }
-            }
+            ]
           }
-        }
+        ]
       },
       "SeedanceSubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "prompt",
           "type"
         ],
+        "description": "Current HTTP contract: omit resolution for the 480p default. Explicit 480p is temporarily rejected by the shared gateway binding; explicit values may be 720p or 1080p. image-to-video requires exactly one image.",
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt describing the video to generate."
+            "minLength": 1
           },
           "type": {
             "type": "string",
-            "description": "Generation type (unified field).",
             "enum": [
               "text-to-video",
               "image-to-video"
@@ -1390,16 +3438,16 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Input image URL array (unified field). Required for image-to-video, max 1 image.",
+            "maxItems": 1,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "maxItems": 1
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "duration": {
             "type": "integer",
-            "description": "Video duration in seconds.",
             "enum": [
               5,
               10
@@ -1408,17 +3456,14 @@
           },
           "resolution": {
             "type": "string",
-            "description": "Output video resolution.",
             "enum": [
-              "480p",
               "720p",
               "1080p"
             ],
-            "default": "480p"
+            "description": "Omit this field to use the current 480p default. Explicit 480p is not accepted until the gateway binding is fixed."
           },
           "aspect_ratio": {
             "type": "string",
-            "description": "Output video aspect ratio. Defaults to 16:9 for text-to-video, adaptive for image-to-video.",
             "enum": [
               "16:9",
               "4:3",
@@ -1427,68 +3472,84 @@
               "9:16",
               "21:9",
               "adaptive"
-            ],
-            "default": "16:9"
+            ]
           },
           "seed": {
             "type": "integer",
-            "format": "int64",
             "minimum": -1,
-            "maximum": 4294967295,
-            "description": "Random seed for reproducibility. -1 for random.",
-            "default": -1
+            "maximum": 4294967295
           },
           "watermark": {
-            "type": "boolean",
-            "description": "Whether to add watermark to output video.",
-            "default": false
+            "type": "boolean"
           },
           "camera_fixed": {
-            "type": "boolean",
-            "description": "Whether to fix the camera position.",
-            "default": false
+            "type": "boolean"
           }
-        }
-      },
-      "SeedanceSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling."
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
               },
-              "model_key": {
-                "type": "string",
-                "example": "seedance-pro-fast"
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
               }
-            }
+            ]
           }
-        }
+        ]
       },
       "Seedance15ProSubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "prompt",
           "type"
         ],
+        "description": "Current HTTP contract: duration is 4-12 seconds and explicit resolution is 720p. The model intends to support duration=-1 and 480p, but shared gateway binding currently rejects both. image-to-video requires 1-2 images.",
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt describing the video to generate."
+            "minLength": 1
           },
           "type": {
             "type": "string",
-            "description": "Generation type (unified field).",
             "enum": [
               "text-to-video",
               "image-to-video"
@@ -1496,32 +3557,29 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Input image URL array (unified field). Required for image-to-video, max 2 images (first frame + last frame).",
+            "maxItems": 2,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "maxItems": 2
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "duration": {
             "type": "integer",
-            "description": "Video duration: 4-12 seconds, or -1 for auto.",
-            "minimum": -1,
+            "minimum": 4,
             "maximum": 12,
             "default": 5
           },
           "resolution": {
             "type": "string",
-            "description": "Output video resolution (no 1080p support).",
             "enum": [
-              "480p",
               "720p"
             ],
             "default": "720p"
           },
           "aspect_ratio": {
             "type": "string",
-            "description": "Output video aspect ratio.",
             "enum": [
               "16:9",
               "4:3",
@@ -1535,126 +3593,134 @@
           },
           "seed": {
             "type": "integer",
-            "format": "int64",
             "minimum": -1,
-            "maximum": 4294967295,
-            "description": "Random seed for reproducibility. -1 for random.",
-            "default": -1
+            "maximum": 4294967295
           },
           "watermark": {
-            "type": "boolean",
-            "description": "Whether to add watermark to output video.",
-            "default": false
+            "type": "boolean"
           },
           "camera_fixed": {
-            "type": "boolean",
-            "description": "Whether to fix the camera position.",
-            "default": false
+            "type": "boolean"
           },
           "generate_audio": {
             "type": "boolean",
-            "description": "Seedance 1.5 Pro exclusive: generate synchronized audio (voice, sound effects, background music). Pricing doubles when enabled.",
             "default": true
           },
           "return_last_frame": {
             "type": "boolean",
-            "description": "Return the last frame image of generated video. Useful for generating consecutive videos.",
             "default": false
           }
-        }
-      },
-      "Seedance15ProSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling."
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
               },
-              "model_key": {
-                "type": "string",
-                "example": "seedance-1.5-pro"
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
               }
-            }
+            ]
           }
-        }
+        ]
       },
       "TaskStatusRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "task_id"
         ],
         "properties": {
           "task_id": {
             "type": "string",
-            "description": "Local task id returned from submit."
+            "format": "uuid",
+            "description": "Wizzx task ID returned by submit."
           }
         }
       },
       "TaskStatusResponse": {
         "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
         "properties": {
           "code": {
             "type": "integer",
-            "example": 0
+            "enum": [
+              0
+            ]
           },
-          "msg": {
-            "type": "string"
+          "message": {
+            "type": "string",
+            "example": "success"
           },
           "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string"
-              },
-              "status": {
-                "type": "string",
-                "enum": [
-                  "PROCESSING",
-                  "SUCCEEDED",
-                  "FAILED"
-                ]
-              },
-              "result_urls": {
-                "type": "array",
-                "items": {
-                  "type": "string",
-                  "format": "uri"
-                }
-              },
-              "error": {
-                "type": "string"
-              }
-            }
+            "$ref": "#/components/schemas/TaskStatusData"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
       "KlingSubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "prompt",
           "type",
           "quality_mode",
           "duration"
         ],
+        "description": "image-to-video requires exactly one image_urls item; text-to-video must omit image_urls. image_tail, masks, and camera_control are mutually exclusive for image-to-video. aspect_ratio and sound are only valid for kling-v2-6.",
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt describing the video content.",
-            "maxLength": 2500
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 2500-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 2500
           },
           "type": {
             "type": "string",
-            "description": "Generation type. text-to-video supported by: v1, v1-6, v2-master, v2-1-master, v2-5-turbo, v2-6. image-to-video supported by all models.",
             "enum": [
               "text-to-video",
               "image-to-video"
@@ -1662,38 +3728,27 @@
           },
           "image_urls": {
             "type": "array",
-            "description": "Reference image URL array (unified field). Required for image-to-video, must provide exactly 1 image. Not needed for text-to-video.",
+            "maxItems": 1,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "minItems": 1,
-            "maxItems": 1
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "quality_mode": {
             "type": "string",
-            "description": "Quality mode. 'std' for standard, 'pro' for professional quality. (Renamed from 'mode' to avoid conflict with 'type')",
             "enum": [
               "std",
               "pro"
             ]
           },
-          "duration": {
-            "type": "integer",
-            "description": "Video duration in seconds.",
-            "enum": [
-              5,
-              10
-            ]
-          },
           "model_name": {
             "type": "string",
-            "description": "Kling model version. Note: v1-5 and v2-1 only support image-to-video. V2.6 supports sound and aspect_ratio.",
             "enum": [
               "kling-v1",
               "kling-v1-5",
               "kling-v1-6",
-              "kling-v2-master",
               "kling-v2-1",
               "kling-v2-1-master",
               "kling-v2-5-turbo",
@@ -1701,49 +3756,49 @@
             ],
             "default": "kling-v1"
           },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              5,
+              10
+            ]
+          },
+          "image_tail": {
+            "type": "string"
+          },
+          "negative_prompt": {
+            "type": "string",
+            "description": "Optional negative prompt. The gateway enforces a 2500-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 2500
+          },
+          "cfg_scale": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "V1.x only. Explicit 0 is currently normalized to 0.5; omit for V2.x."
+          },
           "aspect_ratio": {
             "type": "string",
-            "description": "Video aspect ratio. **Only supported by kling-v2-6 model**.",
             "enum": [
               "16:9",
               "9:16",
               "1:1"
             ],
-            "default": "16:9"
+            "description": "kling-v2-6 only; defaults to 16:9 for that model."
           },
           "sound": {
             "type": "string",
-            "description": "Whether to generate audio with the video. **Only supported by kling-v2-6 model**. 'on' doubles the credit cost.",
             "enum": [
               "on",
               "off"
             ],
-            "default": "off"
-          },
-          "image_tail": {
-            "type": "string",
-            "description": "Tail frame control image URL. Only for image-to-video. Mutually exclusive with dynamic_masks/static_mask and camera_control."
-          },
-          "negative_prompt": {
-            "type": "string",
-            "description": "Negative text prompt to avoid certain elements.",
-            "maxLength": 2500
-          },
-          "cfg_scale": {
-            "type": "number",
-            "format": "float",
-            "minimum": 0,
-            "maximum": 1,
-            "description": "CFG scale controlling how closely to follow the prompt. **Only supported by V1.x models**. V2.x models will return an error.",
-            "default": 0.5
+            "description": "kling-v2-6 only; defaults to off."
           },
           "static_mask": {
-            "type": "string",
-            "description": "Static brush mask image URL. Only for image-to-video. Mutually exclusive with image_tail and camera_control."
+            "type": "string"
           },
           "dynamic_masks": {
             "type": "array",
-            "description": "Dynamic brush configurations with masks and trajectories. Only for image-to-video. Max 6 groups. Mutually exclusive with image_tail and camera_control.",
             "maxItems": 6,
             "items": {
               "$ref": "#/components/schemas/DynamicMask"
@@ -1754,14 +3809,302 @@
           },
           "callback_url": {
             "type": "string",
-            "format": "uri",
-            "description": "Callback URL for task status updates."
+            "format": "uri"
           },
           "external_task_id": {
-            "type": "string",
-            "description": "Custom task ID for tracking."
+            "type": "string"
           }
-        }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  },
+                  "model_name": {
+                    "type": "string",
+                    "enum": [
+                      "kling-v1",
+                      "kling-v1-6",
+                      "kling-v2-1-master",
+                      "kling-v2-5-turbo",
+                      "kling-v2-6"
+                    ]
+                  }
+                },
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "image_urls"
+                      ],
+                      "properties": {
+                        "image_urls": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "image_tail"
+                      ],
+                      "properties": {
+                        "image_tail": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "dynamic_masks"
+                      ],
+                      "properties": {
+                        "dynamic_masks": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "static_mask"
+                      ],
+                      "properties": {
+                        "static_mask": {}
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                },
+                "allOf": [
+                  {
+                    "not": {
+                      "allOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "image_tail"
+                              ],
+                              "properties": {
+                                "image_tail": {}
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "dynamic_masks"
+                              ],
+                              "properties": {
+                                "dynamic_masks": {}
+                              }
+                            },
+                            {
+                              "required": [
+                                "static_mask"
+                              ],
+                              "properties": {
+                                "static_mask": {}
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "allOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "image_tail"
+                              ],
+                              "properties": {
+                                "image_tail": {}
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "camera_control"
+                              ],
+                              "properties": {
+                                "camera_control": {}
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "not": {
+                      "allOf": [
+                        {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "dynamic_masks"
+                              ],
+                              "properties": {
+                                "dynamic_masks": {}
+                              }
+                            },
+                            {
+                              "required": [
+                                "static_mask"
+                              ],
+                              "properties": {
+                                "static_mask": {}
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "anyOf": [
+                            {
+                              "required": [
+                                "camera_control"
+                              ],
+                              "properties": {
+                                "camera_control": {}
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "oneOf": [
+              {
+                "required": [
+                  "model_name"
+                ],
+                "properties": {
+                  "model_name": {
+                    "type": "string",
+                    "enum": [
+                      "kling-v2-6"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "model_name": {
+                    "type": "string",
+                    "enum": [
+                      "kling-v1",
+                      "kling-v1-5",
+                      "kling-v1-6",
+                      "kling-v2-1",
+                      "kling-v2-1-master",
+                      "kling-v2-5-turbo"
+                    ]
+                  }
+                },
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "sound"
+                      ],
+                      "properties": {
+                        "sound": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "aspect_ratio"
+                      ],
+                      "properties": {
+                        "aspect_ratio": {}
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "model_name": {
+                    "type": "string",
+                    "enum": [
+                      "kling-v1",
+                      "kling-v1-5",
+                      "kling-v1-6"
+                    ]
+                  }
+                }
+              },
+              {
+                "required": [
+                  "model_name"
+                ],
+                "properties": {
+                  "model_name": {
+                    "type": "string",
+                    "enum": [
+                      "kling-v2-1",
+                      "kling-v2-1-master",
+                      "kling-v2-5-turbo",
+                      "kling-v2-6"
+                    ]
+                  }
+                },
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "cfg_scale"
+                      ],
+                      "properties": {
+                        "cfg_scale": {}
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
       },
       "DynamicMask": {
         "type": "object",
@@ -1772,11 +4115,10 @@
         "properties": {
           "mask": {
             "type": "string",
-            "description": "Mask image URL."
+            "format": "uri"
           },
           "trajectories": {
             "type": "array",
-            "description": "Motion trajectory coordinates (2-77 points for 5s video).",
             "minItems": 2,
             "maxItems": 77,
             "items": {
@@ -1794,26 +4136,25 @@
         "properties": {
           "x": {
             "type": "integer",
-            "minimum": 0,
-            "description": "X coordinate (pixels from bottom-left origin)."
+            "minimum": 1,
+            "description": "The backend currently rejects zero because of binding semantics, despite the intended non-negative range."
           },
           "y": {
             "type": "integer",
-            "minimum": 0,
-            "description": "Y coordinate (pixels from bottom-left origin)."
+            "minimum": 1,
+            "description": "The backend currently rejects zero because of binding semantics, despite the intended non-negative range."
           }
         }
       },
       "CameraControl": {
         "type": "object",
-        "description": "Camera movement configuration. For image-to-video, mutually exclusive with image_tail and dynamic_masks/static_mask.",
+        "additionalProperties": false,
         "required": [
           "type"
         ],
         "properties": {
           "type": {
             "type": "string",
-            "description": "Camera movement type.",
             "enum": [
               "simple",
               "down_back",
@@ -1825,96 +4166,166 @@
           "config": {
             "$ref": "#/components/schemas/CameraControlConfig"
           }
-        }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "required": [
+                  "config"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "simple"
+                    ]
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "down_back",
+                      "forward_up",
+                      "right_turn_forward",
+                      "left_turn_forward"
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
       },
       "CameraControlConfig": {
         "type": "object",
-        "description": "Camera control configuration. Required when type is 'simple'. Exactly one parameter must be non-zero.",
+        "additionalProperties": false,
+        "description": "Exactly one property must be non-zero.",
         "properties": {
           "horizontal": {
             "type": "number",
             "minimum": -10,
-            "maximum": 10,
-            "description": "Horizontal pan."
+            "maximum": 10
           },
           "vertical": {
             "type": "number",
             "minimum": -10,
-            "maximum": 10,
-            "description": "Vertical pan."
+            "maximum": 10
           },
           "pan": {
             "type": "number",
             "minimum": -10,
-            "maximum": 10,
-            "description": "Horizontal rotation."
+            "maximum": 10
           },
           "tilt": {
             "type": "number",
             "minimum": -10,
-            "maximum": 10,
-            "description": "Vertical rotation."
+            "maximum": 10
           },
           "roll": {
             "type": "number",
             "minimum": -10,
-            "maximum": 10,
-            "description": "Roll rotation."
+            "maximum": 10
           },
           "zoom": {
             "type": "number",
             "minimum": -10,
-            "maximum": 10,
-            "description": "Zoom."
+            "maximum": 10
           }
-        }
-      },
-      "KlingSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling."
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "required": [
+                  "horizontal"
+                ],
+                "properties": {
+                  "horizontal": {
+                    "not": {
+                      "enum": [
+                        0
+                      ]
+                    }
+                  }
+                }
               },
-              "model_key": {
-                "type": "string",
-                "example": "kling-ai"
+              {
+                "required": [
+                  "vertical"
+                ],
+                "properties": {
+                  "vertical": {
+                    "not": {
+                      "enum": [
+                        0
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "required": [
+                  "pan"
+                ],
+                "properties": {
+                  "pan": {
+                    "not": {
+                      "enum": [
+                        0
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "required": [
+                  "tilt"
+                ],
+                "properties": {
+                  "tilt": {
+                    "not": {
+                      "enum": [
+                        0
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "required": [
+                  "roll"
+                ],
+                "properties": {
+                  "roll": {
+                    "not": {
+                      "enum": [
+                        0
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "required": [
+                  "zoom"
+                ],
+                "properties": {
+                  "zoom": {
+                    "not": {
+                      "enum": [
+                        0
+                      ]
+                    }
+                  }
+                }
               }
-            }
+            ]
           }
-        }
-      },
-      "CreditPricing": {
-        "type": "object",
-        "description": "Credit pricing for Kling AI (based on quality_mode and duration)",
-        "properties": {
-          "std_5s": {
-            "type": "integer",
-            "example": 10
-          },
-          "std_10s": {
-            "type": "integer",
-            "example": 20
-          },
-          "pro_5s": {
-            "type": "integer",
-            "example": 20
-          },
-          "pro_10s": {
-            "type": "integer",
-            "example": 40
-          }
-        }
+        ]
       },
       "FluxKontextSubmitRequest": {
         "type": "object",
@@ -1989,266 +4400,140 @@
           }
         }
       },
-      "FluxKontextSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Local task ID for tracking.",
-                "example": "task_123456789"
-              },
-              "status": {
-                "type": "string",
-                "description": "Initial task status.",
-                "example": "pending"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Number of credits deducted for this task.",
-                "example": 15
-              }
-            }
-          }
-        }
-      },
       "NanoBananaProSubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "prompt"
         ],
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt for image generation (max 10000 characters).",
-            "maxLength": 10000,
-            "example": "A beautiful sunset over the ocean with vibrant colors"
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 10000-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 10000
           },
           "image_urls": {
             "type": "array",
-            "description": "Array of input image URLs (max 8 images, max 30MB each). Replaces deprecated image_input field.",
+            "maxItems": 8,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "maxItems": 8,
-            "example": [
-              "https://example.com/reference1.jpg",
-              "https://example.com/reference2.jpg"
-            ]
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "aspect_ratio": {
             "type": "string",
-            "description": "Aspect ratio of the generated image.",
             "enum": [
               "1:1",
-              "2:3",
-              "3:2",
-              "3:4",
-              "4:3",
-              "4:5",
-              "5:4",
               "9:16",
               "16:9",
+              "3:4",
+              "4:3",
+              "3:2",
+              "2:3",
+              "5:4",
+              "4:5",
               "21:9",
               "auto"
             ],
-            "default": "1:1",
-            "example": "16:9"
+            "default": "1:1"
           },
           "resolution": {
             "type": "string",
-            "description": "Resolution of the generated image. Higher resolution costs more credits.",
             "enum": [
               "1K",
               "2K",
               "4K"
             ],
-            "default": "1K",
-            "example": "2K"
+            "default": "1K"
           },
           "output_format": {
             "type": "string",
-            "description": "Output format for the generated image.",
             "enum": [
               "png",
-              "jpg"
+              "jpg",
+              "jpeg"
             ],
-            "default": "png",
-            "example": "png"
-          }
-        }
-      },
-      "NanoBananaProSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Local task ID for tracking.",
-                "example": "task_123456789"
-              },
-              "status": {
-                "type": "string",
-                "description": "Initial task status.",
-                "enum": [
-                  "pending",
-                  "processing",
-                  "succeeded",
-                  "failed"
-                ],
-                "example": "pending"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Number of credits deducted for this task. 1K/2K = 10 credits, 4K = 20 credits.",
-                "example": 10
-              }
-            }
+            "default": "png"
           }
         }
       },
       "NanoBananaSubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "prompt"
         ],
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt for image generation (max 10000 characters).",
-            "maxLength": 10000,
-            "example": "A surreal painting of a giant banana floating in space"
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 5000-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 5000
           },
           "image_urls": {
             "type": "array",
-            "description": "Array of input image URLs (max 10 images). Supports JPEG/PNG/WebP.",
+            "maxItems": 10,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "maxItems": 10,
-            "example": [
-              "https://example.com/reference.jpg"
-            ]
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "aspect_ratio": {
             "type": "string",
-            "description": "Aspect ratio of the generated image.",
             "enum": [
               "1:1",
-              "2:3",
-              "3:2",
-              "3:4",
-              "4:3",
-              "4:5",
-              "5:4",
               "9:16",
               "16:9",
+              "3:4",
+              "4:3",
+              "3:2",
+              "2:3",
+              "5:4",
+              "4:5",
               "21:9",
               "auto"
             ],
-            "default": "1:1",
-            "example": "16:9"
+            "default": "1:1"
           },
           "output_format": {
             "type": "string",
-            "description": "Output format for the generated image.",
             "enum": [
               "png",
-              "jpg"
+              "jpeg"
             ],
-            "default": "png",
-            "example": "png"
-          }
-        }
-      },
-      "NanoBananaSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Local task ID for tracking.",
-                "example": "task_123456789"
-              },
-              "status": {
-                "type": "string",
-                "description": "Initial task status.",
-                "enum": [
-                  "pending",
-                  "processing",
-                  "succeeded",
-                  "failed"
-                ],
-                "example": "pending"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Number of credits deducted for this task. Fixed: 24 credits.",
-                "example": 24
-              }
-            }
+            "default": "png"
           }
         }
       },
       "SeedreamSubmitRequest": {
         "type": "object",
+        "additionalProperties": false,
         "required": [
           "prompt"
         ],
+        "description": "Seedream 4.0 and 4.5 share this request schema. input image count + effective batch_size must be at most 15.",
         "properties": {
           "prompt": {
             "type": "string",
-            "description": "Text prompt for image generation.",
-            "example": "A beautiful sunset over the ocean"
+            "minLength": 1
           },
           "image_urls": {
             "type": "array",
-            "description": "Array of input image URLs for image fusion (max 14 images). JPEG/PNG/WebP, up to 30MB each.",
+            "maxItems": 14,
             "items": {
               "type": "string",
-              "format": "uri"
-            },
-            "maxItems": 14,
-            "example": [
-              "https://example.com/reference1.jpg",
-              "https://example.com/reference2.jpg"
-            ]
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "aspect_ratio": {
             "type": "string",
-            "description": "Aspect ratio for output image.",
             "enum": [
               "1:1",
               "4:3",
@@ -2258,86 +4543,37 @@
               "3:2",
               "2:3",
               "21:9"
-            ],
-            "example": "16:9"
+            ]
           },
           "resolution": {
             "type": "string",
-            "description": "Resolution of the generated image (replaces deprecated size field).",
             "enum": [
               "1K",
               "2K",
               "4K"
             ],
-            "default": "2K",
-            "example": "2K"
+            "default": "2K"
           },
           "batch_size": {
             "type": "integer",
-            "description": "Number of images to generate (1-15). Constraint: input images + batch_size <= 15.",
             "minimum": 1,
             "maximum": 15,
-            "default": 1,
-            "example": 1
+            "default": 1
           },
           "seed": {
-            "type": "integer",
-            "description": "Random seed for reproducibility (-1 for random). Range [-1, 2147483647].",
-            "minimum": -1,
-            "maximum": 2147483647,
-            "default": -1,
-            "example": 42
+            "type": "integer"
           },
           "watermark": {
             "type": "boolean",
-            "description": "Whether to add watermark to output images.",
-            "default": false,
-            "example": false
-          }
-        }
-      },
-      "SeedreamSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Local task ID for tracking.",
-                "example": "task_123456789"
-              },
-              "status": {
-                "type": "string",
-                "description": "Initial task status.",
-                "enum": [
-                  "pending",
-                  "processing",
-                  "succeeded",
-                  "failed"
-                ],
-                "example": "pending"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Credits deducted for this task (depends on resolution, input images, and batch size).",
-                "example": 15
-              }
-            }
+            "default": false
           }
         }
       },
       "Flux2ProRequest": {
         "type": "object",
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "properties": {
           "prompt": {
             "type": "string",
@@ -2352,7 +4588,9 @@
               "format": "uri"
             },
             "maxItems": 8,
-            "example": ["https://example.com/source.jpg"]
+            "example": [
+              "https://example.com/source.jpg"
+            ]
           },
           "width": {
             "type": "integer",
@@ -2366,7 +4604,10 @@
           },
           "output_format": {
             "type": "string",
-            "enum": ["jpeg", "png"],
+            "enum": [
+              "jpeg",
+              "png"
+            ],
             "default": "jpeg",
             "description": "Output image format."
           },
@@ -2385,7 +4626,9 @@
       },
       "Flux2FlexRequest": {
         "type": "object",
-        "required": ["prompt"],
+        "required": [
+          "prompt"
+        ],
         "properties": {
           "prompt": {
             "type": "string",
@@ -2400,7 +4643,9 @@
               "format": "uri"
             },
             "maxItems": 8,
-            "example": ["https://example.com/source.jpg"]
+            "example": [
+              "https://example.com/source.jpg"
+            ]
           },
           "width": {
             "type": "integer",
@@ -2433,7 +4678,10 @@
           },
           "output_format": {
             "type": "string",
-            "enum": ["jpeg", "png"],
+            "enum": [
+              "jpeg",
+              "png"
+            ],
             "default": "jpeg",
             "description": "Output image format."
           },
@@ -2447,40 +4695,6 @@
           "seed": {
             "type": "integer",
             "description": "Seed for reproducibility."
-          }
-        }
-      },
-      "Flux2SubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 200
-          },
-          "message": {
-            "type": "string",
-            "example": "success"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Local task ID for tracking.",
-                "example": "task_123456789"
-              },
-              "status": {
-                "type": "string",
-                "description": "Initial task status.",
-                "enum": ["pending", "processing", "succeeded", "failed"],
-                "example": "pending"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Number of credits deducted for this task.",
-                "example": 20
-              }
-            }
           }
         }
       },
@@ -2516,34 +4730,12 @@
           }
         }
       },
-      "VirtualTryOnSubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling."
-              },
-              "model_key": {
-                "type": "string",
-                "example": "virtual-try-on"
-              }
-            }
-          }
-        }
-      },
       "Wan25SubmitRequest": {
         "type": "object",
-        "required": ["prompt", "type"],
+        "required": [
+          "prompt",
+          "type"
+        ],
         "properties": {
           "prompt": {
             "type": "string",
@@ -2553,7 +4745,10 @@
           },
           "type": {
             "type": "string",
-            "enum": ["text-to-video", "image-to-video"],
+            "enum": [
+              "text-to-video",
+              "image-to-video"
+            ],
             "description": "Generation type: text-to-video (pure text) or image-to-video (requires 1 image)."
           },
           "image_urls": {
@@ -2567,19 +4762,29 @@
           },
           "duration": {
             "type": "integer",
-            "enum": [5, 10],
+            "enum": [
+              5,
+              10
+            ],
             "default": 5,
             "description": "Video duration in seconds: 5 or 10."
           },
           "resolution": {
             "type": "string",
-            "enum": ["720p", "1080p"],
+            "enum": [
+              "720p",
+              "1080p"
+            ],
             "default": "1080p",
             "description": "Video resolution. 720p = 60 credits/s, 1080p = 100 credits/s."
           },
           "aspect_ratio": {
             "type": "string",
-            "enum": ["16:9", "9:16", "1:1"],
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
             "default": "16:9",
             "description": "Aspect ratio (only valid for text-to-video mode). In image-to-video mode, aspect ratio is determined by input image."
           },
@@ -2599,40 +4804,12 @@
           }
         }
       },
-      "Wan25SubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling.",
-                "example": "task_123456789"
-              },
-              "model_key": {
-                "type": "string",
-                "example": "wan-2-5"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Credits deducted. 720p: 60/s (5s=300, 10s=600). 1080p: 100/s (5s=500, 10s=1000).",
-                "example": 500
-              }
-            }
-          }
-        }
-      },
       "Wan26SubmitRequest": {
         "type": "object",
-        "required": ["prompt", "type"],
+        "required": [
+          "prompt",
+          "type"
+        ],
         "properties": {
           "prompt": {
             "type": "string",
@@ -2643,7 +4820,10 @@
           },
           "type": {
             "type": "string",
-            "enum": ["text-to-video", "image-to-video"],
+            "enum": [
+              "text-to-video",
+              "image-to-video"
+            ],
             "description": "Generation type: text-to-video (pure text) or image-to-video (requires image_urls)."
           },
           "image_urls": {
@@ -2656,170 +4836,109 @@
           },
           "duration": {
             "type": "integer",
-            "enum": [5, 10, 15],
+            "enum": [
+              5,
+              10,
+              15
+            ],
             "default": 5,
             "description": "Video duration in seconds: 5, 10, or 15."
           },
           "resolution": {
             "type": "string",
-            "enum": ["720p", "1080p"],
+            "enum": [
+              "720p",
+              "1080p"
+            ],
             "default": "1080p",
             "description": "Video resolution. 720p = 80 credits/s, 1080p = 110 credits/s."
           }
         }
       },
-      "Wan26SubmitResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling.",
-                "example": "task_123456789"
-              },
-              "model_key": {
-                "type": "string",
-                "example": "wan-2-6"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Credits deducted. 720p: 80/s (5s=400, 10s=800, 15s=1200). 1080p: 110/s (5s=550, 10s=1100, 15s=1650).",
-                "example": 1100
-              }
-            }
-          }
-        }
-      },
       "ElevenLabsTTSRequest": {
         "type": "object",
-        "required": ["text"],
+        "additionalProperties": false,
+        "required": [
+          "text"
+        ],
         "properties": {
           "text": {
             "type": "string",
             "minLength": 1,
             "maxLength": 5000,
-            "description": "Text to convert to speech (1-5000 characters).",
-            "example": "Hello, welcome to our AI platform."
+            "description": "Billed by Unicode code point, rounded up per 1000."
           },
           "voice": {
             "type": "string",
-            "enum": ["Rachel", "Aria", "Roger", "Sarah", "Laura", "Charlie", "George", "Callum", "River", "Liam", "Charlotte", "Alice", "Matilda", "Will", "Jessica", "Eric", "Chris", "Brian", "Daniel", "Lily", "Bill"],
-            "default": "Rachel",
-            "description": "Voice selection. 21 options available."
+            "enum": [
+              "Rachel",
+              "Aria",
+              "Roger",
+              "Sarah",
+              "Laura",
+              "Charlie",
+              "George",
+              "Callum",
+              "River",
+              "Liam",
+              "Charlotte",
+              "Alice",
+              "Matilda",
+              "Will",
+              "Jessica",
+              "Eric",
+              "Chris",
+              "Brian",
+              "Daniel",
+              "Lily",
+              "Bill"
+            ],
+            "default": "Rachel"
           },
           "stability": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1,
-            "default": 0.5,
-            "description": "Voice stability (0-1). Higher = more consistent, lower = more expressive."
+            "maximum": 1
           },
           "similarity_boost": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1,
-            "default": 0.75,
-            "description": "Similarity enhancement (0-1)."
+            "maximum": 1
           },
           "style": {
             "type": "number",
             "minimum": 0,
-            "maximum": 1,
-            "default": 0,
-            "description": "Style exaggeration (0-1)."
+            "maximum": 1
           },
           "speed": {
             "type": "number",
             "minimum": 0.7,
-            "maximum": 1.2,
-            "default": 1,
-            "description": "Speech rate (0.7-1.2)."
+            "maximum": 1.2
           },
           "timestamps": {
-            "type": "boolean",
-            "default": false,
-            "description": "Whether to return word timestamps."
+            "type": "boolean"
           },
           "previous_text": {
             "type": "string",
-            "maxLength": 5000,
-            "description": "Context before text for continuity."
+            "maxLength": 5000
           },
           "next_text": {
             "type": "string",
-            "maxLength": 5000,
-            "description": "Context after text for continuity."
+            "maxLength": 5000
           },
           "language_code": {
             "type": "string",
-            "description": "ISO 639-1 language code. Auto-detected if not specified."
-          }
-        }
-      },
-      "ElevenLabsTTSResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling.",
-                "example": "task_123456789"
-              },
-              "model_key": {
-                "type": "string",
-                "example": "eleven-labs-tts-v2"
-              }
-            }
-          }
-        }
-      },
-      "ElevenLabsTTSTurboResponse": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "integer",
-            "example": 0
-          },
-          "msg": {
-            "type": "string"
-          },
-          "data": {
-            "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling.",
-                "example": "task_123456789"
-              },
-              "model_key": {
-                "type": "string",
-                "example": "eleven-labs-tts-turbo-25"
-              }
-            }
+            "maxLength": 500,
+            "description": "Provider language hint. The gateway does not currently validate ISO 639-1 membership."
           }
         }
       },
       "Wan22AnimateMoveRequest": {
         "type": "object",
-        "required": ["video_url", "image_url"],
+        "required": [
+          "video_url",
+          "image_url"
+        ],
         "properties": {
           "video_url": {
             "type": "string",
@@ -2835,43 +4954,663 @@
           },
           "resolution": {
             "type": "string",
-            "enum": ["480p", "580p", "720p"],
+            "enum": [
+              "480p",
+              "580p",
+              "720p"
+            ],
             "default": "480p",
             "description": "Output video resolution. 480p = 35 credits/s, 580p = 52 credits/s, 720p = 70 credits/s."
           }
         }
       },
-      "Wan22AnimateMoveResponse": {
+      "ErrorDetail": {
         "type": "object",
+        "required": [
+          "message",
+          "type",
+          "param",
+          "code"
+        ],
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "invalid_request_error",
+              "authentication_error",
+              "insufficient_quota",
+              "permission_denied",
+              "not_found_error",
+              "conflict_error",
+              "unprocessable_entity_error",
+              "rate_limit_error",
+              "server_error",
+              "service_unavailable"
+            ]
+          },
+          "param": {
+            "type": "string",
+            "nullable": true
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "retry_after": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "Retry delay in seconds. Present for rate-limit errors."
+          }
+        }
+      },
+      "TaskSubmitData": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "model_key",
+          "credits_deducted"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Wizzx task ID used for status polling."
+          },
+          "model_key": {
+            "type": "string"
+          },
+          "credits_deducted": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Credits reserved when the task is accepted."
+          },
+          "provider_task_id": {
+            "type": "string",
+            "description": "Diagnostic field returned only when debug=1."
+          },
+          "provider_key": {
+            "type": "string",
+            "description": "Diagnostic field returned only when debug=1."
+          }
+        }
+      },
+      "TaskSubmitResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
         "properties": {
           "code": {
             "type": "integer",
-            "example": 0
+            "enum": [
+              0
+            ]
           },
-          "msg": {
-            "type": "string"
+          "message": {
+            "type": "string",
+            "example": "success"
           },
           "data": {
+            "$ref": "#/components/schemas/TaskSubmitData"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "TaskStatusData": {
+        "type": "object",
+        "required": [
+          "task_id",
+          "status",
+          "result_urls",
+          "error",
+          "credits_deducted"
+        ],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "QUEUED",
+              "PROCESSING",
+              "REVIEW_REQUIRED",
+              "SUCCEEDED",
+              "FAILED"
+            ],
+            "description": "DISPATCHING is internal and is returned to clients as PROCESSING."
+          },
+          "result_urls": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "credits_deducted": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Reserved or finally settled credits for this task."
+          }
+        }
+      },
+      "PricingTier": {
+        "type": "object",
+        "required": [
+          "label",
+          "credits"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "credits": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "params": {
             "type": "object",
-            "properties": {
-              "task_id": {
-                "type": "string",
-                "description": "Task ID for status polling.",
-                "example": "task_123456789"
-              },
-              "model_key": {
-                "type": "string",
-                "example": "wan22-animate-move"
-              },
-              "credits_deducted": {
-                "type": "integer",
-                "description": "Credits deducted. Fixed 5s billing: 480p=175, 580p=260, 720p=350.",
-                "example": 175
-              }
+            "additionalProperties": true,
+            "description": "Request parameters that select this pricing tier."
+          }
+        }
+      },
+      "ModelPricing": {
+        "type": "object",
+        "required": [
+          "model_key",
+          "name",
+          "provider",
+          "category",
+          "unit",
+          "tiers"
+        ],
+        "properties": {
+          "model_key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video",
+              "sound"
+            ]
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "per-image",
+              "per-second",
+              "per-request",
+              "per-megapixel",
+              "per-1000-chars"
+            ]
+          },
+          "tiers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingTier"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      },
+      "PricingData": {
+        "type": "object",
+        "required": [
+          "credit_to_usd",
+          "count",
+          "models"
+        ],
+        "properties": {
+          "credit_to_usd": {
+            "type": "number",
+            "format": "double",
+            "example": 0.001
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelPricing"
             }
           }
         }
+      },
+      "PricingResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "enum": [
+              0
+            ]
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PricingData"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "CreditBalanceData": {
+        "type": "object",
+        "required": [
+          "balance"
+        ],
+        "properties": {
+          "balance": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "CreditBalanceResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "data",
+          "request_id"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "enum": [
+              0
+            ]
+          },
+          "message": {
+            "type": "string",
+            "example": "success"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreditBalanceData"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "NanoBanana2SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 20000-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 20000
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 14,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "1:4",
+              "1:8",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:1",
+              "4:3",
+              "4:5",
+              "5:4",
+              "8:1",
+              "9:16",
+              "16:9",
+              "21:9",
+              "auto"
+            ],
+            "default": "auto"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K"
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpg",
+              "jpeg"
+            ],
+            "default": "jpg"
+          }
+        }
+      },
+      "NanoBanana2LiteSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 20000-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 20000
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "1:1",
+              "1:4",
+              "1:8",
+              "2:3",
+              "3:2",
+              "3:4",
+              "4:1",
+              "4:3",
+              "4:5",
+              "5:4",
+              "8:1",
+              "9:16",
+              "16:9",
+              "21:9",
+              "auto"
+            ],
+            "default": "auto"
+          }
+        }
+      },
+      "GPTImage2SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 32000-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 32000
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "1024x1024",
+              "1536x1024",
+              "1024x1536"
+            ]
+          },
+          "quality": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg",
+              "webp"
+            ]
+          }
+        }
+      },
+      "RunwayGen3SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt",
+          "type"
+        ],
+        "description": "image-to-video requires exactly one image_urls item; text-to-video must omit image_urls. 10 seconds cannot be combined with 1080p.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video"
+            ]
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 1,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              5,
+              10
+            ],
+            "default": 5
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "fps": {
+            "type": "integer",
+            "enum": [
+              24,
+              30,
+              60
+            ],
+            "default": 24
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "duration",
+                "resolution"
+              ],
+              "properties": {
+                "duration": {
+                  "enum": [
+                    10
+                  ]
+                },
+                "resolution": {
+                  "enum": [
+                    "1080p"
+                  ]
+                }
+              }
+            }
+          }
+        ]
       }
     }
-  }
+  },
+  "tags": [
+    {
+      "name": "Discovery",
+      "description": "Public model and pricing discovery."
+    },
+    {
+      "name": "Credits",
+      "description": "Authenticated credit balance."
+    },
+    {
+      "name": "Image generation",
+      "description": "Asynchronous image tasks."
+    },
+    {
+      "name": "Video generation",
+      "description": "Asynchronous video tasks."
+    },
+    {
+      "name": "Audio generation",
+      "description": "Asynchronous speech tasks."
+    },
+    {
+      "name": "Tasks",
+      "description": "Asynchronous task status."
+    },
+    {
+      "name": "Legacy models",
+      "description": "Compatibility-only models hidden from /pricing. Do not select these automatically."
+    }
+  ]
 }

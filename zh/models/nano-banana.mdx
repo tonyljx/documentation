@@ -8,7 +8,7 @@ description: "Nano Banana (Google) 文生图/图生图，智能模式选择"
 - 模型：Nano Banana（Google 驱动）；支持文生图和最多 10 张参考图片。
 - 智能模式选择：根据输入自动选择最优生成模式。
 - 宽高比：`1:1`、`16:9`、`9:16`、`21:9` 等。
-- 输出格式：`png` / `jpg`（默认 `png`）。
+- 输出格式：`png` / `jpeg`（默认 `png`）。
 - 异步 API：提交 `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`，轮询 `POST https://api.wizzx.ai/api/v1/task/status`。
 
 ## 认证
@@ -23,10 +23,10 @@ Authorization: Bearer <your_api_key>
 
 | 字段            | 类型                | 必填 | 默认/限制   | 说明                                                                            |
 | --------------- | ------------------- | ---- | ----------- | ------------------------------------------------------------------------------- |
-| `prompt`        | string              | 是   | ≤10000 字符 | 文本提示词                                                                      |
+| `prompt`        | string              | 是   | ≤5000 UTF-8 bytes | 文本提示词                                                                  |
 | `image_urls`    | array&lt;string&gt; | 否   | 最多 10 张  | 参考图片（JPEG/PNG/WebP）                                                       |
 | `aspect_ratio`  | string              | 否   | 默认 `1:1`  | `1:1`、`2:3`、`3:2`、`3:4`、`4:3`、`4:5`、`5:4`、`9:16`、`16:9`、`21:9`、`auto` |
-| `output_format` | string              | 否   | 默认 `png`  | `png` / `jpg`                                                                   |
+| `output_format` | string              | 否   | 默认 `png`  | `png` / `jpeg`                                                                  |
 
 ### 请求示例（文生图）
 
@@ -59,13 +59,14 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "pending",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "nano-banana",
     "credits_deducted": 24
-  }
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -75,7 +76,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -83,17 +84,20 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "succeeded",
-    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": ["https://cdn.example.com/images/result.png"],
+    "error": "",
+    "credits_deducted": 24
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-状态流程：`pending`（排队中）→ `processing`（生成中）→ `succeeded`（成功，返回 `result_urls`）或 `failed`（失败，查看 `error_message`）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。详见任务状态 API 参考。
 
 ## 计费
 
@@ -110,7 +114,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana \
 | 提供商         | Google             | Google            |
 | 最大输入图片数 | 10                 | 8                 |
 | 分辨率选项     | 标准               | 1K / 2K / 4K      |
-| 积分           | 24（固定）         | 10-20（按分辨率） |
+| 积分           | 24（固定）         | 108 / 108 / 144（1K / 2K / 4K） |
 | 适用场景       | 通用场景、智能模式 | 高分辨率输出      |
 
 ## 最佳实践

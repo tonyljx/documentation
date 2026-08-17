@@ -1,0 +1,136 @@
+<CodeGroup>
+```json gpt-image-2 request schema
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GPTImage2Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prompt"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The gateway enforces a 32000-byte UTF-8 limit.",
+      "x-wizzx-maxBytes": 32000
+    },
+    "image_urls": {
+      "type": "array",
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https?://"
+      }
+    },
+    "size": {
+      "type": "string",
+      "enum": ["auto", "1024x1024", "1536x1024", "1024x1536"]
+    },
+    "quality": {
+      "type": "string",
+      "enum": ["auto", "low", "medium", "high"]
+    },
+    "output_format": {
+      "type": "string",
+      "enum": ["png", "jpeg", "webp"]
+    }
+  }
+}
+```
+
+```json veo3 request schema
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Veo3Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["prompt", "type"],
+  "properties": {
+    "prompt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "type": "string",
+      "enum": ["text-to-video", "image-to-video", "reference-to-video"]
+    },
+    "image_urls": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https?://"
+      }
+    },
+    "duration": {
+      "type": "integer",
+      "enum": [4, 6, 8],
+      "default": 8
+    },
+    "resolution": {
+      "type": "string",
+      "const": "720p",
+      "default": "720p"
+    },
+    "aspect_ratio": {
+      "type": "string",
+      "enum": ["16:9", "9:16", "Auto", "auto"],
+      "default": "16:9"
+    },
+    "model": {
+      "type": "string",
+      "const": "veo3_fast",
+      "default": "veo3_fast"
+    },
+    "seeds": {
+      "type": "integer",
+      "minimum": 10000,
+      "maximum": 99999
+    },
+    "enable_translation": {
+      "type": "boolean"
+    },
+    "watermark": {
+      "type": "string",
+      "maxLength": 128
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"type": {"const": "text-to-video"}},
+        "required": ["type"]
+      },
+      "then": {
+        "not": {"required": ["image_urls"]}
+      }
+    },
+    {
+      "if": {
+        "properties": {"type": {"const": "image-to-video"}},
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["image_urls"],
+        "properties": {"image_urls": {"maxItems": 2}}
+      }
+    },
+    {
+      "if": {
+        "properties": {"type": {"const": "reference-to-video"}},
+        "required": ["type"]
+      },
+      "then": {
+        "required": ["image_urls"],
+        "properties": {
+          "duration": {"const": 8},
+          "aspect_ratio": {"const": "16:9"}
+        }
+      }
+    }
+  ]
+}
+```
+</CodeGroup>

@@ -1,20 +1,23 @@
 ---
 title: "查询任务状态"
-description: "POST 轮询 Veo 3.1 生成任务状态"
+description: "POST 查询异步生成任务状态"
 openapi: "POST /api/v1/task/status"
 ---
 
 ## 查询任务
 
-- 传 `task_id` 查询状态；需携带 `Authorization: Bearer <your_api_key>`。
-- 返回 `status`（PROCESSING/SUCCEEDED/FAILED），成功时附带 `result_urls`。
+使用提交响应中的 Wizzx `task_id`，并携带同一个 API Key。该接口只读取已保存的任务状态，不会再次向 Provider 提交任务。
 
 ```bash
-curl -X POST https://api.wizzx.ai/api/v1/task/status \
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/status \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
-  -d '{
-    "task_id": "task_123456789"
+  --data '{
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
   }'
 ```
 
+客户端可见状态为 `PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。内部 `DISPATCHING` 会以 `PROCESSING` 返回。
+
+非终态继续查询同一个 Task ID。遇到未知状态、`REVIEW_REQUIRED` 或提交结果不明确时，不得自动创建替代任务。

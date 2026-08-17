@@ -8,7 +8,7 @@ description: "Nano Banana (Google) text/image-to-image with smart mode selection
 - Model: Nano Banana (powered by Google); supports text-to-image and up to 10 reference images.
 - Smart mode selection: automatically chooses optimal generation mode based on inputs.
 - Aspect ratios: `1:1`, `16:9`, `9:16`, `21:9`, and more.
-- Output: `png` / `jpg` (default `png`).
+- Output: `png` / `jpeg` (default `png`).
 - Async API: submit `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`, poll `POST https://api.wizzx.ai/api/v1/task/status`.
 
 ## Auth
@@ -23,10 +23,10 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/nano-banana`, `Content-T
 
 | Field           | Type                | Required | Default/Limit | Description                                                                     |
 | --------------- | ------------------- | -------- | ------------- | ------------------------------------------------------------------------------- |
-| `prompt`        | string              | Yes      | ≤10000 chars  | Text prompt                                                                     |
+| `prompt`        | string              | Yes      | ≤5000 UTF-8 bytes | Text prompt                                                                  |
 | `image_urls`    | array&lt;string&gt; | No       | Max 10        | Reference images (JPEG/PNG/WebP)                                                |
 | `aspect_ratio`  | string              | No       | Default `1:1` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9`, `auto` |
-| `output_format` | string              | No       | Default `png` | `png` / `jpg`                                                                   |
+| `output_format` | string              | No       | Default `png` | `png` / `jpeg`                                                                  |
 
 ### Example (text-to-image)
 
@@ -59,13 +59,14 @@ Success response:
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "pending",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "nano-banana",
     "credits_deducted": 24
-  }
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -75,7 +76,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -83,17 +84,20 @@ Response (succeeded):
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "succeeded",
-    "result_urls": ["https://cdn.example.com/images/result_123456789.png"]
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": ["https://cdn.example.com/images/result.png"],
+    "error": "",
+    "credits_deducted": 24
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-Status flow: `pending` → `processing` → `succeeded` (returns `result_urls`) or `failed` (see `error_message`).
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`. See the task status API reference.
 
 ## Pricing
 
@@ -110,7 +114,7 @@ Fixed pricing: 24 credits per generation (1000 credits = $1).
 | Provider           | Google                  | Google                 |
 | Max Input Images   | 10                      | 8                      |
 | Resolution Options | Standard                | 1K / 2K / 4K           |
-| Credits            | 24 (fixed)              | 10-20 (by resolution)  |
+| Credits            | 24 (fixed)              | 108 / 108 / 144 (1K / 2K / 4K) |
 | Best For           | General use, smart mode | High-resolution output |
 
 ## Best practices

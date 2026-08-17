@@ -1,0 +1,36 @@
+---
+title: "GPT Image 2"
+description: "Generate or edit one image with GPT Image 2"
+icon: "image"
+---
+
+## GPT Image 2
+
+GPT Image 2 uses the same model key for generation and editing. Omit `image_urls` for text-to-image, or provide up to 10 public HTTP(S) images for editing.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-empty UTF-8 text, maximum 32,000 bytes at the gateway |
+| `image_urls` | No | 1–10 public HTTP(S) image URLs |
+| `size` | No | `auto`, `1024x1024`, `1536x1024`, `1024x1536` |
+| `quality` | No | `auto`, `low`, `medium`, `high` |
+| `output_format` | No | `png`, `jpeg`, `webp` |
+
+```json
+{
+  "prompt": "A cinematic product photo of an orange mechanical keyboard",
+  "size": "1536x1024",
+  "quality": "high",
+  "output_format": "png"
+}
+```
+
+Submit to `POST /api/v1/task/submit/gpt-image-2`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+<Note>
+  Each request produces one image. The current gateway price is fixed regardless of the optional parameters, but `/pricing` remains the current source of truth.
+</Note>
+
+See the [GPT Image 2 API reference](/api-reference/endpoint/submit-gpt-image-2) for the machine-readable Schema.

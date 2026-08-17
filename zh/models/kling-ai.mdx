@@ -64,7 +64,6 @@ description: "统一字段的 Kling 文生视频与图生视频提交、查询�
 | `kling-v1` | ✅ | ✅ | ❌ | ❌ | 基础版本 |
 | `kling-v1-5` | ❌ | ✅ | ❌ | ❌ | 迭代版本（仅图生视频） |
 | `kling-v1-6` | ✅ | ✅ | ❌ | ❌ | 迭代版本 |
-| `kling-v2-master` | ✅ | ✅ | ❌ | ❌ | 高质量版本 |
 | `kling-v2-1` | ❌ | ✅ | ❌ | ❌ | 高质量版本（仅图生视频） |
 | `kling-v2-1-master` | ✅ | ✅ | ❌ | ❌ | 高质量版本 |
 | `kling-v2-5-turbo` | ✅ | ✅ | ❌ | ❌ | 快速版本 |
@@ -147,7 +146,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
     "image_urls": ["https://example.com/forest.jpg"],
     "quality_mode": "pro",
     "duration": 10,
-    "model_name": "kling-v2-master",
+    "model_name": "kling-v2-1-master",
     "camera_control": {
       "type": "forward_up"
     }
@@ -183,10 +182,13 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "kling-ai"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "kling-ai",
+    "credits_deducted": 230
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -197,7 +199,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -206,18 +208,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.example.com/video.mp4"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 230
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-状态值：`PROCESSING`（submitted/processing）、`SUCCEEDED`（生成完成，可使用 `result_urls`）、`FAILED`（生成失败，`error` 包含错误信息）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。
 
 ## 镜头控制
 
@@ -295,11 +300,11 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/kling-ai \
 
 ## 常见问题
 
-- **哪些模型支持文生视频？** 支持 `text-to-video` 的模型：`kling-v1`、`kling-v1-6`、`kling-v2-master`、`kling-v2-1-master`、`kling-v2-5-turbo`、`kling-v2-6`。注意 `kling-v1-5` 和 `kling-v2-1` 仅支持图生视频。
+- **哪些模型支持文生视频？** 支持 `text-to-video` 的模型：`kling-v1`、`kling-v1-6`、`kling-v2-1-master`、`kling-v2-5-turbo`、`kling-v2-6`。注意 `kling-v1-5` 和 `kling-v2-1` 仅支持图生视频。
 - **如何生成带声音的视频？** 使用 `kling-v2-6` 模型并设置 `sound: "on"`。注意带声音的积分是不带声音的两倍。
 - **aspect_ratio 参数什么时候可用？** `aspect_ratio` 仅在 `kling-v2-6` 模型下可用，其他模型会返回错误。
 - **为什么 `mode` 改名为 `quality_mode`？** 为了与新增的 `type` 区分；`type` 表示生成类型（text-to-video/image-to-video），`quality_mode` 表示质量等级（std/pro）。
 - **cfg_scale 参数什么时候可用？** `cfg_scale` 仅支持 V1.x 模型，V2.x 模型会返回错误。
 - **如何使用镜头控制？** 设置 `camera_control`，镜头控制同时支持 text-to-video 和 image-to-video；`simple` 模式的 6 个 `config` 参数只能有一个非零。
 - **动态笔刷与静态笔刷有什么区别？** 静态笔刷限定固定区域；动态笔刷可添加轨迹控制运动路径。仅 image-to-video 支持。
-- **视频保留多久？** 为安全起见，生成视频保留 30 天，请尽快转存。
+- **视频保留多久？** 结果 URL 生命周期取决于存储配置和上游 Provider；需要长期保存的结果请及时归档。

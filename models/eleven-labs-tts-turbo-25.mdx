@@ -33,21 +33,21 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25
 
 | Field | Type | Notes |
 |------|------|------|
-| `text` | string | Text to convert to speech (1-5000 characters) |
+| `text` | string | Text to convert to speech (1-5000 Unicode code points) |
 
 ### Optional
 
 | Field | Type | Default | Notes |
 |------|------|---------|------|
 | `voice` | string | `Rachel` | Voice selection (see voice list below) |
-| `stability` | number | 0.5 | Voice stability (0-1) |
-| `similarity_boost` | number | 0.75 | Similarity enhancement (0-1) |
-| `style` | number | 0 | Style exaggeration (0-1) |
-| `speed` | number | 1.0 | Speech rate (0.7-1.2) |
-| `timestamps` | boolean | false | Return word timestamps |
+| `stability` | number | Provider default | Voice stability (0-1) |
+| `similarity_boost` | number | Provider default | Similarity enhancement (0-1) |
+| `style` | number | Provider default | Style exaggeration (0-1) |
+| `speed` | number | Provider default | Speech rate (0.7-1.2) |
+| `timestamps` | boolean | Provider default | Request timestamp output; current task status returns result URLs only |
 | `previous_text` | string | - | Context before text (for continuity) |
 | `next_text` | string | - | Context after text (for continuity) |
-| `language_code` | string | - | ISO 639-1 language code |
+| `language_code` | string | - | Provider language hint; the gateway does not validate ISO 639-1 membership |
 
 ### Available Voices
 
@@ -95,10 +95,13 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "model_key": "eleven-labs-tts-turbo-25"
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "eleven-labs-tts-turbo-25",
+    "credits_deducted": 40
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -109,7 +112,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
@@ -118,18 +121,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 ```json
 {
   "code": 0,
+  "message": "success",
   "data": {
-    "task_id": "task_123456789",
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "status": "SUCCEEDED",
     "result_urls": [
       "https://cdn.wizzx.ai/audio/output.mp3"
     ],
-    "error": ""
-  }
+    "error": "",
+    "credits_deducted": 40
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
 ```
 
-Status: `PROCESSING` (generating), `SUCCEEDED` (use `result_urls`), `FAILED` (`error` contains details).
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`.
 
 ## Pricing
 
@@ -143,7 +149,7 @@ ElevenLabs TTS Turbo 2.5 pricing - **50% cheaper** than TTS V2.
 | 3001-4000 | 160 | $0.16 |
 | 4001-5000 | 200 | $0.20 |
 
-**Formula**: `ceil(characters / 1000) × 40 credits`
+**Formula**: `ceil(Unicode code points / 1000) × 40 credits`
 
 **Examples:**
 - 500 characters → 40 credits ($0.04)

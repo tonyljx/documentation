@@ -1,27 +1,32 @@
 ---
 title: "Pricing"
-description: "Wizzx AI API pricing - save up to 33% compared to official prices"
+description: "Wizzx AI API credit pricing and current model tiers"
 ---
 
 ## Credits System
 
 Wizzx uses a credit-based pricing system:
 - **1000 credits = $1 USD**
-- Credits are deducted per API call based on the model and parameters used
+- An accepted submission reserves credits. Successful tasks confirm the charge; failed tasks are refunded; `REVIEW_REQUIRED` tasks remain reserved for reconciliation.
+
+<Note>
+  `GET /pricing` is the current source of truth. The tables below summarize the backend catalog and can change when model costs change.
+</Note>
 
 ## Image Generation
 
-| Model | Credits | Official Price | Savings |
-|-------|---------|----------------|---------|
-| **Nano Banana Pro** (1K/2K) | 10 | $0.15 | 33% |
-| **Nano Banana Pro** (4K) | 20 | $0.30 | 33% |
-| **Nano Banana** | 24 | - | - |
-| **Nano Banana 2** (1K) | 48 | - | - |
-| **Nano Banana 2** (2K) | 72 | - | - |
-| **Nano Banana 2** (4K) | 108 | - | - |
-| **Nano Banana 2 Lite** | 24 | - | - |
-| **Seedream 4.0** | 30 | $0.035 | 16% |
-| **Seedream 4.5** | 40 | $0.045 | 12% |
+| Model | Credits | Unit |
+|-------|---------|------|
+| **Nano Banana Pro** (1K/2K) | 108 | per image |
+| **Nano Banana Pro** (4K) | 144 | per image |
+| **Nano Banana** | 24 | per image |
+| **Nano Banana 2** (1K) | 48 | per image |
+| **Nano Banana 2** (2K) | 72 | per image |
+| **Nano Banana 2** (4K) | 108 | per image |
+| **Nano Banana 2 Lite** | 24 | per image |
+| **GPT Image 2** | 9 | per request, one image |
+| **Seedream 4.0** | 30 | per generated image |
+| **Seedream 4.5** | 40 | per generated image |
 
 <Note>
   Seedream is billed per generated image: `batch_size` is pre-authorized and the difference is refunded after settlement. Input reference images are not billed.
@@ -31,12 +36,15 @@ Wizzx uses a credit-based pricing system:
 
 Video models are priced per second of generated video.
 
+<Warning>
+  Current gateway limitation: Seedance Pro Fast reaches its 480p default only when `resolution` is omitted; Seedance 1.5 Pro currently accepts explicit 720p only. The 480p catalog tiers remain listed for pricing transparency while the backend binding is being corrected.
+</Warning>
+
 ### Veo
 
-| Model | Credits/second | Official Price | Savings |
-|-------|----------------|----------------|---------|
-| **Veo 3 fast** | 120 | $0.15/s | 20% |
-| **Veo 3.1 fast** | 120 | $0.15/s | 20% |
+| Model | Credits/second | Supported parameters |
+|-------|----------------|----------------------|
+| **Veo 3.1 Fast** | 120 | `veo3_fast`, `720p`, 4/6/8 seconds |
 
 ### Seedance Pro Fast
 
@@ -118,7 +126,7 @@ Fixed price per request.
 
 ## Audio Generation
 
-Audio models are priced per 1000 characters.
+Audio models are priced per 1000 Unicode code points.
 
 ### ElevenLabs TTS V2
 
@@ -132,7 +140,7 @@ High-quality multilingual text-to-speech.
 | 3001-4000 | 320 | $0.32 |
 | 4001-5000 | 400 | $0.40 |
 
-**Formula:** `ceil(characters / 1000) × 80 credits`
+**Formula:** `ceil(Unicode code points / 1000) × 80 credits`
 
 ### ElevenLabs TTS Turbo 2.5
 
@@ -146,7 +154,7 @@ High-quality multilingual text-to-speech.
 | 3001-4000 | 160 | $0.16 |
 | 4001-5000 | 200 | $0.20 |
 
-**Formula:** `ceil(characters / 1000) × 40 credits`
+**Formula:** `ceil(Unicode code points / 1000) × 40 credits`
 
 **Examples:**
 - 500 characters: V2 = 80 credits, Turbo = 40 credits

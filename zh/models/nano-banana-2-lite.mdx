@@ -62,11 +62,11 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite \
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
-状态流转：`pending` → `processing` → `succeeded`（返回 `result_urls`）或 `failed`（见 `error_message`）。
+客户端可见状态：`PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。详见任务状态 API 参考。
 
 ## 计费
 

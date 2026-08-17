@@ -1,0 +1,227 @@
+---
+title: "在 AI 智能体中生成图片和视频"
+description: "只需一个 Wizzx API Key，即可让 Codex、Claude Code 等智能体提交并轮询图片或视频任务"
+icon: "wand-magic-sparkles"
+---
+
+import AgentMediaRequestSchemas from '/snippets/agent-media-request-schemas.mdx';
+
+## 让智能体生成图片和视频
+
+这篇指南为 Codex、Claude Code 以及其他能执行 HTTPS 请求的智能体提供一套确定的 Wizzx 调用流程。你只需提供一个 API Key 和自然语言生成要求；智能体负责校验模型参数、提交一个异步任务、保存返回的 Task ID，并持续查询到任务结束。
+
+无需安装 SDK。以下接口统一使用 `https://api.wizzx.ai`。
+
+## 准备条件
+
+- 一个有足够积分的 Wizzx API Key。
+- 智能体会话拥有发起 HTTPS 请求的权限。
+- 如需参考图，图片必须是公网可访问的 HTTP(S) URL；本地路径和 base64 不能直接作为 `image_urls`。
+
+<Warning>
+  提交图片或视频任务会消耗积分。“规划”“预览参数”或“估算费用”不代表允许提交；“生成”或“现在创建”代表允许提交一次。如果缺失的选项会明显影响费用，智能体必须先展示最终模型、参数和当前费用估算，再请求确认。
+</Warning>
+
+## 把 Key 交给智能体会话
+
+优先把 Key 放进环境变量，不要写入源码、对话提示词或会被提交的 `.env` 文件。
+
+```bash
+printf "Wizzx API key: "
+read -rs WIZZX_API_KEY
+printf "\n"
+export WIZZX_API_KEY
+```
+
+从同一个终端启动 Codex 或 Claude Code。智能体应读取 `WIZZX_API_KEY`，但不能打印它。
+
+## 可直接复制的智能体指令
+
+你可以把下面的内容直接发给智能体，也可以将它作为项目级可复用 Skill 的主体。
+
+```text
+本次媒体生成使用 https://api.wizzx.ai 的 Wizzx API。
+
+安全规则：
+- 只从 WIZZX_API_KEY 读取 API Key。
+- 不得打印、记录、提交或写入文件。
+
+执行契约：
+1. 请求 GET /pricing，确认选中的 model_key 当前公开可用。
+2. 使用 Bearer Key 请求 GET /api/v1/credits/balance。
+3. 只构造所选模型 Schema 允许的字段。model_key 放在 URL 路径中，不放进 JSON Body。
+4. 如果用户只要求方案、参数预览或费用估算，停在提交之前。
+5. 仅调用一次 POST /api/v1/task/submit/{model_key}。
+6. 必须同时满足 HTTP 成功、code == 0、data.task_id 非空；立即保存并告知用户 Task ID。
+7. 使用同一个 Bearer Key，通过 {"task_id":"..."} 轮询 POST /api/v1/task/status；采用退避，并遵守 429 的 retry_after。
+8. PENDING、QUEUED、PROCESSING 时继续查询；SUCCEEDED 时返回 result_urls；FAILED 时返回 error；REVIEW_REQUIRED 时停止并报告，禁止重新提交。
+9. 查询超时时返回 Task ID，方便稍后继续；禁止自动创建替代任务。
+
+如果提交请求发生网络超时或结果不明确的 5xx，不得自动重试，因为可能产生第二个付费任务。任何第二次提交都必须先询问用户。
+```
+
+## 接口一览
+
+| 用途 | 方法和路径 | 鉴权 |
+| --- | --- | --- |
+| 获取当前公开模型和价格 | `GET /pricing` | 无需鉴权 |
+| 查询积分余额 | `GET /api/v1/credits/balance` | Bearer API Key |
+| 提交生成任务 | `POST /api/v1/task/submit/{model_key}` | Bearer API Key |
+| 查询任务状态 | `POST /api/v1/task/status` | Bearer API Key |
+
+只有当模型仍出现在 `/pricing` 时，才将 `gpt-image-2` 作为通用图片预设、`veo3` 作为通用视频预设。如果用户指定其他模型，必须阅读该模型的 API 参考，不能复用预设 Schema。
+
+<Note>
+  `/pricing` 是当前模型可用性和积分档位的依据。不要沿用旧对话里复制下来的价格。
+</Note>
+
+## 请求 Schema
+
+以下是面向智能体的严格 Schema，用于阻止智能体臆造字段。用户没有要求的可选字段应直接省略；参考图必须是公网 HTTP(S) URL。
+
+<AgentMediaRequestSchemas />
+
+上面两份 Schema 是推荐的通用预设。API 参考已经为 `/pricing` 当前返回的全部模型提供机器可读请求 Schema，包括 Runway Gen-3、两款 Seedance、Kling AI、Seedream 4/4.5、全部公开 Nano Banana 版本、GPT Image 2 和两款 ElevenLabs TTS。
+
+### 参数构造规则
+
+| 规则 | 智能体行为 |
+| --- | --- |
+| 模型位置 | 把模型 Key 放进 `/task/submit/{model_key}`，不要在 Body 中添加 `model_key`。 |
+| 可选值 | 未知值直接省略，不要发送 `null`、空字符串或猜测的枚举值。 |
+| 文生图 | 使用 `gpt-image-2`，不传 `image_urls`。 |
+| 图片编辑 | 使用 `gpt-image-2`，在 `image_urls` 中传入 1–10 个公网 URL。 |
+| 文生视频 | `type` 设为 `text-to-video`，省略 `image_urls`。 |
+| 首尾帧视频 | 只有模型 Schema 明确允许时才传两张图；当前为 Veo 图生视频和 Seedance 1.5 Pro。Runway、Kling、Seedance Pro Fast 只能传一张。 |
+| Veo 参考图视频 | `type` 设为 `reference-to-video`，传 1–3 张图，并使用 `16:9`、8 秒。 |
+| 未知模型 | 打开对应 API 参考并重新构造 Payload；禁止混用其他模型字段。 |
+
+### 图片请求参数
+
+```json
+{
+  "prompt": "深色桌面上的橙色机械键盘，电影感产品摄影",
+  "size": "1536x1024",
+  "quality": "high",
+  "output_format": "png"
+}
+```
+
+提交到 `POST /api/v1/task/submit/gpt-image-2`。
+
+### 视频请求参数
+
+```json
+{
+  "prompt": "一艘纸船穿过夜晚的霓虹城市运河，镜头缓慢而富有电影感",
+  "type": "text-to-video",
+  "duration": 6,
+  "resolution": "720p",
+  "aspect_ratio": "16:9",
+  "model": "veo3_fast"
+}
+```
+
+提交到 `POST /api/v1/task/submit/veo3`。
+
+## 只提交一次并保存 Task ID
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST "https://api.wizzx.ai/api/v1/task/submit/gpt-image-2" \
+  -H "Authorization: Bearer $WIZZX_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "深色桌面上的橙色机械键盘，电影感产品摄影",
+    "size": "1536x1024",
+    "quality": "high",
+    "output_format": "png"
+  }'
+```
+
+提交成功时会返回统一响应包裹：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "gpt-image-2",
+    "credits_deducted": 9
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
+}
+```
+
+客户端必须读取 `data.task_id`，不能使用下游 Provider 的任务编号。`credits_deducted` 表示这个任务当前预留的积分。
+
+## 根据 Task ID 查询
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST "https://api.wizzx.ai/api/v1/task/status" \
+  -H "Authorization: Bearer $WIZZX_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.example.com/generated/image.png"
+    ],
+    "error": "",
+    "credits_deducted": 9
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
+}
+```
+
+| 状态 | 含义 | 智能体动作 |
+| --- | --- | --- |
+| `PENDING` | 持久化任务已经创建，尚未进入队列。 | 继续查询。 |
+| `QUEUED` | 积分已预留，任务正在等待 Worker。 | 继续查询。 |
+| `PROCESSING` | 上游正在生成媒体。 | 使用退避继续查询。 |
+| `REVIEW_REQUIRED` | 上游结果需要人工核对。 | 停止查询，报告 Task ID，禁止重新提交。 |
+| `SUCCEEDED` | 生成完成。 | 返回 `result_urls` 中的全部 URL。 |
+| `FAILED` | 生成失败。 | 返回 `error`；不要拿旧 Task ID 创建新任务。 |
+
+推荐依次等待 5 秒、10 秒、20 秒，之后每次最多等待 30 秒。若智能体达到执行时限，服务端任务仍会继续运行；应返回 Task ID，稍后继续查询，而不是重新提交。
+
+## 错误与重试规则
+
+错误响应使用另一种包裹：
+
+```json
+{
+  "error": {
+    "message": "Human-readable explanation",
+    "type": "invalid_request_error",
+    "param": "type",
+    "code": "invalid_parameter_value"
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
+}
+```
+
+| HTTP 状态 | 智能体动作 |
+| --- | --- |
+| `400` / `422` | 根据 `error.param` 和 `error.message` 修正参数，禁止原样重试。 |
+| `401` | 停止并索要有效 Key；不要显示被拒绝的 Key。 |
+| `402` | 停止并报告积分不足。 |
+| 查询返回 `404` | 检查 Task ID 和账号；任务按用户隔离。 |
+| `429` | 按 `retry_after` 或 `X-Retry-After` 等待，然后重试同一个状态查询。 |
+| 状态查询返回 `500` / `503` | 使用退避重试同一个 Task ID。 |
+| 提交时网络超时或结果不明确的 `5xx` | 禁止自动再次提交；说明结果不明确，第二次付费尝试前必须询问用户。 |
+
+只有在返回 `SUCCEEDED` 的结果 URL、解释终态 `FAILED`、报告 `REVIEW_REQUIRED`，或交还一个可继续查询的 Task ID 时，本次执行才算结束。
+
+如需更多模型选项，请查看 [Nano Banana 2](/zh/models/nano-banana-2)、[Seedance 1.5 Pro](/zh/models/seedance-1.5-pro) 和 API 参考导航。

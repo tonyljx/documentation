@@ -1,0 +1,16 @@
+---
+title: "List public models and pricing"
+description: "GET the current public model catalog and credit tiers"
+openapi: "GET /pricing"
+---
+
+## List public models and pricing
+
+This endpoint does not require authentication. Treat its `model_key`, availability, and `tiers` as the current source of truth before constructing a paid request.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.wizzx.ai/pricing
+```
+
+Hidden compatibility models are intentionally omitted. A model absent from this response must not be selected automatically for a new Agent task.

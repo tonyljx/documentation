@@ -1,0 +1,22 @@
+---
+title: "提交 Nano Banana 2 Lite 任务"
+description: "POST Nano Banana 2 Lite 图片生成或编辑任务"
+openapi: "POST /api/v1/task/submit/nano-banana-2-lite"
+---
+
+## 提交任务
+
+`prompt` 必填。文生图时省略 `image_urls`；图片编辑时最多传入 10 个公网 HTTP(S) URL。Lite 模型不接受 `resolution` 或 `output_format`。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/nano-banana-2-lite \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "活泼的橙色机器人贴纸",
+    "aspect_ratio": "1:1"
+  }'
+```
+
+省略时，`aspect_ratio` 默认 `auto`。

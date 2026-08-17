@@ -8,7 +8,7 @@ description: "ByteDance Seedream 4.0 & 4.5 text-to-image / multi-image fusion pa
 - Models: Seedream 4.0 (`seedream-4`) and Seedream 4.5 (`seedream-4.5`); 4.5 is higher quality, slightly slower.
 - Capabilities: text-to-image, multi-image fusion (up to 14 refs), batch output (up to 15 images).
 - Resolution: `1K` / `2K` / `4K` (default `2K`); `aspect_ratio` added for framing.
-- Pricing: base by resolution; input refs and batch outputs billed per image; total input+output ≤ 15.
+- Pricing: 30 credits per Seedream 4.0 output or 40 per Seedream 4.5 output, independent of resolution; input references are not charged. Total input+output ≤ 15.
 - Submit: `POST https://api.wizzx.ai/api/v1/task/submit/seedream-4` or `/seedream-4.5`; status via `/api/v1/task/status`.
 
 <Warning>
@@ -28,10 +28,9 @@ Authorization: Bearer <your_api_key>
 | Model ID        | `seedream-4`  | `seedream-4.5`|
 | Quality         | High          | Higher        |
 | Speed           | Faster        | Slightly slower |
-| Base credits    | 30            | 40            |
-| vs Official     | Save 16%      | Save 12%      |
+| Credits/output  | 30            | 40            |
 
-Official price: Seedream 4.0 $0.035/image, Seedream 4.5 $0.045/image. Our price: 30/40 credits (1000 credits = $1).
+Each output costs 30/40 credits respectively (1000 credits = $1). Resolution and input-reference count do not change the price; `batch_size` multiplies it by the number of outputs.
 
 ### Submit job
 
@@ -114,13 +113,14 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 
 ```json
 {
-  "code": 200,
+  "code": 0,
   "message": "success",
   "data": {
-    "task_id": "task_123456789",
-    "status": "pending",
-    "credits_deducted": 15
-  }
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "seedream-4",
+    "credits_deducted": 120
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
 ```
 
@@ -130,11 +130,11 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/status`
 
 ```json
 {
-  "task_id": "task_123456789"
+  "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
 }
 ```
 
-Statuses: `pending` → `processing` → `succeeded` (with `result_urls`) or `failed` (see `error_message`).
+Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`. See the task status API reference.
 
 ### Migration (size → resolution + aspect_ratio)
 
@@ -162,6 +162,6 @@ New:
 - Resolution: iterate with `1K/2K`, finalize with `4K`.
 - Aspect ratio: `1:1` social/cover, `16:9` landscape, `9:16` portrait, `21:9` cinematic.
 - Batch: use `batch_size` for variations; ensure input + output ≤ 15.
-- Fusion: keep 1-3 core refs; each ref adds cost (+5 credits).
+- Fusion: keep 1-3 core refs for clearer guidance; input references do not add credits.
 - Seeds: fixed seed to reproduce; -1/random for variety.
 - Watermark: off by default; enable for compliance when needed.

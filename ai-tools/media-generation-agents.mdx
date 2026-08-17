@@ -1,0 +1,227 @@
+---
+title: "Generate media with AI agents"
+description: "Use one Wizzx API key in Codex, Claude Code, or another shell-capable agent to submit and poll image or video tasks"
+icon: "wand-magic-sparkles"
+---
+
+import AgentMediaRequestSchemas from '/snippets/agent-media-request-schemas.mdx';
+
+## Generate images and videos from an agent
+
+This guide gives Codex, Claude Code, and other shell-capable agents a deterministic Wizzx workflow. You provide one API key and a natural-language generation request; the agent validates a model-specific payload, submits one asynchronous task, saves the returned Task ID, and polls that task until it finishes.
+
+No SDK is required. All examples use `https://api.wizzx.ai`.
+
+## Prerequisites
+
+- A Wizzx API key with enough credits.
+- An agent session allowed to make HTTPS requests.
+- Public HTTP(S) URLs for reference images. A local path or base64 value is not an `image_urls` value.
+
+<Warning>
+  Image and video submission spends credits. A request such as “plan,” “draft,” or “estimate” does not authorize submission. A request such as “generate” or “create now” authorizes one submission. If a required choice can materially change the price, the agent must show the final model, parameters, and current estimate before asking for confirmation.
+</Warning>
+
+## Give the key to the agent session
+
+Keep the key in an environment variable instead of source code, a prompt transcript, or a committed `.env` file.
+
+```bash
+printf "Wizzx API key: "
+read -rs WIZZX_API_KEY
+printf "\n"
+export WIZZX_API_KEY
+```
+
+Start Codex or Claude Code from the same shell. The agent should read `WIZZX_API_KEY` without printing it.
+
+## Copyable agent instruction
+
+You can paste the following instruction into an agent or use it as the body of a reusable project skill.
+
+```text
+Use the Wizzx API at https://api.wizzx.ai for this media request.
+
+Security:
+- Read the API key only from WIZZX_API_KEY.
+- Never print, log, commit, or write the key to a file.
+
+Execution contract:
+1. Read GET /pricing and confirm the selected model_key is currently public.
+2. Read GET /api/v1/credits/balance with the Bearer key.
+3. Build only fields allowed by the selected model schema. model_key belongs in the URL path, not the JSON body.
+4. If the user asked only for a plan, payload preview, or cost estimate, stop before submission.
+5. Submit exactly once with POST /api/v1/task/submit/{model_key}.
+6. Require HTTP success, code == 0, and a non-empty data.task_id. Save and report that Task ID immediately.
+7. Poll POST /api/v1/task/status with {"task_id":"..."} and the same Bearer key. Use backoff and honor retry_after on 429.
+8. Continue for PENDING, QUEUED, or PROCESSING. Return result_urls for SUCCEEDED. Return error for FAILED. Stop and report REVIEW_REQUIRED without resubmitting.
+9. If polling times out, return the Task ID so polling can resume. Never create a replacement task automatically.
+
+Do not automatically retry a submit request after a network timeout or ambiguous 5xx response; it may create a second paid task. Ask the user before any second submission.
+```
+
+## Endpoints
+
+| Purpose | Method and path | Authentication |
+| --- | --- | --- |
+| Discover public models and current pricing | `GET /pricing` | None |
+| Check the current credit balance | `GET /api/v1/credits/balance` | Bearer API key |
+| Submit a generation | `POST /api/v1/task/submit/{model_key}` | Bearer API key |
+| Query a task | `POST /api/v1/task/status` | Bearer API key |
+
+Use `gpt-image-2` as the general image preset and `veo3` as the general video preset only while each key appears in `/pricing`. If the user names another model, read that model's API reference and do not reuse a preset schema.
+
+<Note>
+  `/pricing` is the source for current availability and credit tiers. Do not keep a price copied from an old agent conversation.
+</Note>
+
+## Request schemas
+
+These strict schemas prevent the agent from inventing fields. Omit optional fields that the user did not request. Reference images must be public HTTP(S) URLs.
+
+<AgentMediaRequestSchemas />
+
+The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every model currently returned by `/pricing` are available in the API reference, including Runway Gen-3, both Seedance models, Kling AI, Seedream 4/4.5, all public Nano Banana variants, GPT Image 2, and both ElevenLabs TTS variants.
+
+### Parameter construction rules
+
+| Rule | Agent behavior |
+| --- | --- |
+| Model placement | Put the model key in `/task/submit/{model_key}`; never add `model_key` to the body. |
+| Optional values | Omit unknown values instead of sending `null`, an empty string, or a guessed enum. |
+| Text-to-image | Use `gpt-image-2` without `image_urls`. |
+| Image editing | Use `gpt-image-2` with 1–10 public URLs in `image_urls`. |
+| Text-to-video | Set `type` to `text-to-video` and omit `image_urls`. |
+| First/last-frame video | Use two images only when that model Schema explicitly allows it—currently Veo image-to-video and Seedance 1.5 Pro. Runway, Kling, and Seedance Pro Fast accept exactly one image. |
+| Veo reference video | Set `type` to `reference-to-video`, use 1–3 images, `16:9`, and 8 seconds. |
+| Unknown model | Open its API reference and construct a new payload; never mix fields from another model. |
+
+### Image payload
+
+```json
+{
+  "prompt": "A cinematic product photo of an orange mechanical keyboard on a dark desk",
+  "size": "1536x1024",
+  "quality": "high",
+  "output_format": "png"
+}
+```
+
+Submit it to `POST /api/v1/task/submit/gpt-image-2`.
+
+### Video payload
+
+```json
+{
+  "prompt": "A paper boat travels through a neon city canal at night, slow cinematic camera movement",
+  "type": "text-to-video",
+  "duration": 6,
+  "resolution": "720p",
+  "aspect_ratio": "16:9",
+  "model": "veo3_fast"
+}
+```
+
+Submit it to `POST /api/v1/task/submit/veo3`.
+
+## Submit once and capture the Task ID
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST "https://api.wizzx.ai/api/v1/task/submit/gpt-image-2" \
+  -H "Authorization: Bearer $WIZZX_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "A cinematic product photo of an orange mechanical keyboard on a dark desk",
+    "size": "1536x1024",
+    "quality": "high",
+    "output_format": "png"
+  }'
+```
+
+A successful submit response uses this envelope:
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "gpt-image-2",
+    "credits_deducted": 9
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
+}
+```
+
+The client must read `data.task_id`, not a provider task identifier. Treat `credits_deducted` as the amount reserved for this task.
+
+## Poll by Task ID
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST "https://api.wizzx.ai/api/v1/task/status" \
+  -H "Authorization: Bearer $WIZZX_API_KEY" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a"
+  }'
+```
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.example.com/generated/image.png"
+    ],
+    "error": "",
+    "credits_deducted": 9
+  },
+  "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
+}
+```
+
+| Status | Meaning | Agent action |
+| --- | --- | --- |
+| `PENDING` | The durable task exists but is not queued yet. | Continue polling. |
+| `QUEUED` | Credits are reserved and the task is waiting for a worker. | Continue polling. |
+| `PROCESSING` | The provider is generating the media. | Continue polling with backoff. |
+| `REVIEW_REQUIRED` | The provider outcome needs operator reconciliation. | Stop polling, report the Task ID, and do not resubmit. |
+| `SUCCEEDED` | Generation finished. | Return every URL in `result_urls`. |
+| `FAILED` | Generation failed. | Return `error`; do not reuse the old Task ID for a new submission. |
+
+A practical polling schedule is 5 seconds, then 10, 20, and at most 30 seconds between queries. If the agent reaches its time limit, the server task keeps running; return the Task ID and resume the status request later.
+
+## Error and retry rules
+
+Errors use a different envelope:
+
+```json
+{
+  "error": {
+    "message": "Human-readable explanation",
+    "type": "invalid_request_error",
+    "param": "type",
+    "code": "invalid_parameter_value"
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
+}
+```
+
+| HTTP status | Agent action |
+| --- | --- |
+| `400` / `422` | Fix the payload from `error.param` and `error.message`; do not retry unchanged. |
+| `401` | Stop and ask for an active key. Never display the rejected key. |
+| `402` | Stop and report insufficient credits. |
+| `404` on status | Check the Task ID and account; tasks are isolated by owner. |
+| `429` | Wait for `retry_after` or `X-Retry-After`, then retry the same status query. |
+| `500` / `503` on status | Retry the same Task ID with backoff. |
+| Network timeout or ambiguous `5xx` on submit | Do not submit again automatically; report the ambiguity and ask before a second paid attempt. |
+
+The run is complete only when the agent returns result URLs for `SUCCEEDED`, explains a terminal `FAILED`, reports `REVIEW_REQUIRED`, or hands back a Task ID that can be polled later.
+
+For more model-specific options, see [Nano Banana 2](/models/nano-banana-2), [Seedance 1.5 Pro](/models/seedance-1.5-pro), and the API reference navigation.

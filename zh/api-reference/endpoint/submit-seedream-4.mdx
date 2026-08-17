@@ -28,7 +28,5 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-4 \
 ```
 
 <Note>
-- 分辨率计费：1K=10、2K=15、4K=25 积分。
-- 多图融合：每张输入图 +5 积分；`image_urls` 最多 14 张。
-- 批量输出：每张额外输出图 +15 积分，`输入图数量 + batch_size <= 15`。
+  Seedream 4.0 按请求输出图片数预留积分，每张 30 积分；分辨率和输入图数量不额外收费。`image_urls` 最多 14 张，且 `输入图数量 + batch_size <= 15`。提交前应重新读取 `/pricing`。
 </Note>

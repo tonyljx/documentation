@@ -38,8 +38,5 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/eleven-labs-tts-turbo-25 \
 ```
 
 <Note>
-- **Text**: 1-5000 characters, multi-language supported.
-- **Voice**: 21 options (Rachel, Brian, Sarah, etc.). Default: Rachel.
-- **Speed**: 0.7-1.2 (default: 1.0).
-- **Pricing**: 40 credits per 1000 characters (50% cheaper than V2).
+  Text is limited to 5,000 Unicode code points. `voice` defaults to `Rachel`; other omitted synthesis controls use the upstream provider default and are not fixed by Wizzx. Billing is 40 credits per 1,000 Unicode code points, rounded up.
 </Note>

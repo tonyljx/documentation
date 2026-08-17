@@ -6,26 +6,21 @@ openapi: "POST /api/v1/task/submit/seedance-pro-fast"
 
 ## Submit task
 
-- Send `Authorization: Bearer <your_api_key>`.
-- Required: `prompt`, `mode`; `img2video` requires `input_image_url`.
-- Optional: `duration`, `resolution`, `aspect_ratio`, `seed`, `watermark`, `camera_fixed`.
-- Async `task_id`; poll `/api/v1/task/status`.
+`prompt` and `type` are required. `image-to-video` requires exactly one public HTTP(S) URL in `image_urls`; `text-to-video` must omit `image_urls`.
 
 ```bash
-curl -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-pro-fast \
   -H "Authorization: Bearer <api_key>" \
   -H "Content-Type: application/json" \
-  -d '{
+  --data '{
     "prompt": "A cat playing piano in a cozy living room",
-    "mode": "text2video",
+    "type": "text-to-video",
     "duration": 5,
-    "resolution": "480p",
     "aspect_ratio": "16:9"
   }'
 ```
 
-<Note>
-- `text2video`: no `input_image_url`.  
-- `img2video`: `input_image_url` required; images jpeg/png/webp/bmp/tiff/gif, aspect 0.4-2.5, short side >300px, long side &lt;6000px, size &lt;30MB.  
-- Fixed 24fps.
-</Note>
+<Warning>
+  Omit `resolution` to use the current 480p default. Because of a known shared gateway binding limitation, explicitly sending `480p` is currently rejected; explicit values may be `720p` or `1080p`. Fixed 24fps is used and `fps` is not part of the public Schema.
+</Warning>
