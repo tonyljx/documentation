@@ -79,13 +79,13 @@ assert.equal(
 
 const veo = openapi.components.schemas.Veo3SubmitRequest;
 assert.deepEqual(veo.required, ["prompt", "type"]);
-assert.deepEqual(veo.properties.model.enum, ["veo3_fast"]);
+assert.deepEqual(veo.properties.model.enum, ["veo3_fast", "veo3_lite"]);
 assert.deepEqual(veo.properties.duration.enum, [4, 6, 8]);
-assert.deepEqual(veo.properties.resolution.enum, ["720p"]);
+assert.deepEqual(veo.properties.resolution.enum, ["720p", "1080p", "4k"]);
 assert.equal(veo.allOf[0].oneOf.length, 3);
 const veoReferenceMode = veo.allOf[0].oneOf[2];
 assert.deepEqual(veoReferenceMode.properties.duration.enum, [8]);
-assert.deepEqual(veoReferenceMode.properties.aspect_ratio.enum, ["16:9"]);
+assert.equal(veoReferenceMode.properties.aspect_ratio, undefined);
 
 const kling = openapi.components.schemas.KlingSubmitRequest;
 assert.ok(kling.required.includes("quality_mode"));

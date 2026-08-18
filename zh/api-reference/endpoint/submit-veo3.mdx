@@ -1,6 +1,6 @@
 ---
-title: "提交 Veo 3.1 Fast 任务"
-description: "POST Veo 3.1 Fast 文本、帧或参考图视频任务"
+title: "提交 Veo 3.1 Fast 或 Lite 任务"
+description: "POST Veo 3.1 Fast/Lite 文本、帧或参考图视频任务"
 openapi: "POST /api/v1/task/submit/veo3"
 ---
 
@@ -18,11 +18,11 @@ curl --fail-with-body --silent --show-error \
     "type": "text-to-video",
     "duration": 6,
     "resolution": "720p",
-    "model": "veo3_fast",
+    "model": "veo3_lite",
     "aspect_ratio": "16:9"
   }'
 ```
 
 <Note>
-  当前唯一公开档位是 `veo3_fast` 和 `720p`。时长可选 `4`、`6`、`8` 秒。参考图视频必须使用 `16:9` 和 8 秒。保存 `data.task_id` 后查询 `/api/v1/task/status`。
+  当前公开 `veo3_fast` 与 `veo3_lite`，分辨率可选 `720p`、`1080p`、`4k`。档位与分辨率决定每个视频的固定扣费，`4`、`6`、`8` 秒价格相同；参考图视频必须使用 8 秒。保存 `data.task_id` 后查询 `/api/v1/task/status`。
 </Note>

@@ -203,10 +203,12 @@
 
 ### `veo3` — Public — P0
 
-后端合同：`prompt`、`type` 必填；type 为 T2V/I2V/reference；duration 4/6/8 默认 8；resolution 仅 720p；model 仅 `veo3_fast`；按 120 × duration 计费。
+后端合同：`prompt`、`type` 必填；type 为 T2V/I2V/reference；duration 4/6/8 默认 8；
+resolution 为 720p/1080p/4k；model 为 `veo3_fast`/`veo3_lite`。按 model + resolution
+固定每视频计费：Fast 360/390/1080，Lite 180/210/900；时长不乘算。
 
 - [ ] model、endpoint、OpenAPI 统一 `type` 必填；删除旧 `generation_type`。
-- [ ] 删除请求枚举 `veo3`、`veo3.1_fast`，仅保留 `veo3_fast`。
+- [ ] 删除请求枚举 `veo3`、`veo3.1_fast`，保留 `veo3_fast` 与 `veo3_lite`。
 - [ ] 补 duration、resolution、三种 type 的 image 数量与 reference 条件约束。
 - [ ] 静态 pricing 页删除重复的 “Veo 3 fast / Veo 3.1 fast” 两行，按唯一 `veo3` key 披露。
 - [ ] `enable_translation=true` 当前不是网关默认；后端固化或改写文档。
@@ -299,7 +301,7 @@
   "data": {
     "task_id": "UUID",
     "model_key": "veo3",
-    "credits_deducted": 960
+    "credits_deducted": 360
   },
   "request_id": "..."
 }

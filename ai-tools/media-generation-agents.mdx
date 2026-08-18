@@ -109,7 +109,7 @@ The schemas above are the recommended general-purpose presets. Machine-readable 
 | Image editing | Use `gpt-image-2` with 1–10 public URLs in `image_urls`. |
 | Text-to-video | Set `type` to `text-to-video` and omit `image_urls`. |
 | First/last-frame video | Use two images only when that model Schema explicitly allows it—currently Veo image-to-video and Seedance 1.5 Pro. Runway, Kling, and Seedance Pro Fast accept exactly one image. |
-| Veo reference video | Set `type` to `reference-to-video`, use 1–3 images, `16:9`, and 8 seconds. |
+| Veo reference video | Set `type` to `reference-to-video`, use 1–3 images and 8 seconds; Fast/Lite support 16:9 or 9:16. |
 | Unknown model | Open its API reference and construct a new payload; never mix fields from another model. |
 
 ### Image payload

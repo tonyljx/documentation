@@ -19,7 +19,7 @@
     "/api/v1/task/submit/veo3": {
       "post": {
         "operationId": "submitVeo3Task",
-        "summary": "Submit Veo 3.1 Fast task",
+        "summary": "Submit Veo 3.1 task",
         "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
         "tags": [
           "Video generation"
@@ -39,8 +39,9 @@
               "example": {
                 "prompt": "A paper boat in a neon canal",
                 "type": "text-to-video",
-                "duration": 6,
-                "model": "veo3_fast"
+                "duration": 8,
+                "model": "veo3_lite",
+                "resolution": "720p"
               }
             }
           }
@@ -3259,7 +3260,7 @@
           "prompt",
           "type"
         ],
-        "description": "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images, duration 8, and aspect_ratio 16:9.",
+        "description": "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images and duration 8.",
         "properties": {
           "prompt": {
             "type": "string",
@@ -3295,7 +3296,9 @@
           "resolution": {
             "type": "string",
             "enum": [
-              "720p"
+              "720p",
+              "1080p",
+              "4k"
             ],
             "default": "720p"
           },
@@ -3312,7 +3315,8 @@
           "model": {
             "type": "string",
             "enum": [
-              "veo3_fast"
+              "veo3_fast",
+              "veo3_lite"
             ],
             "default": "veo3_fast"
           },
@@ -3402,13 +3406,6 @@
                       8
                     ],
                     "default": 8
-                  },
-                  "aspect_ratio": {
-                    "type": "string",
-                    "enum": [
-                      "16:9"
-                    ],
-                    "default": "16:9"
                   }
                 }
               }

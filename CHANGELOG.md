@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-08-18
+
+### Added
+
+- Added `veo3_lite` to the existing Veo 3.1 submit API, including 720p, 1080p, and 4K request schemas, examples, bilingual guides, and agent-safe JSON Schema/OpenAPI entrypoints.
+- Documented profitable fixed per-video customer pricing based on Kie's current costs: Lite 180/210/900 credits and Fast 360/390/1080 credits for 720p/1080p/4K.
+
+### Changed
+
+- Corrected Veo billing from the stale per-second presentation to the backend's model-and-resolution fixed request tiers; 4/6/8-second duration no longer multiplies the displayed charge.
+- Updated reference-to-video guidance for current Fast/Lite support while retaining the 8-second validation rule and Wizzx task polling lifecycle.
+
 ## 2026-08-17
 
 ### Added

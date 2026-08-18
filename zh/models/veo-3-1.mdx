@@ -9,7 +9,7 @@ description: "统一字段的 Veo 3.1 文/图/参考图生视频提交与查询�
 - 品牌：Wizzx（第三方 API 聚合），统一使用 `Authorization: Bearer <your_api_key>`.
 - 提交生成：`POST /api/v1/task/submit/veo3`，异步返回 `task_id`。
 - 轮询状态：`POST /api/v1/task/status`，传入 `task_id` 获取结果或错误。
-- 默认模型 `veo3_fast`，16:9 画幅；支持文本驱动、首帧/首尾帧和参考图模式。
+- 默认模型 `veo3_fast`、分辨率 `720p`、16:9 画幅；也可选择成本更低的 `veo3_lite`。
 
 ### 认证
 
@@ -38,8 +38,8 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 | --- | --- | --- | --- |
 | `image_urls` | []string | - | 1-3 张图片（规则见下） |
 | `duration` | int | `8` | `4` / `6` / `8` 秒 |
-| `resolution` | string | `720p` | 当前只公开 `720p` |
-| `model` | string | `veo3_fast` | 当前只公开 `veo3_fast` |
+| `resolution` | string | `720p` | `720p` / `1080p` / `4k` |
+| `model` | string | `veo3_fast` | `veo3_fast` / `veo3_lite` |
 | `aspect_ratio` | string | 16:9 | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999，可复现 |
 | `enable_translation` | bool | - | 可选的上游翻译提示 |
@@ -51,10 +51,10 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 |------|------|-----------------|
 | `text-to-video` | 纯文本生成视频 | 不传 `image_urls` |
 | `image-to-video` | 首帧/首尾帧生成 | 1-2 张图（1 张=首帧，2 张=首尾帧） |
-| `reference-to-video` | 参考图生成 | 1-3 张参考图，需 16:9 + `model=veo3_fast` |
+| `reference-to-video` | 参考图生成 | 1-3 张参考图；Fast/Lite 均支持；时长必须为 8 秒 |
 
 <Warning>
-  `type` 始终必填。`reference-to-video` 必须使用 `veo3_fast`、`aspect_ratio=16:9` 和 `duration=8`。
+  `type` 始终必填。`reference-to-video` 必须使用 `duration=8`。
 </Warning>
 
 #### 请求示例（Text2Video）
@@ -67,7 +67,8 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
     "prompt": "A dog running through a neon city at night",
     "type": "text-to-video",
     "aspect_ratio": "16:9",
-    "model": "veo3_fast",
+    "model": "veo3_lite",
+    "resolution": "720p",
     "seeds": 12345
   }'
 ```
@@ -103,8 +104,10 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
       "https://example.com/ref2.jpg",
       "https://example.com/ref3.jpg"
     ],
-    "model": "veo3_fast",
-    "aspect_ratio": "16:9",
+    "model": "veo3_lite",
+    "resolution": "1080p",
+    "aspect_ratio": "9:16",
+    "duration": 8,
     "enable_translation": true
   }'
 ```
@@ -118,7 +121,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
   "data": {
     "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
     "model_key": "veo3",
-    "credits_deducted": 720
+    "credits_deducted": 210
   },
   "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
 }
@@ -149,7 +152,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
       "https://cdn.example.com/video.mp4"
     ],
     "error": "",
-    "credits_deducted": 720
+    "credits_deducted": 210
   },
   "request_id": "499347b1-ff99-4ba2-a977-ad655431919d"
 }
@@ -159,11 +162,16 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 
 ### 计费
 
-| 模型 | 分辨率 | 积分 |
-|------|--------|------|
-| veo3_fast | 720p | 120 积分/秒 |
+Veo 3.1 由 `model` 与 `resolution` 选择每个视频的固定扣费；4、6、8 秒价格相同。
+
+| 模型 | 720p | 1080p | 4K |
+|------|------|-------|----|
+| `veo3_fast` | 360 | 390 | 1080 |
+| `veo3_lite` | 180 | 210 | 900 |
 
 提交前通过 `/pricing` 获取当前档位。
+
+Kie 2026-08-18 公开的 Lite 720p/1080p/4K 成本为 $0.15/$0.175/$0.75。Wizzx 在此基础上应用成本加成，按 `1000 积分 = 1 美元` 得到 180/210/900 积分售价。
 
 ### 常见问题
 
@@ -172,3 +180,10 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 - **如何复现结果？** 传 `seeds`（10000-99999）。
 - **非英文提示词会怎样？** 如需上游翻译，应显式传入 `enable_translation=true`。
 - **image-to-video 下 1 张 vs 2 张图？** 1 张作为首帧参考，2 张为首帧+尾帧，系统生成过渡。
+- **时长会乘算 Veo 积分吗？** 不会。Kie 当前生成档位按每个视频固定计费，模型档位与分辨率决定扣费。
+
+### 资料来源
+
+- [Kie Veo 3.1 生成接口](https://docs.kie.ai/cn/veo3-api/generate-veo-3-video)
+- [Kie Veo 3.1 任务详情](https://docs.kie.ai/cn/veo3-api/get-veo-3-video-details)
+- [Kie 价格](https://kie.ai/pricing)

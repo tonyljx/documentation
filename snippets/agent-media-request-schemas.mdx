@@ -71,7 +71,7 @@
     },
     "resolution": {
       "type": "string",
-      "const": "720p",
+      "enum": ["720p", "1080p", "4k"],
       "default": "720p"
     },
     "aspect_ratio": {
@@ -81,7 +81,7 @@
     },
     "model": {
       "type": "string",
-      "const": "veo3_fast",
+      "enum": ["veo3_fast", "veo3_lite"],
       "default": "veo3_fast"
     },
     "seeds": {
@@ -125,8 +125,7 @@
       "then": {
         "required": ["image_urls"],
         "properties": {
-          "duration": {"const": 8},
-          "aspect_ratio": {"const": "16:9"}
+          "duration": {"const": 8}
         }
       }
     }

@@ -485,7 +485,7 @@ Object.assign(api.components.schemas, {
     additionalProperties: false,
     required: ["prompt", "type"],
     description:
-      "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images, duration 8, and aspect_ratio 16:9.",
+      "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images and duration 8.",
     properties: {
       prompt: { type: "string", minLength: 1 },
       type: enumString([
@@ -495,11 +495,13 @@ Object.assign(api.components.schemas, {
       ]),
       image_urls: publicUrls(3),
       duration: { type: "integer", enum: [4, 6, 8], default: 8 },
-      resolution: enumString(["720p"], { default: "720p" }),
+      resolution: enumString(["720p", "1080p", "4k"], { default: "720p" }),
       aspect_ratio: enumString(["16:9", "9:16", "Auto", "auto"], {
         default: "16:9",
       }),
-      model: enumString(["veo3_fast"], { default: "veo3_fast" }),
+      model: enumString(["veo3_fast", "veo3_lite"], {
+        default: "veo3_fast",
+      }),
       seeds: { type: "integer", minimum: 10000, maximum: 99999 },
       enable_translation: { type: "boolean" },
       watermark: { type: "string", maxLength: 128 },
@@ -527,7 +529,6 @@ Object.assign(api.components.schemas, {
               type: enumString(["reference-to-video"]),
               image_urls: publicUrls(3, 1),
               duration: { type: "integer", enum: [8], default: 8 },
-              aspect_ratio: enumString(["16:9"], { default: "16:9" }),
             },
           },
         ],

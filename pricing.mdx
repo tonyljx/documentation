@@ -34,7 +34,7 @@ Wizzx uses a credit-based pricing system:
 
 ## Video Generation
 
-Video models are priced per second of generated video.
+Video billing depends on the model. Veo 3.1 is fixed per generated video; other listed video models may bill per second or per request.
 
 <Warning>
   Current gateway limitation: Seedance Pro Fast reaches its 480p default only when `resolution` is omitted; Seedance 1.5 Pro currently accepts explicit 720p only. The 480p catalog tiers remain listed for pricing transparency while the backend binding is being corrected.
@@ -42,9 +42,12 @@ Video models are priced per second of generated video.
 
 ### Veo
 
-| Model | Credits/second | Supported parameters |
-|-------|----------------|----------------------|
-| **Veo 3.1 Fast** | 120 | `veo3_fast`, `720p`, 4/6/8 seconds |
+| Model | 720p | 1080p | 4K | Unit |
+|-------|------|-------|----|------|
+| **Veo 3.1 Fast** | 360 | 390 | 1080 | per video |
+| **Veo 3.1 Lite** | 180 | 210 | 900 | per video |
+
+All Veo rows support 4, 6, or 8 seconds at the same fixed price. The values apply Wizzx's cost-plus customer pricing to Kie's 2026-08-18 USD costs at `1000 credits = $1`; check `GET /pricing` before submission.
 
 ### Seedance Pro Fast
 

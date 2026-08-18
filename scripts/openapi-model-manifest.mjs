@@ -72,14 +72,15 @@ export const publicModels = [
   },
   {
     modelKey: "veo3",
-    title: "Veo 3.1 Fast",
+    title: "Veo 3.1",
     tag: "Video generation",
     schema: "Veo3SubmitRequest",
     example: {
       prompt: "A paper boat in a neon canal",
       type: "text-to-video",
-      duration: 6,
-      model: "veo3_fast",
+      duration: 8,
+      model: "veo3_lite",
+      resolution: "720p",
     },
   },
   {
