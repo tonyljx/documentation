@@ -119,20 +119,13 @@ export const publicModels = [
       model_name: "kling-v2-1-master",
     },
   },
-  {
-    modelKey: "eleven-labs-tts-v2",
-    title: "ElevenLabs TTS Multilingual V2",
-    tag: "Audio generation",
-    schema: "ElevenLabsTTSRequest",
-    example: { text: "Welcome to Wizzx.", voice: "Rachel" },
-  },
-  {
-    modelKey: "eleven-labs-tts-turbo-25",
-    title: "ElevenLabs TTS Turbo 2.5",
-    tag: "Audio generation",
-    schema: "ElevenLabsTTSRequest",
-    example: { text: "Welcome to Wizzx.", voice: "Rachel" },
-  },
+];
+
+// Explicitly retired public models are removed from an existing generated spec.
+// Keep them here until every checked-in OpenAPI source has stopped publishing them.
+export const retiredModelKeys = [
+  "eleven-labs-tts-v2",
+  "eleven-labs-tts-turbo-25",
 ];
 
 // Compatibility-only paths that are intentionally retained in the public spec.

@@ -1,6 +1,10 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { legacyModelKeys, publicModels } from "./openapi-model-manifest.mjs";
+import {
+  legacyModelKeys,
+  publicModels,
+  retiredModelKeys,
+} from "./openapi-model-manifest.mjs";
 
 const openapiPath = fileURLToPath(
   new URL("../api-reference/openapi.json", import.meta.url),
@@ -89,29 +93,6 @@ const seedanceRatios = [
   "9:16",
   "21:9",
   "adaptive",
-];
-const elevenLabsVoices = [
-  "Rachel",
-  "Aria",
-  "Roger",
-  "Sarah",
-  "Laura",
-  "Charlie",
-  "George",
-  "Callum",
-  "River",
-  "Liam",
-  "Charlotte",
-  "Alice",
-  "Matilda",
-  "Will",
-  "Jessica",
-  "Eric",
-  "Chris",
-  "Brian",
-  "Daniel",
-  "Lily",
-  "Bill",
 ];
 
 api.info = {
@@ -853,33 +834,6 @@ Object.assign(api.components.schemas, {
       },
     ],
   },
-  ElevenLabsTTSRequest: {
-    type: "object",
-    additionalProperties: false,
-    required: ["text"],
-    properties: {
-      text: {
-        type: "string",
-        minLength: 1,
-        maxLength: 5000,
-        description: "Billed by Unicode code point, rounded up per 1000.",
-      },
-      voice: enumString(elevenLabsVoices, { default: "Rachel" }),
-      stability: { type: "number", minimum: 0, maximum: 1 },
-      similarity_boost: { type: "number", minimum: 0, maximum: 1 },
-      style: { type: "number", minimum: 0, maximum: 1 },
-      speed: { type: "number", minimum: 0.7, maximum: 1.2 },
-      timestamps: { type: "boolean" },
-      previous_text: { type: "string", maxLength: 5000 },
-      next_text: { type: "string", maxLength: 5000 },
-      language_code: {
-        type: "string",
-        maxLength: 500,
-        description:
-          "Provider language hint. The gateway does not currently validate ISO 639-1 membership.",
-      },
-    },
-  },
 });
 
 const errorResponse = (description) => ({
@@ -939,6 +893,9 @@ const submitOperation = ({ modelKey, title, tag, schema, example }) => ({
 });
 
 api.paths ??= {};
+for (const modelKey of retiredModelKeys) {
+  delete api.paths[`/api/v1/task/submit/${modelKey}`];
+}
 for (const model of publicModels) {
   api.paths[`/api/v1/task/submit/${model.modelKey}`] = submitOperation(model);
 }
@@ -1035,7 +992,8 @@ for (const path of legacySubmitPaths) {
   operation.responses = submitResponses;
 }
 
-const obsoleteResponseSchemas = [
+const obsoleteSchemas = [
+  "ElevenLabsTTSRequest",
   "ElevenLabsTTSResponse",
   "ElevenLabsTTSTurboResponse",
   "Flux2SubmitResponse",
@@ -1053,7 +1011,7 @@ const obsoleteResponseSchemas = [
   "Wan26SubmitResponse",
   "CreditPricing",
 ];
-for (const schemaName of obsoleteResponseSchemas) {
+for (const schemaName of obsoleteSchemas) {
   delete api.components.schemas[schemaName];
 }
 

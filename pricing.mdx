@@ -10,7 +10,7 @@ Wizzx uses a credit-based pricing system:
 - An accepted submission reserves credits. Successful tasks confirm the charge; failed tasks are refunded; `REVIEW_REQUIRED` tasks remain reserved for reconciliation.
 
 <Note>
-  `GET /pricing` is the current source of truth. The tables below summarize the backend catalog and can change when model costs change.
+  `GET /pricing` is the source of truth for the rates of models documented here. Compatibility-only backend keys may be intentionally omitted from the public catalog below.
 </Note>
 
 ## Image Generation
@@ -126,43 +126,6 @@ Fixed price per request.
 **Example costs (Kling 1.6/2.1):**
 - 5s video, std mode: 46 × 5 = 230 credits ($0.23)
 - 10s video, pro mode: 92 × 10 = 920 credits ($0.92)
-
-## Audio Generation
-
-Audio models are priced per 1000 Unicode code points.
-
-### ElevenLabs TTS V2
-
-High-quality multilingual text-to-speech.
-
-| Characters | Credits | USD |
-|------------|---------|-----|
-| 1-1000 | 80 | $0.08 |
-| 1001-2000 | 160 | $0.16 |
-| 2001-3000 | 240 | $0.24 |
-| 3001-4000 | 320 | $0.32 |
-| 4001-5000 | 400 | $0.40 |
-
-**Formula:** `ceil(Unicode code points / 1000) × 80 credits`
-
-### ElevenLabs TTS Turbo 2.5
-
-**50% cheaper** than V2, optimized for low-latency scenarios.
-
-| Characters | Credits | USD |
-|------------|---------|-----|
-| 1-1000 | 40 | $0.04 |
-| 1001-2000 | 80 | $0.08 |
-| 2001-3000 | 120 | $0.12 |
-| 3001-4000 | 160 | $0.16 |
-| 4001-5000 | 200 | $0.20 |
-
-**Formula:** `ceil(Unicode code points / 1000) × 40 credits`
-
-**Examples:**
-- 500 characters: V2 = 80 credits, Turbo = 40 credits
-- 1500 characters: V2 = 160 credits, Turbo = 80 credits
-- 3500 characters: V2 = 320 credits, Turbo = 160 credits
 
 ## Cost Calculator
 

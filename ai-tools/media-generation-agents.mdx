@@ -88,7 +88,7 @@ Do not automatically retry a submit request after a network timeout or ambiguous
 Use `gpt-image-2` as the general image preset and `veo3` as the general video preset only while each key appears in `/pricing`. If the user names another model, read that model's API reference and do not reuse a preset schema.
 
 <Note>
-  `/pricing` is the source for current availability and credit tiers. Do not keep a price copied from an old agent conversation.
+  Use `/pricing` for current credit tiers, then restrict selection to models published in these docs. Compatibility-only backend keys are not public choices. Do not keep a price copied from an old agent conversation.
 </Note>
 
 ## Request schemas
@@ -97,7 +97,7 @@ These strict schemas prevent the agent from inventing fields. Omit optional fiel
 
 <AgentMediaRequestSchemas />
 
-The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every model currently returned by `/pricing` are available in the API reference, including Runway Gen-3, both Seedance models, Kling AI, Seedream 4/4.5, all public Nano Banana variants, GPT Image 2, and both ElevenLabs TTS variants.
+The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every publicly documented model are available in the API reference, including Runway Gen-3, both Seedance models, Kling AI, Seedream 4/4.5, all public Nano Banana variants, and GPT Image 2.
 
 ### Parameter construction rules
 

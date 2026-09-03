@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-04
+
+### Changed
+
+- Removed the two retired ElevenLabs TTS models from the bilingual public catalog, pricing, navigation, model and endpoint pages, agent guidance, and generated OpenAPI documentation while leaving dated history intact.
+- Added cross-repository model-offboarding rules so future backend availability changes include a complete public-documentation audit.
+
 ## 2026-08-18
 
 ### Added

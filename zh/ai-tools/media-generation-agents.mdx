@@ -88,7 +88,7 @@ export WIZZX_API_KEY
 只有当模型仍出现在 `/pricing` 时，才将 `gpt-image-2` 作为通用图片预设、`veo3` 作为通用视频预设。如果用户指定其他模型，必须阅读该模型的 API 参考，不能复用预设 Schema。
 
 <Note>
-  `/pricing` 是当前模型可用性和积分档位的依据。不要沿用旧对话里复制下来的价格。
+  使用 `/pricing` 获取当前积分档位，再将可选范围限制为本文档公开的模型。仅为兼容保留的后端 Key 不是公开选项。不要沿用旧对话里复制下来的价格。
 </Note>
 
 ## 请求 Schema
@@ -97,7 +97,7 @@ export WIZZX_API_KEY
 
 <AgentMediaRequestSchemas />
 
-上面两份 Schema 是推荐的通用预设。API 参考已经为 `/pricing` 当前返回的全部模型提供机器可读请求 Schema，包括 Runway Gen-3、两款 Seedance、Kling AI、Seedream 4/4.5、全部公开 Nano Banana 版本、GPT Image 2 和两款 ElevenLabs TTS。
+上面两份 Schema 是推荐的通用预设。API 参考已经为全部公开文档模型提供机器可读请求 Schema，包括 Runway Gen-3、两款 Seedance、Kling AI、Seedream 4/4.5、全部公开 Nano Banana 版本和 GPT Image 2。
 
 ### 参数构造规则
 

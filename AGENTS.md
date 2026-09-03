@@ -4,6 +4,13 @@
 
 - Every time you add a new page, run `mint broken-links` to check out broken links and fix
 
+## Model Lifecycle Sync (Required)
+
+- A model removal, disablement, or public-catalog hide in `/Users/tony/backend/gin-ai-api` must include a documentation audit in this repository. A retained backend adapter or submit route may exist for compatibility and does not by itself make the model public.
+- Update every current public surface that applies: English and Chinese model pages, endpoint pages, `docs.json` navigation, home/catalog cards, pricing, agent guides, OpenAPI manifests/generators, and the generated `api-reference/openapi.json` artifact.
+- Search for every retired model key and display name after editing. Remove stale current-state claims, but preserve dated changelog and audit history; annotate historical references only when their context is ambiguous.
+- Run the OpenAPI and agent-document checks plus `mint broken-links`. Confirm retired keys are absent from current public surfaces before handing off the change.
+
 ## Project Structure & Module Organization
 
 - Root config lives in `docs.json`; keep navigation, theme colors (`primary` orange palette), and branding (`logo/`, `favicon.svg`) in sync with page additions.

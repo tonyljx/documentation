@@ -198,8 +198,6 @@ const publicModelPages = [
   "seedance-pro-fast.mdx",
   "seedance-1.5-pro.mdx",
   "kling-ai.mdx",
-  "eleven-labs-tts-v2.mdx",
-  "eleven-labs-tts-turbo-25.mdx",
 ];
 for (const localePrefix of ["models", "zh/models"]) {
   for (const filename of publicModelPages) {
