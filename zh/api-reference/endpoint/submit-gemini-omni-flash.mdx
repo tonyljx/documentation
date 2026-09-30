@@ -1,0 +1,24 @@
+---
+title: "提交 Gemini Omni Flash 任务"
+description: "POST Gemini Omni Flash 文生、首帧或参考图视频任务"
+openapi: "POST /api/v1/task/submit/gemini-omni-flash"
+---
+
+## 提交任务
+
+`prompt` 必填。文生视频省略 `image_urls`；首帧图生视频恰好传 1 个公网 HTTP(S) 图片；参考图生视频传 1 或 3 张图片。省略 `type` 时按图片数量推断（1 张 → 图生视频，3 张 → 参考图生视频）。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/gemini-omni-flash \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "黄昏时分，一盏纸灯笼漂过安静的河面",
+    "aspect_ratio": "16:9",
+    "resolution": "720p",
+    "duration": 6
+  }'
+```
+
+网关按视频固定计费：720p 与 1080p 在 4 / 6 / 8 / 10 秒时分别为 481 / 577 / 674 / 770 积分，4k 为 1,443 / 1,539 / 1,635 / 1,731 积分。具体积分以 `/pricing` 为准。

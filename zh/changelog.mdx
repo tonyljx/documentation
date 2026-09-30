@@ -4,6 +4,49 @@ description: "产品更新与新模型发布"
 rss: true
 ---
 
+<Update label="2026年9月30日">
+
+### 新模型：GPT Image 2.5
+
+**GPT Image 2.5（OpenAI）**
+- 同一个 model key `gpt-image-2.5` 同时支持文生图与图生图编辑
+- `version`：`flare`（默认，更快）或 `sunburst`（编辑更精细，适合产品图、广告素材与多轮编辑），同价
+- 最多 16 张参考图，支持 HTTP(S) URL 或 base64 data URI（JPEG、PNG、WebP）；参考图不另收费
+- 11 种宽高比（含 `auto`），支持 1K / 2K / 4K 输出
+- 每次请求生成 1 张
+- 计费：1K = 13、2K = 21、4K = 32 积分/张
+
+### 更多新模型
+
+**视频**
+- **Kling v3**（`kling-v3`，快手可灵）：文生视频与首尾帧图生视频，720p/1080p，3–15 秒，可选原生音频。无声 130/173 积分/秒，有声 194/259 积分/秒（720p/1080p）
+- **Kling v3 Omni**（`kling-v3-omni`，快手可灵）：新增参考图生视频，最多 7 张图，在提示词中用 `<<<image_N>>>` 引用。无声 130/173 积分/秒，有声 173/216 积分/秒；参考图免费
+- **Seedance 2.0 Mini**（`seedance-2.0-mini`，字节跳动）：文生视频与首尾帧图生视频，480p/720p，4–15 秒，默认生成音频且不额外收费。21/44 积分/秒
+- **PixVerse V6**（`pixverse-v6`，PixVerse）：文生、图生、首尾帧过渡与 1–7 张参考图模式，360p–1080p，1–15 秒。无声 31/47/62/124 积分/秒，有声 47/62/77/154 积分/秒。图生视频跟随输入图片比例，传 `aspect_ratio` 会被拒绝
+- **Grok Imagine Video 1.5**（`grok-imagine-video-1.5`，xAI）：文生视频或 1–7 张参考图的图生视频，480p/720p，6–15 秒。20/37 积分/秒
+- **Gemini Omni Flash**（`gemini-omni-flash`，Google）：文生、首帧图生与 1 张或 3 张参考图模式，720p/1080p/4K，4/6/8/10 秒。按视频固定计费：720p 与 1080p 为 481/577/674/770 积分，4K 为 1,443/1,539/1,635/1,731 积分
+- **Wan 2.6 Flash**（`wan-2.6-flash`，阿里巴巴）：以一张首帧生成无声视频，720p/1080p，2–15 秒。33/54 积分/秒
+
+**图像**
+- **Qwen Image 2.0**（`qwen-image-2.0`）与 **Qwen Image 2.0 Pro**（`qwen-image-2.0-pro`，阿里巴巴）：文生图与编辑，最多 3 张参考图，7 种宽高比，1K/2K 同价。每张 31 与 74 积分
+- **Seedream 5.0 Pro**（`seedream-5-pro`，字节跳动）：文生图与单参考图编辑，10 种宽高比加 `auto`，1K/1.5K/2K，JPEG 或 PNG，每个请求一张图。1K/1.5K 每张 44 积分，2K 每张 89 积分
+
+**音乐**
+- **Suno**（`suno`）：Suno V6 歌曲与纯音乐，支持灵感模式与自定义（歌词）模式，版本 `v6`、`v6-wild`、`v6-mini`。每次请求通常在 `result_urls` 中返回两首。每次请求 60 积分，开启 `max_mode` 为 120 积分
+
+### Veo 3.1 Quality
+
+- `veo3` 新增 `model: "veo3_quality"`，720p、1080p、4K 分别为每个视频 1,924 / 1,924 / 2,885 积分。
+- Quality 支持 6 或 8 秒，不支持 `reference-to-video`。Fast 与 Lite 不变。
+
+### Runway Gen-3 已下线
+
+- `runway-gen3` 不再接受新任务。提交会返回 HTTP 503，错误码为 `model_unavailable`；该模型也不再出现在 `GET /pricing` 中。
+- 下线前已受理的任务会照常完成并结算，仍可通过 `POST /api/v1/task/status` 查询。
+- 新的视频任务请选择 `GET /pricing` 中列出的模型，例如 Veo 3.1、Kling AI 或 Seedance。
+
+</Update>
+
 <Update label="2026年8月18日">
 
 ### Veo 3.1 Lite 与固定每视频计价
@@ -197,7 +240,7 @@ rss: true
 - 计费：10-40 积分（根据质量模式和时长）
 
 **Seedance Pro Fast**
-- 字节跳动 Ark API 驱动的快速视频生成
+- 基于字节跳动 Seedance 的快速视频生成
 - 文生视频和图生视频模式
 - 分辨率选项：480p、720p、1080p
 - 视频时长：5秒或10秒

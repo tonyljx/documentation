@@ -1,0 +1,28 @@
+---
+title: "Submit Kling v3 Omni task"
+description: "POST a Kling v3 Omni text, first/last-frame, or multi-reference video task"
+openapi: "POST /api/v1/task/submit/kling-v3-omni"
+---
+
+## Submit task
+
+`prompt` and `type` are required. `image-to-video` takes 1–2 public HTTP(S) image URLs (first, last frame); `reference-to-video` takes 1–7 reference images that the prompt can cite as `<<<image_1>>>` … `<<<image_N>>>`; `text-to-video` must omit `image_urls`.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/kling-v3-omni \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "The character in <<<image_1>>> walks into the scene in <<<image_2>>>",
+    "type": "reference-to-video",
+    "image_urls": [
+      "https://example.com/character.jpg",
+      "https://example.com/scene.jpg"
+    ],
+    "resolution": "720p",
+    "duration": 5
+  }'
+```
+
+The gateway charges per second: 720p = 130 (173 with audio), 1080p = 173 (216 with audio) credits. Reference images are not billed. Read `/pricing` for the current amount.

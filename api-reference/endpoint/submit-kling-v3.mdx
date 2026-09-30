@@ -1,0 +1,25 @@
+---
+title: "Submit Kling v3 task"
+description: "POST a Kling v3 text-to-video or first/last-frame image-to-video task"
+openapi: "POST /api/v1/task/submit/kling-v3"
+---
+
+## Submit task
+
+`prompt` and `type` are required. `image-to-video` takes 1 public HTTP(S) image URL (first frame) or 2 (first and last frame); `text-to-video` must omit `image_urls`. `resolution` is `720p` (default) or `1080p`, and `duration` is 3–15 seconds (default 5).
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/kling-v3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "Neon lights reflected on a wet Tokyo crossing at night",
+    "type": "text-to-video",
+    "resolution": "1080p",
+    "duration": 5,
+    "aspect_ratio": "16:9"
+  }'
+```
+
+The gateway charges per second: 720p = 130 (194 with audio), 1080p = 173 (259 with audio) credits. Read `/pricing` for the current amount.

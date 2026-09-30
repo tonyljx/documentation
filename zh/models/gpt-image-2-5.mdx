@@ -1,0 +1,52 @@
+---
+title: "GPT Image 2.5"
+description: "使用 GPT Image 2.5 以 1K、2K 或 4K 生成或编辑一张图片"
+icon: "image"
+---
+
+## GPT Image 2.5
+
+GPT Image 2.5 使用同一个 model key 处理图片生成和编辑。文生图时省略 `image_urls`；图生图编辑时最多传入 16 张参考图。
+
+按任务选择 `version`，两个版本价格相同：
+
+- `flare`（默认）：出图更快，适合日常生成。
+- `sunburst`：编辑更精细，适合产品图、广告素材与多轮编辑。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空 UTF-8 文本，网关最多 20,000 bytes |
+| `version` | 否 | `flare`（默认）或 `sunburst` |
+| `image_urls` | 否 | 1–16 个 HTTP(S) URL 或 base64 data URI（`data:image/jpeg`、`data:image/png`、`data:image/webp`），仅支持 JPEG、PNG、WebP |
+| `aspect_ratio` | 否 | `auto`（默认）、`1:1`、`16:9`、`9:16`、`4:3`、`3:4`、`3:2`、`2:3`、`5:4`、`4:5`、`21:9` |
+| `resolution` | 否 | `1K`（默认）、`2K`、`4K`（不区分大小写） |
+
+GPT Image 2.5 不接受 `quality`、`output_format`、`n` 或 `background`。
+
+```json
+{
+  "prompt": "湿润黑色石面上的玻璃香水瓶产品图，柔和轮廓光",
+  "version": "sunburst",
+  "image_urls": ["https://example.com/bottle.png"],
+  "aspect_ratio": "4:5",
+  "resolution": "2K"
+}
+```
+
+提交到 `POST /api/v1/task/submit/gpt-image-2.5`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+| 分辨率 | 每张积分 |
+| --- | --- |
+| 1K | 13 |
+| 2K | 21 |
+| 4K | 32 |
+
+<Note>
+  每个请求生成一张图片。`version`、`aspect_ratio` 与参考图不影响价格。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [GPT Image 2.5 API 参考](/zh/api-reference/endpoint/submit-gpt-image-2-5)。

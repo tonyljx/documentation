@@ -1,0 +1,63 @@
+---
+title: "Gemini Omni Flash"
+description: "使用 Gemini Omni Flash 从文本、首帧或参考图生成 4–10 秒、720p / 1080p / 4K 视频"
+icon: "video"
+---
+
+## Gemini Omni Flash
+
+Gemini Omni Flash 是 Google 的 Gemini Omni 1.1 Flash 视频模型。`gemini-omni-flash` 支持文生视频、首帧图生视频和参考图生视频，输出 720p、1080p 或 4K，时长 4、6、8 或 10 秒。它按次计费，而不是按秒计费。
+
+| `type` | `image_urls` |
+| --- | --- |
+| `text-to-video` | 不传 |
+| `image-to-video` | 恰好 1 张，作为首帧 |
+| `reference-to-video` | 1 张或 3 张参考图（不支持 2 张） |
+
+`type` 可省略。省略时按图片数量推断：0 张 → `text-to-video`，1 张 → `image-to-video`，3 张 → `reference-to-video`。如需使用单张参考图，请显式传 `type: "reference-to-video"`。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本；描述场景、主体、动作、镜头与声音 |
+| `type` | 否 | `text-to-video`、`image-to-video` 或 `reference-to-video` |
+| `image_urls` | 图生与参考模式必填 | 公网 HTTP(S) URL，数量取决于 `type`；不支持 base64 |
+| `aspect_ratio` | 否 | `16:9`（默认）或 `9:16` |
+| `resolution` | 否 | `720p`（默认）、`1080p`、`4k`（小写） |
+| `duration` | 否 | `4`、`6`（默认）、`8` 或 `10` 秒 |
+
+每个请求生成一个视频。不提供参考视频。
+
+```json
+{
+  "prompt": "将这些元素组合成一个富有创意的场景，镜头运动流畅",
+  "type": "reference-to-video",
+  "image_urls": [
+    "https://example.com/scene.jpg",
+    "https://example.com/character.jpg",
+    "https://example.com/product.jpg"
+  ],
+  "aspect_ratio": "9:16",
+  "resolution": "1080p",
+  "duration": 10
+}
+```
+
+提交到 `POST /api/v1/task/submit/gemini-omni-flash`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+Gemini Omni Flash 每个视频固定计费，价格由分辨率和时长决定；参考图不另收费。
+
+| 分辨率 | 4 秒 | 6 秒 | 8 秒 | 10 秒 |
+| --- | --- | --- | --- | --- |
+| 720p | 481 | 577 | 674 | 770 |
+| 1080p | 481 | 577 | 674 | 770 |
+| 4k | 1,443 | 1,539 | 1,635 | 1,731 |
+
+<Note>
+  表中为每个视频的积分。默认 6 秒 720p 视频消耗 577 积分。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Gemini Omni Flash API 参考](/zh/api-reference/endpoint/submit-gemini-omni-flash)。

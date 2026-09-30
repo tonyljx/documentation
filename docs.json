@@ -51,7 +51,13 @@
                   "models/kling-ai",
                   "models/seedance-pro-fast",
                   "models/seedance-1.5-pro",
-                  "models/runway-gen3"
+                  "models/kling-v3",
+                  "models/kling-v3-omni",
+                  "models/seedance-2-0-mini",
+                  "models/pixverse-v6",
+                  "models/grok-imagine-video-1-5",
+                  "models/gemini-omni-flash",
+                  "models/wan-2-6-flash"
                 ]
               },
               {
@@ -62,8 +68,15 @@
                   "models/nano-banana",
                   "models/nano-banana-2",
                   "models/nano-banana-2-lite",
-                  "models/gpt-image-2"
+                  "models/gpt-image-2",
+                  "models/gpt-image-2-5",
+                  "models/qwen-image-2",
+                  "models/seedream-5-pro"
                 ]
+              },
+              {
+                "group": "Audio Generation",
+                "pages": ["models/suno"]
               }
             ]
           },
@@ -85,7 +98,13 @@
                   "api-reference/endpoint/submit-kling-ai",
                   "api-reference/endpoint/submit-seedance-pro-fast",
                   "api-reference/endpoint/submit-seedance-1.5-pro",
-                  "api-reference/endpoint/submit-runway-gen3"
+                  "api-reference/endpoint/submit-kling-v3",
+                  "api-reference/endpoint/submit-kling-v3-omni",
+                  "api-reference/endpoint/submit-seedance-2-0-mini",
+                  "api-reference/endpoint/submit-pixverse-v6",
+                  "api-reference/endpoint/submit-grok-imagine-video-1-5",
+                  "api-reference/endpoint/submit-gemini-omni-flash",
+                  "api-reference/endpoint/submit-wan-2-6-flash"
                 ]
               },
               {
@@ -93,12 +112,20 @@
                 "pages": [
                   "api-reference/endpoint/submit-seedream-4",
                   "api-reference/endpoint/submit-seedream-4-5",
+                  "api-reference/endpoint/submit-seedream-5-pro",
                   "api-reference/endpoint/submit-nano-banana-pro",
                   "api-reference/endpoint/submit-nano-banana",
                   "api-reference/endpoint/submit-nano-banana-2",
                   "api-reference/endpoint/submit-nano-banana-2-lite",
-                  "api-reference/endpoint/submit-gpt-image-2"
+                  "api-reference/endpoint/submit-gpt-image-2",
+                  "api-reference/endpoint/submit-gpt-image-2-5",
+                  "api-reference/endpoint/submit-qwen-image-2-0",
+                  "api-reference/endpoint/submit-qwen-image-2-0-pro"
                 ]
+              },
+              {
+                "group": "Audio Generation",
+                "pages": ["api-reference/endpoint/submit-suno"]
               },
               {
                 "group": "Task Management",
@@ -148,7 +175,13 @@
                   "zh/models/kling-ai",
                   "zh/models/seedance-pro-fast",
                   "zh/models/seedance-1.5-pro",
-                  "zh/models/runway-gen3"
+                  "zh/models/kling-v3",
+                  "zh/models/kling-v3-omni",
+                  "zh/models/seedance-2-0-mini",
+                  "zh/models/pixverse-v6",
+                  "zh/models/grok-imagine-video-1-5",
+                  "zh/models/gemini-omni-flash",
+                  "zh/models/wan-2-6-flash"
                 ]
               },
               {
@@ -159,8 +192,15 @@
                   "zh/models/nano-banana",
                   "zh/models/nano-banana-2",
                   "zh/models/nano-banana-2-lite",
-                  "zh/models/gpt-image-2"
+                  "zh/models/gpt-image-2",
+                  "zh/models/gpt-image-2-5",
+                  "zh/models/qwen-image-2",
+                  "zh/models/seedream-5-pro"
                 ]
+              },
+              {
+                "group": "音频生成",
+                "pages": ["zh/models/suno"]
               }
             ]
           },
@@ -182,7 +222,13 @@
                   "zh/api-reference/endpoint/submit-kling-ai",
                   "zh/api-reference/endpoint/submit-seedance-pro-fast",
                   "zh/api-reference/endpoint/submit-seedance-1.5-pro",
-                  "zh/api-reference/endpoint/submit-runway-gen3"
+                  "zh/api-reference/endpoint/submit-kling-v3",
+                  "zh/api-reference/endpoint/submit-kling-v3-omni",
+                  "zh/api-reference/endpoint/submit-seedance-2-0-mini",
+                  "zh/api-reference/endpoint/submit-pixverse-v6",
+                  "zh/api-reference/endpoint/submit-grok-imagine-video-1-5",
+                  "zh/api-reference/endpoint/submit-gemini-omni-flash",
+                  "zh/api-reference/endpoint/submit-wan-2-6-flash"
                 ]
               },
               {
@@ -190,12 +236,20 @@
                 "pages": [
                   "zh/api-reference/endpoint/submit-seedream-4",
                   "zh/api-reference/endpoint/submit-seedream-4-5",
+                  "zh/api-reference/endpoint/submit-seedream-5-pro",
                   "zh/api-reference/endpoint/submit-nano-banana-pro",
                   "zh/api-reference/endpoint/submit-nano-banana",
                   "zh/api-reference/endpoint/submit-nano-banana-2",
                   "zh/api-reference/endpoint/submit-nano-banana-2-lite",
-                  "zh/api-reference/endpoint/submit-gpt-image-2"
+                  "zh/api-reference/endpoint/submit-gpt-image-2",
+                  "zh/api-reference/endpoint/submit-gpt-image-2-5",
+                  "zh/api-reference/endpoint/submit-qwen-image-2-0",
+                  "zh/api-reference/endpoint/submit-qwen-image-2-0-pro"
                 ]
+              },
+              {
+                "group": "音频生成",
+                "pages": ["zh/api-reference/endpoint/submit-suno"]
               },
               {
                 "group": "任务管理",

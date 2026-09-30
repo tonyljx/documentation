@@ -1,0 +1,23 @@
+---
+title: "提交 Qwen Image 2.0 任务"
+description: "POST Qwen Image 2.0 图片生成或编辑任务"
+openapi: "POST /api/v1/task/submit/qwen-image-2.0"
+---
+
+## 提交任务
+
+`prompt` 必填（最多 800 个字符）。图片生成时省略 `image_urls`；图片编辑时传入 1–3 个公网 HTTP(S) URL，不支持 base64。`resolution` 为 `1K`（默认）或 `2K`。每个请求生成一张图片。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/qwen-image-2.0 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "极简海报，粗体衬线字标题 SUMMER SALE",
+    "aspect_ratio": "3:4",
+    "resolution": "2K"
+  }'
+```
+
+网关每张收取 31 积分，1K 与 2K 同价。具体积分以 `/pricing` 为准。

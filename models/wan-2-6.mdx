@@ -8,7 +8,7 @@ description: "Alibaba WAN 2.6 text/image-to-video generation with extended durat
 - **Provider**: Alibaba
 - Submit via `POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`; poll with `task_id` at `POST https://api.wizzx.ai/api/v1/task/status`.
 - Required: `prompt`, `type` (`text-to-video` or `image-to-video`).
-- Optional: `duration` (5/10/15s), `resolution` (720p/1080p), `image_urls` (for image-to-video).
+- Optional: `duration` (5/10/15s), `resolution` (720p only), `image_urls` (for image-to-video).
 - Extended prompt support (up to 5000 characters) and longer video duration (up to 15 seconds).
 
 ## Auth
@@ -31,7 +31,7 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`, `Content-Type:
 | Field | Type | Default | Notes |
 |------|------|---------|------|
 | `duration` | int | 5 | Video length: `5`, `10`, or `15` seconds |
-| `resolution` | string | `1080p` | Resolution: `720p` or `1080p` |
+| `resolution` | string | `720p` | Only `720p`; 1080p is no longer offered |
 | `image_urls` | []string | - | Required for image-to-video mode |
 
 ### Type rules
@@ -73,7 +73,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
     "prompt": "In a hyperrealistic ASMR video, a hand uses a knitted knife to slowly slice a burger made entirely of knitted wool.",
     "type": "text-to-video",
     "duration": 5,
-    "resolution": "1080p"
+    "resolution": "720p"
   }'
 ```
 
@@ -88,7 +88,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
     "type": "image-to-video",
     "image_urls": ["https://example.com/fox.jpg"],
     "duration": 5,
-    "resolution": "1080p"
+    "resolution": "720p"
   }'
 ```
 
@@ -114,7 +114,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
   "data": {
     "task_id": "task_123456789",
     "model_key": "wan-2-6",
-    "credits_deducted": 1100
+    "credits_deducted": 485
   }
 }
 ```
@@ -154,13 +154,13 @@ WAN 2.6 pricing is based on resolution and duration.
 
 | Resolution | Credits/second | 5s video | 10s video | 15s video |
 |------------|----------------|----------|-----------|-----------|
-| **720p** | 80 | 400 credits ($0.40) | 800 credits ($0.80) | 1200 credits ($1.20) |
-| **1080p** | 110 | 550 credits ($0.55) | 1100 credits ($1.10) | 1650 credits ($1.65) |
+| **720p** | 97 | 485 credits ($0.485) | 970 credits ($0.97) | 1455 credits ($1.455) |
 
 **Example calculations:**
-- 5s video at 720p: 80 x 5 = 400 credits
-- 10s video at 1080p: 110 x 10 = 1100 credits
-- 15s video at 1080p: 110 x 15 = 1650 credits
+- 5s video at 720p: 97 x 5 = 485 credits
+- 15s video at 720p: 97 x 15 = 1455 credits
+
+1080p is no longer offered.
 
 ## FAQ
 

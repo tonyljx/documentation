@@ -1,0 +1,54 @@
+---
+title: "Seedream 5.0 Pro"
+description: "Generate or edit one image with ByteDance Seedream 5.0 Pro at 1K, 1.5K, or 2K"
+icon: "image"
+---
+
+## Seedream 5.0 Pro
+
+Seedream 5.0 Pro is ByteDance Seed's multimodal image generation and editing model, built for text-rich layouts, infographics, realistic scenes, and precise regional edits. One model key covers both modes: omit `image_urls` for text-to-image, or provide one reference image for image-to-image editing.
+
+Each request produces one image. Generation is slower than lighter image models, so poll `/api/v1/task/status` with a relaxed interval.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-blank text, maximum 4,000 characters |
+| `image_urls` | No | At most 1 HTTP(S) URL or base64 data URI (`data:image/jpeg`, `data:image/png`, or `data:image/webp`) |
+| `aspect_ratio` | No | `auto` (default), `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `2:1`, `1:2`, `21:9` |
+| `resolution` | No | `1K` (default), `1.5K`, `2K` (case-insensitive) |
+| `output_format` | No | `jpeg` (default) or `png` |
+
+Seedream 5.0 Pro does not accept `n`, `batch_size`, `size`, or `watermark`. Send more than one reference image and the request is rejected with a validation error.
+
+```json
+{
+  "prompt": "Replace the jacket with a red wool coat, keep the pose and lighting",
+  "image_urls": ["https://example.com/person.jpg"],
+  "aspect_ratio": "3:4",
+  "resolution": "1.5K",
+  "output_format": "png"
+}
+```
+
+Submit to `POST /api/v1/task/submit/seedream-5-pro`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+| Resolution | Credits per image |
+| --- | --- |
+| 1K | 44 |
+| 1.5K | 44 |
+| 2K | 89 |
+
+<Note>
+  Each request produces one image. `1.5K` costs the same as `1K`. `aspect_ratio`, `output_format`, and the reference image do not change the price. `/pricing` remains the current source of truth.
+</Note>
+
+### Sources
+
+- [Seedream 5.0 Pro — ByteDance Seed](https://seed.bytedance.com/en/seedream5_0_pro)
+- [Introducing Seedream 5.0 Pro — ByteDance Seed blog](https://seed.bytedance.com/en/blog/beyond-generation-it-understands-design-introducing-seedream-5-0-pro)
+
+See the [Seedream 5.0 Pro API reference](/api-reference/endpoint/submit-seedream-5-pro) for the machine-readable Schema.

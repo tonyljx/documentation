@@ -9,7 +9,7 @@ description: "Unified Veo 3.1 text/image/reference video submission, polling, an
 - Platform: Wizzx gateway; Auth header `Authorization: Bearer <your_api_key>`.
 - Submit: `POST https://api.wizzx.ai/api/v1/task/submit/veo3` → returns `task_id`.
 - Poll: `POST https://api.wizzx.ai/api/v1/task/status` with `task_id`.
-- Default model `veo3_fast`, resolution `720p`, aspect ratio `16:9`; `veo3_lite` is available for lower-cost generation.
+- Default model `veo3_fast`, resolution `720p`, aspect ratio `16:9`; `veo3_lite` is available for lower-cost generation and `veo3_quality` for the highest fidelity.
 
 ### Auth
 
@@ -37,9 +37,9 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/veo3`, `Content-Type: ap
 | Field | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `image_urls` | []string | - | 1-3 images (see rules below) |
-| `duration` | int | `8` | `4` / `6` / `8` seconds |
+| `duration` | int | `8` | `4` / `6` / `8` seconds; `veo3_quality` accepts `6` or `8` only |
 | `resolution` | string | `720p` | `720p` / `1080p` / `4k` |
-| `model` | string | `veo3_fast` | `veo3_fast` / `veo3_lite` |
+| `model` | string | `veo3_fast` | `veo3_fast` / `veo3_lite` / `veo3_quality` |
 | `aspect_ratio` | string | `16:9` | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999 |
 | `enable_translation` | bool | - | Optional provider translation hint |
@@ -51,10 +51,10 @@ Endpoint: `POST https://api.wizzx.ai/api/v1/task/submit/veo3`, `Content-Type: ap
 |------|-------------|--------------------------|
 | `text-to-video` | Pure text to video | Omit `image_urls` |
 | `image-to-video` | First frame / first+last | 1-2 images (1 = first frame, 2 = first+last) |
-| `reference-to-video` | Reference images | 1-3 images; Fast and Lite are supported; duration must be 8 seconds |
+| `reference-to-video` | Reference images | 1-3 images; Fast and Lite only (Quality is rejected); duration must be 8 seconds |
 
 <Warning>
-  `type` is always required. `reference-to-video` requires `duration=8`.
+  `type` is always required. `reference-to-video` requires `duration=8` and `veo3_fast` or `veo3_lite`. `veo3_quality` accepts 6 or 8 seconds only; 4 seconds returns HTTP 422.
 </Warning>
 
 #### Request: Text-to-Video
@@ -87,6 +87,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
       "https://example.com/frame2.jpg"
     ],
     "aspect_ratio": "9:16"
+  }'
+```
+
+#### Request: Text-to-Video with Veo 3.1 Quality
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "A slow dolly shot through a rain-soaked night market",
+    "type": "text-to-video",
+    "model": "veo3_quality",
+    "resolution": "1080p",
+    "duration": 8
   }'
 ```
 
@@ -162,16 +177,17 @@ Client-visible states: `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SU
 
 ### Pricing
 
-Veo 3.1 uses a fixed per-video charge selected by `model` and `resolution`; 4, 6, and 8 seconds cost the same.
+Veo 3.1 uses a fixed per-video charge selected by `model` and `resolution`; duration does not change the price (Fast and Lite: 4, 6, or 8 seconds; Quality: 6 or 8 seconds).
 
 | Model | 720p | 1080p | 4K |
 |-------|------|-------|----|
 | `veo3_fast` | 360 | 390 | 1080 |
 | `veo3_lite` | 180 | 210 | 900 |
+| `veo3_quality` | 1924 | 1924 | 2885 |
 
 Read `/pricing` before submission for the current tier.
 
-Kie's 2026-08-18 public Lite costs are $0.15/$0.175/$0.75 at 720p/1080p/4K. Wizzx applies its cost-plus customer pricing, producing 180/210/900 credits at `1000 credits = $1`.
+Each video is charged a fixed price by model variant and resolution at `1000 credits = $1`.
 
 ### FAQ
 
@@ -180,10 +196,9 @@ Kie's 2026-08-18 public Lite costs are $0.15/$0.175/$0.75 at 720p/1080p/4K. Wizz
 - How to reproduce results? Provide `seeds` (10000-99999).
 - Non-English prompt? Set `enable_translation=true` explicitly if provider translation is wanted.
 - Difference between 1 vs 2 images in image-to-video? One image = first frame; two images = first + last frame with auto transition.
-- Does duration multiply the Veo charge? No. The current Kie generation tiers are fixed per video; model variant and resolution select the charge.
+- Does duration multiply the Veo charge? No. Veo is charged a fixed price per video; model variant and resolution select the charge.
 
 ### Sources
 
-- [Kie Veo 3.1 generation API](https://docs.kie.ai/veo3-api/generate-veo-3-video)
-- [Kie Veo 3.1 task details](https://docs.kie.ai/veo3-api/get-veo-3-video-details)
-- [Kie pricing](https://kie.ai/pricing)
+- [Google DeepMind: Veo](https://deepmind.google/models/veo/)
+

@@ -1,0 +1,89 @@
+---
+title: "Suno"
+description: "使用 Suno V6 根据描述或自有歌词生成歌曲或纯音乐，每个请求通常返回两首"
+icon: "music"
+---
+
+## Suno
+
+Suno V6 是 Suno 的音乐生成模型。使用 `suno` model key，可以根据一段简短描述，或根据你自己的歌词和风格标签，生成完整歌曲或纯音乐。每个请求是一次生成，**通常返回两首**，全部列在 `result_urls` 中。
+
+通过 `custom` 选择模式：
+
+- **灵感模式**（`custom: false`，默认）：`prompt` 为歌曲描述，最多 3,000 个字符。
+- **自定义模式**（`custom: true`）：`prompt` 填写歌词（最多 5,000 个字符），可选 `title`、`style`、`negative_tags`、`max_mode` 与 `duration`。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 视模式而定 | 灵感模式：必填，最多 3,000 个字符。自定义模式：歌词，最多 5,000 个字符；除非 `instrumental` 为 `true`，否则必填 |
+| `custom` | 否 | `false`（默认）或 `true` |
+| `instrumental` | 否 | `false`（默认），传 `true` 生成无人声纯音乐；自定义纯音乐需要 `prompt` 或 `style` |
+| `version` | 否 | `v6`（默认）、`v6-wild` 或 `v6-mini`（不区分大小写），价格相同 |
+| `title` | 否 | 仅自定义模式，最多 80 个字符 |
+| `style` | 否 | 仅自定义模式，风格标签，最多 1,000 个字符 |
+| `negative_tags` | 否 | 仅自定义模式，需要避开的风格，最多 1,000 个字符 |
+| `vocal_gender` | 否 | `Male` 或 `Female`；不能与 `instrumental: true` 同时使用 |
+| `max_mode` | 否 | 仅自定义模式；更高质量，价格翻倍 |
+| `duration` | 否 | 仅自定义模式；目标时长 10–360 秒，实际时长可能不同；不影响价格 |
+
+文本长度按 Unicode 字符计算。在灵感模式下传入仅限自定义模式的字段会返回 HTTP 422。
+
+灵感模式：
+
+```json
+{
+  "prompt": "深夜城市 lo-fi 钢琴，伴着雨声",
+  "instrumental": true
+}
+```
+
+自定义模式：
+
+```json
+{
+  "custom": true,
+  "prompt": "[Verse]\n雨夜里霓虹闪烁的街道",
+  "title": "Midnight Drive",
+  "style": "synthwave, female vocal, cinematic",
+  "negative_tags": "metal, screaming",
+  "vocal_gender": "Female",
+  "duration": 180
+}
+```
+
+提交到 `POST /api/v1/task/submit/suno`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。任务成功后，所有生成的曲目都在 `result_urls` 中：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/2026/09/30/track-1.mp3",
+      "https://cdn.wizzx.ai/audio/2026/09/30/track-2.mp3"
+    ],
+    "error": "",
+    "credits_deducted": 60
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+不要假定一定是两个 URL，请遍历 `result_urls`。生成通常需要 30–120 秒。
+
+### 计费
+
+| 模式 | 每次请求积分 |
+| --- | --- |
+| 标准（任意版本，灵感或自定义模式） | 60 |
+| `max_mode: true`（仅自定义模式） | 120 |
+
+<Note>
+  价格覆盖整个请求，包括返回的所有曲目。`version` 与 `duration` 不影响价格。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Suno API 参考](/zh/api-reference/endpoint/submit-suno)。

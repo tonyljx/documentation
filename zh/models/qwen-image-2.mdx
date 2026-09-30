@@ -1,0 +1,52 @@
+---
+title: "Qwen Image 2.0"
+description: "使用 Qwen Image 2.0 或 Qwen Image 2.0 Pro 以 1K 或 2K 生成或编辑一张图片"
+icon: "image"
+---
+
+## Qwen Image 2.0
+
+Qwen Image 2.0 是阿里巴巴通义千问的图像生成与编辑模型。Wizzx 提供两个请求字段相同的 model key：
+
+| Model key | 适合场景 |
+| --- | --- |
+| `qwen-image-2.0` | 画质与速度均衡 |
+| `qwen-image-2.0-pro` | 文字渲染更强，写实质感更细腻 |
+
+文生图时省略 `image_urls`；图生图编辑时最多传入 3 张参考图。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本，最多 800 个字符 |
+| `negative_prompt` | 否 | 最多 500 个字符 |
+| `image_urls` | 否 | 1–3 个公网 HTTP(S) URL（JPG、JPEG、PNG 或 WebP）；不支持 base64 / data URI |
+| `aspect_ratio` | 否 | `1:1`（默认）、`4:3`、`3:4`、`16:9`、`9:16`、`3:2`、`2:3` |
+| `resolution` | 否 | `1K`（默认）或 `2K`（不区分大小写） |
+
+每个请求生成一张图片。`1:1` 时输出为 1024 × 1024（1K）或 2048 × 2048（2K）。
+
+```json
+{
+  "prompt": "极简海报，粗体衬线字标题 \"SUMMER SALE\"",
+  "negative_prompt": "模糊, 水印",
+  "aspect_ratio": "3:4",
+  "resolution": "2K"
+}
+```
+
+提交到 `POST /api/v1/task/submit/qwen-image-2.0` 或 `POST /api/v1/task/submit/qwen-image-2.0-pro`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+| 模型 | 每张积分 |
+| --- | --- |
+| Qwen Image 2.0 | 31 |
+| Qwen Image 2.0 Pro | 74 |
+
+<Note>
+  1K 与 2K 同价，宽高比与参考图不影响价格。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+API 参考：[Qwen Image 2.0](/zh/api-reference/endpoint/submit-qwen-image-2-0)、[Qwen Image 2.0 Pro](/zh/api-reference/endpoint/submit-qwen-image-2-0-pro)。

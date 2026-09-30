@@ -1,0 +1,59 @@
+---
+title: "PixVerse V6"
+description: "Generate 1-15 second PixVerse V6 videos from text, one image, a first/last-frame pair, or up to 7 references"
+icon: "video"
+---
+
+## PixVerse V6
+
+PixVerse V6 is PixVerse's video model. Use `pixverse-v6` for text-to-video, image-to-video, first/last-frame transitions, and multi-reference fusion, at 360p to 1080p and 1 to 15 seconds, with an optional audio track.
+
+- `text-to-video`: omit `image_urls`. `aspect_ratio` applies.
+- `image-to-video`: 1 image animates that image; 2 images create a first/last-frame transition (duration `5` or `8` only). The output follows the input image, so **omit `aspect_ratio`** — sending it returns HTTP 422.
+- `reference-to-video`: 1–7 reference images fused into one video. `aspect_ratio` applies.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-blank text, at most 5,000 characters |
+| `type` | Yes | `text-to-video`, `image-to-video`, or `reference-to-video` |
+| `image_urls` | For image and reference modes | `image-to-video`: 1–2 public HTTP(S) URLs. `reference-to-video`: 1–7. Not allowed for `text-to-video` |
+| `aspect_ratio` | No | `16:9` (default), `4:3`, `1:1`, `3:4`, `9:16`, `2:3`, `3:2`, `21:9`. Text-to-video and reference-to-video only |
+| `resolution` | No | `360p`, `540p` (default), `720p`, `1080p` |
+| `duration` | No | Integer seconds from `1` to `15`, default `5`. First/last-frame transitions accept `5` or `8` |
+| `generate_audio` | No | `false` (default) or `true` |
+| `negative_prompt` | No | At most 2,048 characters |
+| `seed` | No | `0`–`2147483647` |
+
+Each request produces one video. Video extension, multi-clip generation, and watermark control are not offered.
+
+```json
+{
+  "prompt": "A neon-lit alley at night, light rain, anamorphic lens flare",
+  "type": "text-to-video",
+  "aspect_ratio": "21:9",
+  "resolution": "720p",
+  "duration": 8,
+  "generate_audio": true
+}
+```
+
+Submit to `POST /api/v1/task/submit/pixverse-v6`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+PixVerse V6 is billed per second by resolution and audio.
+
+| Resolution | Silent (credits/s) | With audio (credits/s) |
+| --- | --- | --- |
+| 360p | 31 | 47 |
+| 540p | 47 | 62 |
+| 720p | 62 | 77 |
+| 1080p | 124 | 154 |
+
+<Note>
+  Example: a 5-second silent 540p video costs 47 × 5 = 235 credits. `/pricing` remains the current source of truth.
+</Note>
+
+See the [PixVerse V6 API reference](/api-reference/endpoint/submit-pixverse-v6) for the machine-readable Schema.

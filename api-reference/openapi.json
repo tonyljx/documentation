@@ -435,7 +435,7 @@
                     "prompt": "In a hyperrealistic ASMR video, a hand uses a knitted knife to slowly slice a burger made entirely of knitted wool.",
                     "type": "text-to-video",
                     "duration": 5,
-                    "resolution": "1080p"
+                    "resolution": "720p"
                   }
                 },
                 "image-to-video": {
@@ -447,7 +447,7 @@
                       "https://example.com/fox.jpg"
                     ],
                     "duration": 5,
-                    "resolution": "1080p"
+                    "resolution": "720p"
                   }
                 },
                 "15-second": {
@@ -465,7 +465,7 @@
                     "prompt": "A cinematic aerial shot of a futuristic city at twilight. Flying cars navigate between towering skyscrapers covered in holographic advertisements. The camera slowly descends through the urban canyon, revealing bustling streets below with pedestrians walking under neon signs. Rain begins to fall, creating beautiful reflections on the wet pavement.",
                     "type": "text-to-video",
                     "duration": 10,
-                    "resolution": "1080p"
+                    "resolution": "720p"
                   }
                 }
               }
@@ -2755,10 +2755,500 @@
         }
       }
     },
-    "/api/v1/task/submit/runway-gen3": {
+    "/pricing": {
+      "get": {
+        "operationId": "getPublicPricing",
+        "summary": "List public models and current pricing",
+        "tags": [
+          "Discovery"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Current public pricing catalog",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PricingResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/credits/balance": {
+      "get": {
+        "operationId": "getCreditBalance",
+        "summary": "Get current credit balance",
+        "tags": [
+          "Credits"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current balance",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditBalanceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/gpt-image-2.5": {
       "post": {
-        "operationId": "submitRunwayGen3Task",
-        "summary": "Submit Runway Gen-3 task",
+        "operationId": "submitGptImage25Task",
+        "summary": "Submit GPT Image 2.5 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GPTImage25SubmitRequest"
+              },
+              "example": {
+                "prompt": "An orange mechanical keyboard on a dark desk",
+                "version": "flare",
+                "resolution": "2K"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/qwen-image-2.0": {
+      "post": {
+        "operationId": "submitQwenImage20Task",
+        "summary": "Submit Qwen Image 2.0 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QwenImage2SubmitRequest"
+              },
+              "example": {
+                "prompt": "A minimalist poster with the headline SUMMER SALE",
+                "aspect_ratio": "3:4",
+                "resolution": "2K"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/qwen-image-2.0-pro": {
+      "post": {
+        "operationId": "submitQwenImage20ProTask",
+        "summary": "Submit Qwen Image 2.0 Pro task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QwenImage2SubmitRequest"
+              },
+              "example": {
+                "prompt": "A bilingual tea shop menu board with clean serif lettering",
+                "aspect_ratio": "4:3",
+                "resolution": "2K"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/kling-v3": {
+      "post": {
+        "operationId": "submitKlingV3Task",
+        "summary": "Submit Kling v3 task",
         "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
         "tags": [
           "Video generation"
@@ -2773,11 +3263,12 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RunwayGen3SubmitRequest"
+                "$ref": "#/components/schemas/KlingV3SubmitRequest"
               },
               "example": {
-                "prompt": "A paper boat crosses a moonlit lake",
+                "prompt": "Neon lights reflected on a wet Tokyo crossing at night",
                 "type": "text-to-video",
+                "resolution": "1080p",
                 "duration": 5
               }
             }
@@ -2886,27 +3377,51 @@
         }
       }
     },
-    "/pricing": {
-      "get": {
-        "operationId": "getPublicPricing",
-        "summary": "List public models and current pricing",
+    "/api/v1/task/submit/kling-v3-omni": {
+      "post": {
+        "operationId": "submitKlingV3OmniTask",
+        "summary": "Submit Kling v3 Omni task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
         "tags": [
-          "Discovery"
+          "Video generation"
         ],
-        "security": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KlingV3OmniSubmitRequest"
+              },
+              "example": {
+                "prompt": "The character in <<<image_1>>> walks into the scene in <<<image_2>>>",
+                "type": "reference-to-video",
+                "image_urls": [
+                  "https://example.com/character.jpg",
+                  "https://example.com/scene.jpg"
+                ],
+                "duration": 5
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Current public pricing catalog",
+            "description": "Task accepted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PricingResponse"
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
                 }
               }
             }
           },
-          "500": {
-            "description": "Internal server error",
+          "400": {
+            "description": "Malformed JSON or binding validation error",
             "content": {
               "application/json": {
                 "schema": {
@@ -2914,35 +3429,39 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/api/v1/credits/balance": {
-      "get": {
-        "operationId": "getCreditBalance",
-        "summary": "Get current credit balance",
-        "tags": [
-          "Credits"
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Current balance",
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreditBalanceResponse"
+                  "$ref": "#/components/schemas/ErrorResponse"
                 }
               }
             }
           },
-          "401": {
-            "description": "Missing, invalid, or revoked API key",
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
             "content": {
               "application/json": {
                 "schema": {
@@ -2971,7 +3490,942 @@
             }
           },
           "500": {
-            "description": "Internal server error",
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/seedance-2.0-mini": {
+      "post": {
+        "operationId": "submitSeedance20MiniTask",
+        "summary": "Submit Seedance 2.0 Mini task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Seedance20MiniSubmitRequest"
+              },
+              "example": {
+                "prompt": "A kitten yawning at the camera, soft morning light",
+                "type": "text-to-video",
+                "resolution": "720p",
+                "duration": 5
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/pixverse-v6": {
+      "post": {
+        "operationId": "submitPixverseV6Task",
+        "summary": "Submit PixVerse V6 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PixverseV6SubmitRequest"
+              },
+              "example": {
+                "prompt": "A neon-lit alley at night, light rain, slow dolly forward",
+                "type": "text-to-video",
+                "aspect_ratio": "16:9",
+                "resolution": "720p",
+                "duration": 5
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/grok-imagine-video-1.5": {
+      "post": {
+        "operationId": "submitGrokImagineVideo15Task",
+        "summary": "Submit Grok Imagine Video 1.5 task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrokImagineVideo15SubmitRequest"
+              },
+              "example": {
+                "prompt": "Waves crash against a lighthouse at golden hour",
+                "aspect_ratio": "16:9",
+                "resolution": "720p",
+                "duration": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/gemini-omni-flash": {
+      "post": {
+        "operationId": "submitGeminiOmniFlashTask",
+        "summary": "Submit Gemini Omni Flash task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeminiOmniFlashSubmitRequest"
+              },
+              "example": {
+                "prompt": "A paper lantern drifts over a quiet river at dusk",
+                "aspect_ratio": "16:9",
+                "resolution": "720p",
+                "duration": 6
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/wan-2.6-flash": {
+      "post": {
+        "operationId": "submitWan26FlashTask",
+        "summary": "Submit Wan 2.6 Flash task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Video generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Wan26FlashSubmitRequest"
+              },
+              "example": {
+                "prompt": "The person smiles and waves while the camera slowly zooms in",
+                "image_urls": [
+                  "https://example.com/portrait.jpg"
+                ],
+                "resolution": "720p",
+                "duration": 5
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/suno": {
+      "post": {
+        "operationId": "submitSunoTask",
+        "summary": "Submit Suno task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Audio generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SunoSubmitRequest"
+              },
+              "example": {
+                "prompt": "Late-night city lo-fi piano with the sound of rain",
+                "instrumental": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/task/submit/seedream-5-pro": {
+      "post": {
+        "operationId": "submitSeedream5ProTask",
+        "summary": "Submit Seedream 5.0 Pro task",
+        "description": "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Image generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Seedream5ProSubmitRequest"
+              },
+              "example": {
+                "prompt": "A bilingual coffee shop menu board with clean typography",
+                "aspect_ratio": "3:4",
+                "resolution": "1.5K",
+                "output_format": "png"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Model-specific validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
             "content": {
               "application/json": {
                 "schema": {
@@ -3000,7 +4454,7 @@
           "prompt",
           "type"
         ],
-        "description": "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images and duration 8.",
+        "description": "text-to-video must omit image_urls; image-to-video requires 1-2 images; reference-to-video requires 1-3 images and duration 8. veo3_quality supports 6 or 8 seconds and does not support reference-to-video. model and resolution select a fixed per-video price; duration does not change it.",
         "properties": {
           "prompt": {
             "type": "string",
@@ -3056,9 +4510,11 @@
             "type": "string",
             "enum": [
               "veo3_fast",
-              "veo3_lite"
+              "veo3_lite",
+              "veo3_quality"
             ],
-            "default": "veo3_fast"
+            "default": "veo3_fast",
+            "description": "veo3_fast (default), veo3_lite (lowest cost), or veo3_quality (highest fidelity; 6 or 8 seconds, no reference-to-video)."
           },
           "seeds": {
             "type": "integer",
@@ -3146,6 +4602,48 @@
                       8
                     ],
                     "default": 8
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "enum": [
+                      "veo3_fast",
+                      "veo3_lite"
+                    ]
+                  }
+                }
+              },
+              {
+                "required": [
+                  "model"
+                ],
+                "properties": {
+                  "model": {
+                    "type": "string",
+                    "enum": [
+                      "veo3_quality"
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video",
+                      "image-to-video"
+                    ]
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "enum": [
+                      6,
+                      8
+                    ]
                   }
                 }
               }
@@ -4584,11 +6082,10 @@
           "resolution": {
             "type": "string",
             "enum": [
-              "720p",
-              "1080p"
+              "720p"
             ],
-            "default": "1080p",
-            "description": "Video resolution. 720p = 80 credits/s, 1080p = 110 credits/s."
+            "default": "720p",
+            "description": "Only 720p is offered (97 credits/s). 1080p is no longer available."
           }
         }
       },
@@ -5107,29 +6604,88 @@
           }
         }
       },
-      "RunwayGen3SubmitRequest": {
+      "GPTImage25SubmitRequest": {
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "prompt",
-          "type"
+          "prompt"
         ],
-        "description": "image-to-video requires exactly one image_urls item; text-to-video must omit image_urls. 10 seconds cannot be combined with 1080p.",
+        "description": "Omit image_urls for text-to-image; provide 1-16 images for image-to-image editing. One image per request. version, aspect_ratio, and reference images do not change the price.",
         "properties": {
           "prompt": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "Required prompt. The gateway enforces a 20000-byte UTF-8 limit.",
+            "x-wizzx-maxBytes": 20000
           },
-          "type": {
+          "version": {
             "type": "string",
             "enum": [
-              "text-to-video",
-              "image-to-video"
-            ]
+              "flare",
+              "sunburst"
+            ],
+            "default": "flare",
+            "description": "flare is faster; sunburst gives finer edits for product, ad, and multi-turn editing. Same price."
           },
           "image_urls": {
             "type": "array",
-            "maxItems": 1,
+            "maxItems": 16,
+            "items": {
+              "type": "string",
+              "pattern": "^(https?://|data:image/(jpeg|png|webp);base64,)",
+              "description": "HTTP(S) URL or base64 data URI. JPEG, PNG, or WebP only."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "1:1",
+              "16:9",
+              "9:16",
+              "4:3",
+              "3:4",
+              "3:2",
+              "2:3",
+              "5:4",
+              "4:5",
+              "21:9"
+            ],
+            "default": "auto"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K",
+              "4K"
+            ],
+            "default": "1K",
+            "description": "Billed per image: 1K = 13, 2K = 21, 4K = 32 credits."
+          }
+        }
+      },
+      "QwenImage2SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "description": "Shared by qwen-image-2.0 and qwen-image-2.0-pro. Omit image_urls for text-to-image or provide 1-3 public URLs for image-to-image. One image per request; 1K and 2K cost the same.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800,
+            "description": "Required prompt, at most 800 Unicode characters."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 3,
             "items": {
               "type": "string",
               "format": "uri",
@@ -5137,13 +6693,54 @@
               "description": "Publicly reachable HTTP(S) URL."
             }
           },
-          "duration": {
-            "type": "integer",
+          "aspect_ratio": {
+            "type": "string",
             "enum": [
-              5,
-              10
+              "1:1",
+              "4:3",
+              "3:4",
+              "16:9",
+              "9:16",
+              "3:2",
+              "2:3"
             ],
-            "default": 5
+            "default": "1:1"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "2K"
+            ],
+            "default": "1K",
+            "description": "Case-insensitive. Does not change the price."
+          }
+        }
+      },
+      "KlingV3SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt",
+          "type"
+        ],
+        "description": "text-to-video must omit image_urls; image-to-video takes 1 image (first frame) or 2 images (first and last frame). Billed per second by resolution and generate_audio.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2500,
+            "description": "Required prompt, at most 2500 Unicode characters."
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
           },
           "resolution": {
             "type": "string",
@@ -5151,16 +6748,14 @@
               "720p",
               "1080p"
             ],
-            "default": "720p"
+            "default": "720p",
+            "description": "720p (standard) or 1080p (professional). 4K is not offered."
           },
-          "fps": {
+          "duration": {
             "type": "integer",
-            "enum": [
-              24,
-              30,
-              60
-            ],
-            "default": 24
+            "minimum": 3,
+            "maximum": 15,
+            "default": 5
           },
           "aspect_ratio": {
             "type": "string",
@@ -5168,6 +6763,23 @@
               "16:9",
               "9:16",
               "1:1"
+            ],
+            "description": "Defaults to 16:9. In image-to-video the first frame's ratio may take precedence."
+          },
+          "generate_audio": {
+            "type": "boolean",
+            "default": false,
+            "description": "Generate native audio. Audio selects a higher per-second rate."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 2500
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video"
             ]
           }
         },
@@ -5206,7 +6818,7 @@
                   "image_urls": {
                     "type": "array",
                     "minItems": 1,
-                    "maxItems": 1,
+                    "maxItems": 2,
                     "items": {
                       "type": "string",
                       "format": "uri",
@@ -5217,28 +6829,928 @@
                 }
               }
             ]
+          }
+        ]
+      },
+      "KlingV3OmniSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt",
+          "type"
+        ],
+        "description": "text-to-video must omit image_urls; image-to-video takes 1-2 frames (first, last); reference-to-video takes 1-7 reference images that the prompt can cite as <<<image_1>>> ... <<<image_N>>>. Reference images are not billed.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2500,
+            "description": "Required prompt, at most 2500 Unicode characters."
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 7,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p",
+            "description": "720p (standard) or 1080p (professional). 4K is not offered."
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 3,
+            "maximum": 15,
+            "default": 5
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1"
+            ],
+            "description": "Defaults to 16:9. In image-to-video the first frame's ratio may take precedence."
+          },
+          "generate_audio": {
+            "type": "boolean",
+            "default": false,
+            "description": "Generate native audio. Audio selects a higher per-second rate."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 2500
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video",
+              "reference-to-video"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "reference-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 7,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Seedance20MiniSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt",
+          "type"
+        ],
+        "description": "text-to-video must omit image_urls; image-to-video takes 1 image (first frame) or 2 images (first and last frame). Billed per second by resolution; audio is included at no extra charge.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Required prompt, at most 4000 Unicode characters."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video"
+            ]
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "4:3",
+              "3:4",
+              "21:9",
+              "adaptive",
+              "auto"
+            ],
+            "description": "Defaults to 16:9 for text-to-video and adaptive for image-to-video. auto is an alias of adaptive."
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "480p",
+              "720p"
+            ],
+            "default": "720p"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 4,
+            "maximum": 15,
+            "default": 5
+          },
+          "generate_audio": {
+            "type": "boolean",
+            "default": true
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": -1,
+            "maximum": 4294967295,
+            "description": "-1 means random."
+          }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "PixverseV6SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt",
+          "type"
+        ],
+        "description": "text-to-video must omit image_urls. image-to-video takes 1 image, or 2 images for a first/last-frame transition (duration 5 or 8 only), and must omit aspect_ratio because the output follows the input image. reference-to-video fuses 1-7 reference images. Billed per second by resolution and generate_audio.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 5000,
+            "description": "Required prompt, at most 5000 Unicode characters."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video",
+              "reference-to-video"
+            ]
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 7,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "4:3",
+              "1:1",
+              "3:4",
+              "9:16",
+              "2:3",
+              "3:2",
+              "21:9"
+            ],
+            "description": "Text-to-video and reference-to-video only; defaults to 16:9. Rejected for image-to-video."
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "360p",
+              "540p",
+              "720p",
+              "1080p"
+            ],
+            "default": "540p"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 15,
+            "default": 5
+          },
+          "generate_audio": {
+            "type": "boolean",
+            "default": false,
+            "description": "Add an audio track. Audio selects a higher per-second rate."
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 2048
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 2147483647
+          }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "text-to-video"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "image_urls"
+                  ],
+                  "properties": {
+                    "image_urls": {}
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "image-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                },
+                "not": {
+                  "required": [
+                    "aspect_ratio"
+                  ],
+                  "properties": {
+                    "aspect_ratio": {}
+                  }
+                }
+              },
+              {
+                "required": [
+                  "image_urls"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "reference-to-video"
+                    ]
+                  },
+                  "image_urls": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 7,
+                    "items": {
+                      "type": "string",
+                      "format": "uri",
+                      "pattern": "^https?://",
+                      "description": "Publicly reachable HTTP(S) URL."
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "GrokImagineVideo15SubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "description": "type is optional and inferred from image_urls: none means text-to-video, 1-7 images means image-to-video. With reference images the output follows the reference image's aspect ratio. Billed per second by resolution; reference images are not billed.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video"
+            ]
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 7,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16",
+              "1:1",
+              "3:2",
+              "2:3"
+            ],
+            "default": "16:9"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "480p",
+              "720p"
+            ],
+            "default": "720p"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 6,
+            "maximum": 15,
+            "default": 6
+          }
+        },
+        "allOf": [
+          {
+            "not": {
+              "required": [
+                "type",
+                "image_urls"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text-to-video"
+                  ]
+                }
+              }
+            }
           },
           {
             "not": {
               "required": [
-                "duration",
-                "resolution"
+                "type"
               ],
               "properties": {
-                "duration": {
+                "type": {
+                  "type": "string",
                   "enum": [
-                    10
+                    "image-to-video"
+                  ]
+                }
+              },
+              "not": {
+                "required": [
+                  "image_urls"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "GeminiOmniFlashSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "description": "type is optional and inferred from image_urls: none means text-to-video, 1 image means image-to-video (first frame), 3 images means reference-to-video. reference-to-video accepts 1 or 3 images (2 is rejected). Billed per request by resolution and duration; reference images are not billed.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "text-to-video",
+              "image-to-video",
+              "reference-to-video"
+            ]
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "16:9",
+              "9:16"
+            ],
+            "default": "16:9"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p",
+              "4k"
+            ],
+            "default": "720p"
+          },
+          "duration": {
+            "type": "integer",
+            "enum": [
+              4,
+              6,
+              8,
+              10
+            ],
+            "default": 6
+          }
+        },
+        "allOf": [
+          {
+            "not": {
+              "required": [
+                "image_urls"
+              ],
+              "properties": {
+                "image_urls": {
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "type",
+                "image_urls"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "text-to-video"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "type",
+                "image_urls"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "image-to-video"
                   ]
                 },
-                "resolution": {
+                "image_urls": {
+                  "minItems": 2
+                }
+              }
+            }
+          }
+        ]
+      },
+      "Wan26FlashSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "image_urls"
+        ],
+        "description": "Image-to-video only, silent output. Provide exactly one first-frame image; the output aspect ratio follows the image. Billed per second by resolution.",
+        "properties": {
+          "image_urls": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) URL."
+            }
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 1500,
+            "description": "Optional prompt, at most 1500 characters."
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image-to-video"
+            ],
+            "default": "image-to-video"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "720p",
+              "1080p"
+            ],
+            "default": "720p"
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 15,
+            "default": 5
+          },
+          "negative_prompt": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "prompt_extend": {
+            "type": "boolean",
+            "description": "Smart prompt rewriting. Enabled unless set to false."
+          },
+          "shot_type": {
+            "type": "string",
+            "enum": [
+              "single",
+              "multi"
+            ],
+            "description": "Single-shot or multi-shot narrative. Requires prompt_extend not to be false."
+          },
+          "seed": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "not": {
+          "required": [
+            "shot_type",
+            "prompt_extend"
+          ],
+          "properties": {
+            "prompt_extend": {
+              "enum": [
+                false
+              ]
+            }
+          }
+        }
+      },
+      "SunoSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Music generation. Inspiration mode (custom=false) takes a song description in prompt. Custom mode (custom=true) takes lyrics in prompt plus optional title, style, negative_tags, max_mode, and duration. One request usually returns 2 tracks in result_urls. Billed per request; max_mode doubles the price.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "description": "Inspiration mode: required song description, at most 3000 characters. Custom mode: lyrics, at most 5000 characters; required unless instrumental is true.",
+            "maxLength": 5000
+          },
+          "custom": {
+            "type": "boolean",
+            "default": false
+          },
+          "instrumental": {
+            "type": "boolean",
+            "default": false
+          },
+          "version": {
+            "type": "string",
+            "enum": [
+              "v6",
+              "v6-wild",
+              "v6-mini"
+            ],
+            "default": "v6",
+            "description": "Case-insensitive. All versions cost the same."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Custom mode only."
+          },
+          "style": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Custom mode only. Style tags."
+          },
+          "negative_tags": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Custom mode only. Styles to avoid."
+          },
+          "vocal_gender": {
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female"
+            ],
+            "description": "Case-insensitive; m and f are accepted. Cannot be combined with instrumental=true."
+          },
+          "max_mode": {
+            "type": "boolean",
+            "default": false,
+            "description": "Custom mode only. Higher quality at double the price."
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 360,
+            "description": "Custom mode only. Target length in seconds; actual length may differ. Does not change the price."
+          }
+        },
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "required": [
+                  "prompt"
+                ],
+                "properties": {
+                  "custom": {
+                    "type": "boolean",
+                    "enum": [
+                      false
+                    ]
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 3000
+                  },
+                  "max_mode": {
+                    "type": "boolean",
+                    "enum": [
+                      false
+                    ]
+                  }
+                },
+                "not": {
+                  "anyOf": [
+                    {
+                      "required": [
+                        "title"
+                      ],
+                      "properties": {
+                        "title": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "style"
+                      ],
+                      "properties": {
+                        "style": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "negative_tags"
+                      ],
+                      "properties": {
+                        "negative_tags": {}
+                      }
+                    },
+                    {
+                      "required": [
+                        "duration"
+                      ],
+                      "properties": {
+                        "duration": {}
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "required": [
+                  "custom"
+                ],
+                "properties": {
+                  "custom": {
+                    "type": "boolean",
+                    "enum": [
+                      true
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "not": {
+              "required": [
+                "instrumental",
+                "vocal_gender"
+              ],
+              "properties": {
+                "instrumental": {
                   "enum": [
-                    "1080p"
+                    true
                   ]
                 }
               }
             }
           }
         ]
+      },
+      "Seedream5ProSubmitRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "prompt"
+        ],
+        "description": "Omit image_urls for text-to-image or provide exactly one reference image for editing. One image per request. Billed per image by resolution; 1.5K costs the same as 1K. aspect_ratio, output_format, and the reference image do not change the price.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Required prompt, at most 4000 Unicode characters."
+          },
+          "image_urls": {
+            "type": "array",
+            "maxItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^(https?://|data:image/(jpeg|png|webp);base64,)",
+              "description": "HTTP(S) URL or base64 data URI. JPEG, PNG, or WebP only."
+            }
+          },
+          "aspect_ratio": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "1:1",
+              "4:3",
+              "3:4",
+              "16:9",
+              "9:16",
+              "3:2",
+              "2:3",
+              "2:1",
+              "1:2",
+              "21:9"
+            ],
+            "default": "auto"
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "1K",
+              "1.5K",
+              "2K"
+            ],
+            "default": "1K",
+            "description": "Case-insensitive. Billed per image: 1K = 44, 1.5K = 44, 2K = 89 credits."
+          },
+          "output_format": {
+            "type": "string",
+            "enum": [
+              "jpeg",
+              "png"
+            ],
+            "default": "jpeg"
+          }
+        }
       }
     }
   },
@@ -5261,7 +7773,7 @@
     },
     {
       "name": "Audio generation",
-      "description": "Asynchronous speech tasks."
+      "description": "Asynchronous music and audio tasks."
     },
     {
       "name": "Tasks",

@@ -1,0 +1,60 @@
+---
+title: "Kling v3"
+description: "Generate 3-15 second Kling v3 videos from text or first/last frames at 720p or 1080p, with optional native audio"
+icon: "video"
+---
+
+## Kling v3
+
+Kling v3 is Kuaishou's Kling VIDEO 3.0 model. Use `kling-v3` for text-to-video or image-to-video with first-frame or first-and-last-frame control, at 720p or 1080p, from 3 to 15 seconds, with optional native audio.
+
+- `text-to-video`: omit `image_urls`.
+- `image-to-video`: 1 image sets the first frame; 2 images set the first and last frame.
+
+`kling-v3` is a separate model key from `kling-ai`. Use [Kling v3 Omni](/models/kling-v3-omni) when you need multiple reference images.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-blank text, at most 2,500 characters |
+| `type` | Yes | `text-to-video` or `image-to-video` |
+| `image_urls` | For `image-to-video` | 1–2 public HTTP(S) URLs (first frame, last frame). Not allowed for `text-to-video` |
+| `resolution` | No | `720p` (default, standard mode) or `1080p` (professional mode) |
+| `duration` | No | Integer seconds from `3` to `15`, default `5` |
+| `aspect_ratio` | No | `16:9` (default), `9:16`, `1:1`. In `image-to-video`, the first frame's ratio may take precedence |
+| `generate_audio` | No | `false` (default) or `true` for native audio |
+| `negative_prompt` | No | At most 2,500 characters |
+
+Each request produces one video without a watermark. 4K, multi-shot storyboards, and element references are not offered.
+
+```json
+{
+  "prompt": "Smooth cinematic transition from dawn to dusk over the harbor",
+  "type": "image-to-video",
+  "image_urls": [
+    "https://example.com/start.jpg",
+    "https://example.com/end.jpg"
+  ],
+  "resolution": "1080p",
+  "duration": 5,
+  "generate_audio": true
+}
+```
+
+Submit to `POST /api/v1/task/submit/kling-v3`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+Kling v3 is billed per second by resolution and audio.
+
+| Resolution | Silent (credits/s) | With audio (credits/s) |
+| --- | --- | --- |
+| 720p | 130 | 194 |
+| 1080p | 173 | 259 |
+
+<Note>
+  Example: a 5-second silent 720p video costs 130 × 5 = 650 credits. `/pricing` remains the current source of truth.
+</Note>
+
+See the [Kling v3 API reference](/api-reference/endpoint/submit-kling-v3) for the machine-readable Schema.

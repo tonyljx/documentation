@@ -1,0 +1,24 @@
+---
+title: "提交 Wan 2.6 Flash 任务"
+description: "POST Wan 2.6 Flash 无声图生视频任务"
+openapi: "POST /api/v1/task/submit/wan-2.6-flash"
+---
+
+## 提交任务
+
+`image_urls` 必填，且必须恰好包含一个公网 HTTP(S) 首帧图片。`prompt` 可选。输出始终无声，传 `audio` 或 `audio_url` 会被拒绝。`resolution` 为 `720p`（默认）或 `1080p`，`duration` 为 2–15 秒（默认 5）。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2.6-flash \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "画面中的人微笑挥手，镜头缓慢推进",
+    "image_urls": ["https://example.com/portrait.jpg"],
+    "resolution": "720p",
+    "duration": 5
+  }'
+```
+
+网关按秒计费：720p = 33、1080p = 54 积分/秒。具体积分以 `/pricing` 为准。

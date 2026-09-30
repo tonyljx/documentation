@@ -544,6 +544,21 @@ def call_api_with_retry(func, max_retries=3):
 
 **解决方案：** 尝试使用其他模型或稍后重试。
 
+### `model_unavailable`
+
+```json
+{
+  "error": {
+    "message": "Model '<model_key>' is offline and does not accept new tasks.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "model_unavailable"
+  }
+}
+```
+
+该模型当前不接受新提交，不会创建任务，也不会预扣积分。如果消息表明模型已下线（offline），请勿重试，改用 [`GET /pricing`](/zh/pricing) 中列出的模型；如果消息表明模型暂时不可用（temporarily unavailable），可稍后重试。
+
 ### `maintenance_mode`
 
 ```json

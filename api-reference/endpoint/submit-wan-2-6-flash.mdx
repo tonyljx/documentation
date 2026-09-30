@@ -1,0 +1,24 @@
+---
+title: "Submit Wan 2.6 Flash task"
+description: "POST a silent Wan 2.6 Flash image-to-video task"
+openapi: "POST /api/v1/task/submit/wan-2.6-flash"
+---
+
+## Submit task
+
+`image_urls` is required and must contain exactly one public HTTP(S) first-frame image. `prompt` is optional. Output is always silent; `audio` and `audio_url` are rejected. `resolution` is `720p` (default) or `1080p`, and `duration` is 2–15 seconds (default 5).
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2.6-flash \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "The person smiles and waves while the camera slowly zooms in",
+    "image_urls": ["https://example.com/portrait.jpg"],
+    "resolution": "720p",
+    "duration": 5
+  }'
+```
+
+The gateway charges per second: 720p = 33, 1080p = 54 credits. Read `/pricing` for the current amount.

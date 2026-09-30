@@ -544,6 +544,21 @@ These errors indicate temporary service issues.
 
 **Solution:** Try an alternative model or retry later.
 
+### `model_unavailable`
+
+```json
+{
+  "error": {
+    "message": "Model '<model_key>' is offline and does not accept new tasks.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "model_unavailable"
+  }
+}
+```
+
+The model is not accepting new submissions. No task is created and no credits are reserved. If the message says the model is offline, do not retry; choose a model listed in [`GET /pricing`](/pricing). If the message says the model is temporarily unavailable, retry later.
+
 ### `maintenance_mode`
 
 ```json

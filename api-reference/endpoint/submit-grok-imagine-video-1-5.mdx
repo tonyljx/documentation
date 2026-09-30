@@ -1,0 +1,24 @@
+---
+title: "Submit Grok Imagine Video 1.5 task"
+description: "POST a Grok Imagine Video 1.5 text-to-video or reference image-to-video task"
+openapi: "POST /api/v1/task/submit/grok-imagine-video-1.5"
+---
+
+## Submit task
+
+`prompt` is required. Omit `image_urls` for text-to-video, or provide 1–7 public HTTP(S) image URLs for image-to-video; `type` is inferred when omitted. `resolution` is `480p` or `720p` (default) and `duration` is 6–15 seconds (default 6).
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/grok-imagine-video-1.5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "Waves crash against a lighthouse at golden hour",
+    "aspect_ratio": "16:9",
+    "resolution": "720p",
+    "duration": 6
+  }'
+```
+
+The gateway charges per second: 480p = 20, 720p = 37 credits. Reference images are not billed. Read `/pricing` for the current amount.

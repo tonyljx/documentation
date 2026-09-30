@@ -1,0 +1,52 @@
+---
+title: "Grok Imagine Video 1.5"
+description: "Generate 6-15 second Grok Imagine Video 1.5 clips from text or up to 7 reference images at 480p or 720p"
+icon: "video"
+---
+
+## Grok Imagine Video 1.5
+
+Grok Imagine Video 1.5 is xAI's video generation model. Use `grok-imagine-video-1.5` for text-to-video or image-to-video with 1–7 reference images, at 480p or 720p, from 6 to 15 seconds.
+
+`type` is optional. When omitted, a request without `image_urls` runs as `text-to-video` and a request with images runs as `image-to-video`.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-blank text |
+| `type` | No | `text-to-video` or `image-to-video`; inferred from `image_urls` when omitted |
+| `image_urls` | For `image-to-video` | 1–7 public HTTP(S) URLs. Base64 and data URIs are rejected. Not allowed for `text-to-video` |
+| `aspect_ratio` | No | `16:9` (default), `9:16`, `1:1`, `3:2`, `2:3`. With reference images, the output follows the reference image's ratio |
+| `resolution` | No | `480p` or `720p` (default), lowercase |
+| `duration` | No | Integer seconds from `6` to `15`, default `6` |
+
+Each request produces one video.
+
+```json
+{
+  "prompt": "Bring the scene to life with natural motion and drifting clouds",
+  "type": "image-to-video",
+  "image_urls": ["https://example.com/start.png"],
+  "aspect_ratio": "16:9",
+  "resolution": "720p",
+  "duration": 10
+}
+```
+
+Submit to `POST /api/v1/task/submit/grok-imagine-video-1.5`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+Grok Imagine Video 1.5 is billed per second by resolution. Reference images are not billed.
+
+| Resolution | Credits per second |
+| --- | --- |
+| 480p | 20 |
+| 720p | 37 |
+
+<Note>
+  Example: the default 6-second 720p video costs 37 × 6 = 222 credits. `/pricing` remains the current source of truth.
+</Note>
+
+See the [Grok Imagine Video 1.5 API reference](/api-reference/endpoint/submit-grok-imagine-video-1-5) for the machine-readable Schema.

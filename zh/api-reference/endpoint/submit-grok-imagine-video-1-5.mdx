@@ -1,0 +1,24 @@
+---
+title: "提交 Grok Imagine Video 1.5 任务"
+description: "POST Grok Imagine Video 1.5 文生视频或参考图生视频任务"
+openapi: "POST /api/v1/task/submit/grok-imagine-video-1.5"
+---
+
+## 提交任务
+
+`prompt` 必填。文生视频省略 `image_urls`；图生视频传 1–7 个公网 HTTP(S) 图片 URL；省略 `type` 时会自动推断。`resolution` 为 `480p` 或 `720p`（默认），`duration` 为 6–15 秒（默认 6）。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/grok-imagine-video-1.5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "黄金时刻，海浪拍打灯塔",
+    "aspect_ratio": "16:9",
+    "resolution": "720p",
+    "duration": 6
+  }'
+```
+
+网关按秒计费：480p = 20、720p = 37 积分/秒，参考图不另收费。具体积分以 `/pricing` 为准。

@@ -1,0 +1,60 @@
+---
+title: "Kling v3"
+description: "使用 Kling v3 从文本或首尾帧生成 3–15 秒、720p 或 1080p 视频，可选原生音频"
+icon: "video"
+---
+
+## Kling v3
+
+Kling v3 是快手可灵的 Kling VIDEO 3.0 模型。`kling-v3` 支持文生视频，以及首帧或首尾帧控制的图生视频，输出 720p 或 1080p、3–15 秒，可选原生音频。
+
+- `text-to-video`：省略 `image_urls`。
+- `image-to-video`：1 张图片作为首帧；2 张图片分别作为首帧和尾帧。
+
+`kling-v3` 与 `kling-ai` 是不同的 model key。需要多张参考图时请使用 [Kling v3 Omni](/zh/models/kling-v3-omni)。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本，最多 2,500 个字符 |
+| `type` | 是 | `text-to-video` 或 `image-to-video` |
+| `image_urls` | `image-to-video` 必填 | 1–2 个公网 HTTP(S) URL（首帧、尾帧）；`text-to-video` 不可传 |
+| `resolution` | 否 | `720p`（默认，标准模式）或 `1080p`（专业模式） |
+| `duration` | 否 | `3`–`15` 的整数秒，默认 `5` |
+| `aspect_ratio` | 否 | `16:9`（默认）、`9:16`、`1:1`；图生视频时可能以首帧比例为准 |
+| `generate_audio` | 否 | `false`（默认），传 `true` 生成原生音频 |
+| `negative_prompt` | 否 | 最多 2,500 个字符 |
+
+每个请求生成一个不带水印的视频。不提供 4K、多镜头分镜和主体元素参考。
+
+```json
+{
+  "prompt": "港口从清晨到黄昏的电影感平滑过渡",
+  "type": "image-to-video",
+  "image_urls": [
+    "https://example.com/start.jpg",
+    "https://example.com/end.jpg"
+  ],
+  "resolution": "1080p",
+  "duration": 5,
+  "generate_audio": true
+}
+```
+
+提交到 `POST /api/v1/task/submit/kling-v3`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+Kling v3 按秒计费，单价由分辨率和是否生成音频决定。
+
+| 分辨率 | 无声（积分/秒） | 有声（积分/秒） |
+| --- | --- | --- |
+| 720p | 130 | 194 |
+| 1080p | 173 | 259 |
+
+<Note>
+  示例：5 秒无声 720p 视频消耗 130 × 5 = 650 积分。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Kling v3 API 参考](/zh/api-reference/endpoint/submit-kling-v3)。

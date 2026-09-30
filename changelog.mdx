@@ -4,6 +4,49 @@ description: "Product updates and new model releases"
 rss: true
 ---
 
+<Update label="September 30, 2026">
+
+### New Model: GPT Image 2.5
+
+**GPT Image 2.5 (OpenAI)**
+- One model key, `gpt-image-2.5`, for text-to-image and image-to-image editing
+- `version`: `flare` (default, faster) or `sunburst` (finer edits for product, ad, and multi-turn editing), same price
+- Up to 16 reference images as HTTP(S) URLs or base64 data URIs (JPEG, PNG, WebP); reference images are not billed
+- 11 aspect ratios including `auto`, and 1K / 2K / 4K output
+- One image per request
+- Pricing: 1K = 13, 2K = 21, 4K = 32 credits per image
+
+### More new models
+
+**Video**
+- **Kling v3** (`kling-v3`, Kuaishou): text-to-video and first/last-frame image-to-video, 720p/1080p, 3–15 s, optional native audio. 130/173 credits/s silent, 194/259 with audio (720p/1080p)
+- **Kling v3 Omni** (`kling-v3-omni`, Kuaishou): adds reference-to-video with up to 7 images cited as `<<<image_N>>>`. 130/173 credits/s silent, 173/216 with audio; reference images are free
+- **Seedance 2.0 Mini** (`seedance-2.0-mini`, ByteDance): text-to-video and first/last-frame image-to-video, 480p/720p, 4–15 s, audio on by default at no extra charge. 21/44 credits/s
+- **PixVerse V6** (`pixverse-v6`, PixVerse): text, image, first/last-frame transition, and 1–7 image reference modes, 360p–1080p, 1–15 s. 31/47/62/124 credits/s silent, 47/62/77/154 with audio. Image-to-video follows the input image and rejects `aspect_ratio`
+- **Grok Imagine Video 1.5** (`grok-imagine-video-1.5`, xAI): text-to-video or image-to-video with 1–7 references, 480p/720p, 6–15 s. 20/37 credits/s
+- **Gemini Omni Flash** (`gemini-omni-flash`, Google): text, first-frame, and 1- or 3-image reference modes, 720p/1080p/4K, 4/6/8/10 s. Fixed per video: 481/577/674/770 credits at 720p and 1080p, 1,443/1,539/1,635/1,731 at 4K
+- **Wan 2.6 Flash** (`wan-2.6-flash`, Alibaba): silent image-to-video from one first frame, 720p/1080p, 2–15 s. 33/54 credits/s
+
+**Image**
+- **Qwen Image 2.0** (`qwen-image-2.0`) and **Qwen Image 2.0 Pro** (`qwen-image-2.0-pro`, Alibaba): text-to-image and editing with up to 3 references, 7 aspect ratios, 1K/2K at the same price. 31 and 74 credits per image
+- **Seedream 5.0 Pro** (`seedream-5-pro`, ByteDance): text-to-image and single-reference editing, 10 aspect ratios plus `auto`, 1K/1.5K/2K, JPEG or PNG, one image per request. 44 credits per image at 1K/1.5K, 89 at 2K
+
+**Music**
+- **Suno** (`suno`): Suno V6 songs and instrumentals in inspiration or custom (lyrics) mode, versions `v6`, `v6-wild`, `v6-mini`. Each request usually returns two tracks in `result_urls`. 60 credits per request, 120 with `max_mode`
+
+### Veo 3.1 Quality
+
+- `veo3` now accepts `model: "veo3_quality"` at 720p, 1080p, or 4K for 1,924 / 1,924 / 2,885 credits per video.
+- Quality supports 6 or 8 seconds and does not support `reference-to-video`. Fast and Lite are unchanged.
+
+### Runway Gen-3 is offline
+
+- `runway-gen3` no longer accepts new tasks. Submissions return HTTP 503 with error code `model_unavailable`, and the model is no longer listed in `GET /pricing`.
+- Tasks accepted before the change still complete and settle normally, and you can keep polling them with `POST /api/v1/task/status`.
+- For new video tasks, choose a model listed in `GET /pricing`, such as Veo 3.1, Kling AI, or Seedance.
+
+</Update>
+
 <Update label="August 18, 2026">
 
 ### Veo 3.1 Lite and fixed per-video pricing
@@ -210,7 +253,7 @@ rss: true
 - Pricing: 10-40 credits (varies by quality mode and duration)
 
 **Seedance Pro Fast**
-- Fast video generation powered by ByteDance Ark API
+- Fast video generation with ByteDance Seedance
 - Text-to-video and image-to-video modes
 - Resolution options: 480p, 720p, 1080p
 - Video duration: 5s or 10s

@@ -1,0 +1,22 @@
+---
+title: "提交 Suno 任务"
+description: "POST Suno V6 音乐生成任务（灵感模式或自定义模式）"
+openapi: "POST /api/v1/task/submit/suno"
+---
+
+## 提交任务
+
+灵感模式（`custom: false`，默认）下 `prompt` 为必填的歌曲描述。自定义模式（`custom: true`）下 `prompt` 填写歌词，并可添加 `title`、`style`、`negative_tags`、`max_mode` 与 `duration`。一个请求通常返回两首，任务成功后请从 `result_urls` 读取全部曲目。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/suno \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "深夜城市 lo-fi 钢琴，伴着雨声",
+    "instrumental": true
+  }'
+```
+
+网关每次请求收取 60 积分，开启 `max_mode: true`（仅自定义模式）为 120 积分，价格覆盖返回的所有曲目。具体积分以 `/pricing` 为准。

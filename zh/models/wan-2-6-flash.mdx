@@ -1,0 +1,52 @@
+---
+title: "Wan 2.6 Flash"
+description: "使用 Wan 2.6 Flash 将一张图片生成 2–15 秒、720p 或 1080p 的无声视频"
+icon: "video"
+---
+
+## Wan 2.6 Flash
+
+Wan 2.6 Flash 属于阿里巴巴 Wan 2.6 视频系列。`wan-2.6-flash` **仅支持图生视频**：传入恰好一张首帧图片，生成 720p 或 1080p、2–15 秒的**无声**视频，输出比例跟随图片。
+
+`prompt` 可选。需要多镜头叙事时设置 `shot_type: "multi"`，否则为单镜头。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `image_urls` | 是 | 恰好 1 个公网 HTTP(S) URL（首帧）；JPEG、PNG（不含透明通道）、BMP 或 WebP，每边 240–8,000 像素，不超过 10 MB；不支持 data URI |
+| `prompt` | 否 | 最多 1,500 个字符；建议描述主体、动作、镜头与风格 |
+| `type` | 否 | 仅 `image-to-video` |
+| `resolution` | 否 | `720p`（默认）或 `1080p` |
+| `duration` | 否 | `2`–`15` 的整数秒，默认 `5` |
+| `shot_type` | 否 | `single` 或 `multi`；要求 `prompt_extend` 不为 `false` |
+| `prompt_extend` | 否 | 智能改写提示词，除非设为 `false` 否则开启 |
+| `negative_prompt` | 否 | 最多 500 个字符 |
+| `seed` | 否 | ≥ 0 的整数 |
+
+输出始终无声：传 `audio: true` 或任何 `audio_url` 都会返回 HTTP 422。不提供文生视频。每个请求生成一个视频。
+
+```json
+{
+  "prompt": "画面中的人微笑挥手，镜头缓慢推进",
+  "image_urls": ["https://example.com/portrait.jpg"],
+  "resolution": "1080p",
+  "duration": 10,
+  "shot_type": "multi"
+}
+```
+
+提交到 `POST /api/v1/task/submit/wan-2.6-flash`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+| 分辨率 | 积分/秒 |
+| --- | --- |
+| 720p | 33 |
+| 1080p | 54 |
+
+<Note>
+  示例：默认 5 秒 720p 视频消耗 33 × 5 = 165 积分。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Wan 2.6 Flash API 参考](/zh/api-reference/endpoint/submit-wan-2-6-flash)。

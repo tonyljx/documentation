@@ -1,0 +1,22 @@
+---
+title: "Submit Suno task"
+description: "POST a Suno V6 music generation task in inspiration or custom mode"
+openapi: "POST /api/v1/task/submit/suno"
+---
+
+## Submit task
+
+In inspiration mode (`custom: false`, default) `prompt` is a required song description. In custom mode (`custom: true`) `prompt` holds the lyrics and you can add `title`, `style`, `negative_tags`, `max_mode`, and `duration`. One request usually returns two tracks; read all of them from `result_urls` when the task succeeds.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/suno \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "Late-night city lo-fi piano with the sound of rain",
+    "instrumental": true
+  }'
+```
+
+The gateway charges 60 credits per request, or 120 credits with `max_mode: true` (custom mode only). The price covers every returned track. Read `/pricing` for the current amount.

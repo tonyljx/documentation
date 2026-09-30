@@ -1,0 +1,52 @@
+---
+title: "GPT Image 2.5"
+description: "Generate or edit one image with GPT Image 2.5 at 1K, 2K, or 4K"
+icon: "image"
+---
+
+## GPT Image 2.5
+
+GPT Image 2.5 uses the same model key for generation and editing. Omit `image_urls` for text-to-image, or provide up to 16 reference images for image-to-image editing.
+
+Choose a `version` for the job. Both versions cost the same:
+
+- `flare` (default): faster output for everyday generation.
+- `sunburst`: finer edits, suited to product shots, ad creatives, and multi-turn editing.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-blank UTF-8 text, maximum 20,000 bytes at the gateway |
+| `version` | No | `flare` (default) or `sunburst` |
+| `image_urls` | No | 1–16 HTTP(S) URLs or base64 data URIs (`data:image/jpeg`, `data:image/png`, or `data:image/webp`). JPEG, PNG, and WebP only |
+| `aspect_ratio` | No | `auto` (default), `1:1`, `16:9`, `9:16`, `4:3`, `3:4`, `3:2`, `2:3`, `5:4`, `4:5`, `21:9` |
+| `resolution` | No | `1K` (default), `2K`, `4K` (case-insensitive) |
+
+GPT Image 2.5 does not accept `quality`, `output_format`, `n`, or `background`.
+
+```json
+{
+  "prompt": "A product shot of a glass perfume bottle on wet black stone, soft rim light",
+  "version": "sunburst",
+  "image_urls": ["https://example.com/bottle.png"],
+  "aspect_ratio": "4:5",
+  "resolution": "2K"
+}
+```
+
+Submit to `POST /api/v1/task/submit/gpt-image-2.5`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+| Resolution | Credits per image |
+| --- | --- |
+| 1K | 13 |
+| 2K | 21 |
+| 4K | 32 |
+
+<Note>
+  Each request produces one image. `version`, `aspect_ratio`, and reference images do not change the price. `/pricing` remains the current source of truth.
+</Note>
+
+See the [GPT Image 2.5 API reference](/api-reference/endpoint/submit-gpt-image-2-5) for the machine-readable Schema.

@@ -1,0 +1,25 @@
+---
+title: "提交 PixVerse V6 任务"
+description: "POST PixVerse V6 文生、图生、首尾帧或多参考图视频任务"
+openapi: "POST /api/v1/task/submit/pixverse-v6"
+---
+
+## 提交任务
+
+`prompt` 与 `type` 必填。`image-to-video` 传 1 个公网 HTTP(S) 图片 URL，或 2 个生成首尾帧过渡（仅 5 或 8 秒），且不可传 `aspect_ratio`（否则返回 HTTP 422）。`reference-to-video` 传 1–7 张图片。`text-to-video` 不可传 `image_urls`。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/pixverse-v6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "镜头缓慢推进，树叶随风摆动",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/first-frame.jpg"],
+    "resolution": "540p",
+    "duration": 5
+  }'
+```
+
+网关按秒计费，单价由分辨率和音频决定：360p = 31 / 47、540p = 47 / 62、720p = 62 / 77、1080p = 124 / 154 积分/秒（无声 / 有声）。具体积分以 `/pricing` 为准。

@@ -8,7 +8,7 @@ description: "阿里巴巴 WAN 2.6 文生视频/图生视频，支持更长时�
 - **提供商**: 阿里巴巴
 - 提交任务：`POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6`；使用 `task_id` 在 `POST https://api.wizzx.ai/api/v1/task/status` 轮询结果。
 - 必填参数：`prompt`、`type`（`text-to-video` 或 `image-to-video`）。
-- 可选参数：`duration`（5/10/15秒）、`resolution`（720p/1080p）、`image_urls`（图生视频必填）。
+- 可选参数：`duration`（5/10/15秒）、`resolution`（仅 720p）、`image_urls`（图生视频必填）。
 - 支持更长提示词（最多 5000 字符）和更长视频时长（最多 15 秒）。
 
 ## 认证
@@ -31,7 +31,7 @@ description: "阿里巴巴 WAN 2.6 文生视频/图生视频，支持更长时�
 | 字段 | 类型 | 默认值 | 说明 |
 |------|------|---------|------|
 | `duration` | int | 5 | 视频时长：`5`、`10` 或 `15` 秒 |
-| `resolution` | string | `1080p` | 分辨率：`720p` 或 `1080p` |
+| `resolution` | string | `720p` | 仅 `720p`，1080p 已不再提供 |
 | `image_urls` | []string | - | 图生视频模式必填 |
 
 ### 类型规则
@@ -73,7 +73,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
     "prompt": "在一个超写实的 ASMR 视频中，一只手用针织刀慢慢切开一个完全由针织羊毛制成的汉堡。",
     "type": "text-to-video",
     "duration": 5,
-    "resolution": "1080p"
+    "resolution": "720p"
   }'
 ```
 
@@ -88,7 +88,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
     "type": "image-to-video",
     "image_urls": ["https://example.com/fox.jpg"],
     "duration": 5,
-    "resolution": "1080p"
+    "resolution": "720p"
   }'
 ```
 
@@ -114,7 +114,7 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/wan-2-6 \
   "data": {
     "task_id": "task_123456789",
     "model_key": "wan-2-6",
-    "credits_deducted": 1100
+    "credits_deducted": 485
   }
 }
 ```
@@ -154,13 +154,13 @@ WAN 2.6 根据分辨率和时长计费。
 
 | 分辨率 | 积分/秒 | 5秒视频 | 10秒视频 | 15秒视频 |
 |------------|----------------|----------|-----------|-----------|
-| **720p** | 80 | 400 积分（$0.40）| 800 积分（$0.80）| 1200 积分（$1.20）|
-| **1080p** | 110 | 550 积分（$0.55）| 1100 积分（$1.10）| 1650 积分（$1.65）|
+| **720p** | 97 | 485 积分（$0.485）| 970 积分（$0.97）| 1455 积分（$1.455）|
 
 **计费示例：**
-- 5秒 720p 视频：80 x 5 = 400 积分
-- 10秒 1080p 视频：110 x 10 = 1100 积分
-- 15秒 1080p 视频：110 x 15 = 1650 积分
+- 5秒 720p 视频：97 x 5 = 485 积分
+- 15秒 720p 视频：97 x 15 = 1455 积分
+
+1080p 已不再提供。
 
 ## 常见问题
 

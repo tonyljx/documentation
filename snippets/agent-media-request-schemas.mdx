@@ -81,7 +81,7 @@
     },
     "model": {
       "type": "string",
-      "enum": ["veo3_fast", "veo3_lite"],
+      "enum": ["veo3_fast", "veo3_lite", "veo3_quality"],
       "default": "veo3_fast"
     },
     "seeds": {
@@ -126,6 +126,18 @@
         "required": ["image_urls"],
         "properties": {
           "duration": {"const": 8}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"model": {"const": "veo3_quality"}},
+        "required": ["model"]
+      },
+      "then": {
+        "properties": {
+          "duration": {"enum": [6, 8]},
+          "type": {"enum": ["text-to-video", "image-to-video"]}
         }
       }
     }

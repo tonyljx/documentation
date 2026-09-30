@@ -97,7 +97,7 @@ These strict schemas prevent the agent from inventing fields. Omit optional fiel
 
 <AgentMediaRequestSchemas />
 
-The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every publicly documented model are available in the API reference, including Runway Gen-3, both Seedance models, Kling AI, Seedream 4/4.5, all public Nano Banana variants, and GPT Image 2.
+The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every publicly documented model are available in the API reference, including both Seedance models, Seedance 2.0 Mini, Kling AI, Kling v3, Kling v3 Omni, PixVerse V6, Grok Imagine Video 1.5, Gemini Omni Flash, Wan 2.6 Flash, Seedream 4/4.5, Seedream 5.0 Pro, all public Nano Banana variants, GPT Image 2, GPT Image 2.5, Qwen Image 2.0 / 2.0 Pro, and Suno.
 
 ### Parameter construction rules
 
@@ -108,8 +108,9 @@ The schemas above are the recommended general-purpose presets. Machine-readable 
 | Text-to-image | Use `gpt-image-2` without `image_urls`. |
 | Image editing | Use `gpt-image-2` with 1–10 public URLs in `image_urls`. |
 | Text-to-video | Set `type` to `text-to-video` and omit `image_urls`. |
-| First/last-frame video | Use two images only when that model Schema explicitly allows it—currently Veo image-to-video and Seedance 1.5 Pro. Runway, Kling, and Seedance Pro Fast accept exactly one image. |
-| Veo reference video | Set `type` to `reference-to-video`, use 1–3 images and 8 seconds; Fast/Lite support 16:9 or 9:16. |
+| First/last-frame video | Use two images only when that model Schema explicitly allows it—currently Veo, Seedance 1.5 Pro, Seedance 2.0 Mini, Kling v3, Kling v3 Omni, and PixVerse V6 (5 or 8 seconds) image-to-video. Kling AI and Seedance Pro Fast accept exactly one image. |
+| Veo reference video | Set `type` to `reference-to-video`, use 1–3 images and 8 seconds with `veo3_fast` or `veo3_lite` (16:9 or 9:16). `veo3_quality` does not support reference mode and accepts 6 or 8 seconds only. |
+| Music | Use `suno`. A successful task usually returns two tracks; return every URL in `result_urls`, not just the first. |
 | Unknown model | Open its API reference and construct a new payload; never mix fields from another model. |
 
 ### Image payload

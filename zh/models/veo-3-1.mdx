@@ -9,7 +9,7 @@ description: "统一字段的 Veo 3.1 文/图/参考图生视频提交与查询�
 - 品牌：Wizzx（第三方 API 聚合），统一使用 `Authorization: Bearer <your_api_key>`.
 - 提交生成：`POST /api/v1/task/submit/veo3`，异步返回 `task_id`。
 - 轮询状态：`POST /api/v1/task/status`，传入 `task_id` 获取结果或错误。
-- 默认模型 `veo3_fast`、分辨率 `720p`、16:9 画幅；也可选择成本更低的 `veo3_lite`。
+- 默认模型 `veo3_fast`、分辨率 `720p`、16:9 画幅；也可选择成本更低的 `veo3_lite`，或画质最高的 `veo3_quality`。
 
 ### 认证
 
@@ -37,9 +37,9 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 | 字段 | 类型 | 默认值 | 说明 |
 | --- | --- | --- | --- |
 | `image_urls` | []string | - | 1-3 张图片（规则见下） |
-| `duration` | int | `8` | `4` / `6` / `8` 秒 |
+| `duration` | int | `8` | `4` / `6` / `8` 秒；`veo3_quality` 仅支持 `6` 或 `8` |
 | `resolution` | string | `720p` | `720p` / `1080p` / `4k` |
-| `model` | string | `veo3_fast` | `veo3_fast` / `veo3_lite` |
+| `model` | string | `veo3_fast` | `veo3_fast` / `veo3_lite` / `veo3_quality` |
 | `aspect_ratio` | string | 16:9 | `16:9` / `9:16` / `Auto` |
 | `seeds` | int | - | 10000-99999，可复现 |
 | `enable_translation` | bool | - | 可选的上游翻译提示 |
@@ -51,10 +51,10 @@ Wizzx 网关会校验并注入身份，无需额外参数。
 |------|------|-----------------|
 | `text-to-video` | 纯文本生成视频 | 不传 `image_urls` |
 | `image-to-video` | 首帧/首尾帧生成 | 1-2 张图（1 张=首帧，2 张=首尾帧） |
-| `reference-to-video` | 参考图生成 | 1-3 张参考图；Fast/Lite 均支持；时长必须为 8 秒 |
+| `reference-to-video` | 参考图生成 | 1-3 张参考图；仅 Fast/Lite 支持（Quality 会被拒绝）；时长必须为 8 秒 |
 
 <Warning>
-  `type` 始终必填。`reference-to-video` 必须使用 `duration=8`。
+  `type` 始终必填。`reference-to-video` 必须使用 `duration=8`，且模型为 `veo3_fast` 或 `veo3_lite`。`veo3_quality` 仅支持 6 或 8 秒，传 4 秒会返回 HTTP 422。
 </Warning>
 
 #### 请求示例（Text2Video）
@@ -87,6 +87,21 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
       "https://example.com/frame2.jpg"
     ],
     "aspect_ratio": "9:16"
+  }'
+```
+
+#### 请求示例（Veo 3.1 Quality 文生视频）
+
+```bash
+curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "雨后夜市的缓慢推轨镜头",
+    "type": "text-to-video",
+    "model": "veo3_quality",
+    "resolution": "1080p",
+    "duration": 8
   }'
 ```
 
@@ -162,16 +177,17 @@ curl -X POST https://api.wizzx.ai/api/v1/task/submit/veo3 \
 
 ### 计费
 
-Veo 3.1 由 `model` 与 `resolution` 选择每个视频的固定扣费；4、6、8 秒价格相同。
+Veo 3.1 由 `model` 与 `resolution` 选择每个视频的固定扣费；时长不影响价格（Fast 与 Lite 支持 4、6、8 秒，Quality 支持 6、8 秒）。
 
 | 模型 | 720p | 1080p | 4K |
 |------|------|-------|----|
 | `veo3_fast` | 360 | 390 | 1080 |
 | `veo3_lite` | 180 | 210 | 900 |
+| `veo3_quality` | 1924 | 1924 | 2885 |
 
 提交前通过 `/pricing` 获取当前档位。
 
-Kie 2026-08-18 公开的 Lite 720p/1080p/4K 成本为 $0.15/$0.175/$0.75。Wizzx 在此基础上应用成本加成，按 `1000 积分 = 1 美元` 得到 180/210/900 积分售价。
+每个视频按模型档位与分辨率固定计费，`1000 积分 = 1 美元`。
 
 ### 常见问题
 
@@ -180,10 +196,8 @@ Kie 2026-08-18 公开的 Lite 720p/1080p/4K 成本为 $0.15/$0.175/$0.75。Wizzx
 - **如何复现结果？** 传 `seeds`（10000-99999）。
 - **非英文提示词会怎样？** 如需上游翻译，应显式传入 `enable_translation=true`。
 - **image-to-video 下 1 张 vs 2 张图？** 1 张作为首帧参考，2 张为首帧+尾帧，系统生成过渡。
-- **时长会乘算 Veo 积分吗？** 不会。Kie 当前生成档位按每个视频固定计费，模型档位与分辨率决定扣费。
+- **时长会乘算 Veo 积分吗？** 不会。Veo 按每个视频固定计费，模型档位与分辨率决定扣费。
 
 ### 资料来源
 
-- [Kie Veo 3.1 生成接口](https://docs.kie.ai/cn/veo3-api/generate-veo-3-video)
-- [Kie Veo 3.1 任务详情](https://docs.kie.ai/cn/veo3-api/get-veo-3-video-details)
-- [Kie 价格](https://kie.ai/pricing)
+- [Google DeepMind：Veo](https://deepmind.google/models/veo/)

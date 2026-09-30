@@ -1,0 +1,25 @@
+---
+title: "提交 Seedance 2.0 Mini 任务"
+description: "POST Seedance 2.0 Mini 文生视频或首尾帧图生视频任务"
+openapi: "POST /api/v1/task/submit/seedance-2.0-mini"
+---
+
+## 提交任务
+
+`prompt` 与 `type` 必填。`image-to-video` 传 1 个公网 HTTP(S) 图片 URL（首帧）或 2 个（首帧和尾帧）；`text-to-video` 不可传 `image_urls`。`resolution` 为 `480p` 或 `720p`（默认），`duration` 为 4–15 秒（默认 5），`generate_audio` 默认 `true`。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-2.0-mini \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "小猫对着镜头打哈欠，柔和晨光",
+    "type": "text-to-video",
+    "aspect_ratio": "16:9",
+    "resolution": "720p",
+    "duration": 5
+  }'
+```
+
+网关按秒计费：480p = 21、720p = 44 积分/秒，音频不影响价格。具体积分以 `/pricing` 为准。

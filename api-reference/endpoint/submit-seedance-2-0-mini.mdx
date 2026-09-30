@@ -1,0 +1,25 @@
+---
+title: "Submit Seedance 2.0 Mini task"
+description: "POST a Seedance 2.0 Mini text-to-video or first/last-frame image-to-video task"
+openapi: "POST /api/v1/task/submit/seedance-2.0-mini"
+---
+
+## Submit task
+
+`prompt` and `type` are required. `image-to-video` takes 1 public HTTP(S) image URL (first frame) or 2 (first and last frame); `text-to-video` must omit `image_urls`. `resolution` is `480p` or `720p` (default), `duration` is 4–15 seconds (default 5), and `generate_audio` defaults to `true`.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/seedance-2.0-mini \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "A kitten yawning at the camera, soft morning light",
+    "type": "text-to-video",
+    "aspect_ratio": "16:9",
+    "resolution": "720p",
+    "duration": 5
+  }'
+```
+
+The gateway charges per second: 480p = 21, 720p = 44 credits. Audio does not change the price. Read `/pricing` for the current amount.

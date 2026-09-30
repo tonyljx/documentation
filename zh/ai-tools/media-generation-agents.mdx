@@ -97,7 +97,7 @@ export WIZZX_API_KEY
 
 <AgentMediaRequestSchemas />
 
-上面两份 Schema 是推荐的通用预设。API 参考已经为全部公开文档模型提供机器可读请求 Schema，包括 Runway Gen-3、两款 Seedance、Kling AI、Seedream 4/4.5、全部公开 Nano Banana 版本和 GPT Image 2。
+上面两份 Schema 是推荐的通用预设。API 参考已经为全部公开文档模型提供机器可读请求 Schema，包括两款 Seedance、Seedance 2.0 Mini、Kling AI、Kling v3、Kling v3 Omni、PixVerse V6、Grok Imagine Video 1.5、Gemini Omni Flash、Wan 2.6 Flash、Seedream 4/4.5、Seedream 5.0 Pro、全部公开 Nano Banana 版本、GPT Image 2、GPT Image 2.5、Qwen Image 2.0 / 2.0 Pro 和 Suno。
 
 ### 参数构造规则
 
@@ -108,8 +108,9 @@ export WIZZX_API_KEY
 | 文生图 | 使用 `gpt-image-2`，不传 `image_urls`。 |
 | 图片编辑 | 使用 `gpt-image-2`，在 `image_urls` 中传入 1–10 个公网 URL。 |
 | 文生视频 | `type` 设为 `text-to-video`，省略 `image_urls`。 |
-| 首尾帧视频 | 只有模型 Schema 明确允许时才传两张图；当前为 Veo 图生视频和 Seedance 1.5 Pro。Runway、Kling、Seedance Pro Fast 只能传一张。 |
-| Veo 参考图视频 | `type` 设为 `reference-to-video`，传 1–3 张图并使用 8 秒；Fast/Lite 支持 16:9 或 9:16。 |
+| 首尾帧视频 | 只有模型 Schema 明确允许时才传两张图；当前为 Veo、Seedance 1.5 Pro、Seedance 2.0 Mini、Kling v3、Kling v3 Omni 和 PixVerse V6（5 或 8 秒）的图生视频。Kling AI、Seedance Pro Fast 只能传一张。 |
+| Veo 参考图视频 | `type` 设为 `reference-to-video`，传 1–3 张图并使用 8 秒，模型为 `veo3_fast` 或 `veo3_lite`（16:9 或 9:16）。`veo3_quality` 不支持参考图模式，且仅支持 6 或 8 秒。 |
+| 音乐 | 使用 `suno`。任务成功后通常返回两首，请返回 `result_urls` 中的全部 URL，而不只是第一个。 |
 | 未知模型 | 打开对应 API 参考并重新构造 Payload；禁止混用其他模型字段。 |
 
 ### 图片请求参数

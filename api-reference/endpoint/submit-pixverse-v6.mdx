@@ -1,0 +1,25 @@
+---
+title: "Submit PixVerse V6 task"
+description: "POST a PixVerse V6 text, image, first/last-frame, or multi-reference video task"
+openapi: "POST /api/v1/task/submit/pixverse-v6"
+---
+
+## Submit task
+
+`prompt` and `type` are required. `image-to-video` takes 1 public HTTP(S) image URL, or 2 for a first/last-frame transition (duration 5 or 8 only), and must omit `aspect_ratio` (HTTP 422 otherwise). `reference-to-video` takes 1–7 images. `text-to-video` must omit `image_urls`.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/pixverse-v6 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "Camera slowly zooms in while the leaves move in the wind",
+    "type": "image-to-video",
+    "image_urls": ["https://example.com/first-frame.jpg"],
+    "resolution": "540p",
+    "duration": 5
+  }'
+```
+
+The gateway charges per second by resolution and audio: 360p = 31 / 47, 540p = 47 / 62, 720p = 62 / 77, 1080p = 124 / 154 credits (silent / with audio). Read `/pricing` for the current amount.

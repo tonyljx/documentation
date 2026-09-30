@@ -1,0 +1,58 @@
+---
+title: "Kling v3 Omni"
+description: "使用 Kling v3 Omni 从文本、首尾帧或最多 7 张参考图生成 720p 或 1080p 视频"
+icon: "video"
+---
+
+## Kling v3 Omni
+
+Kling v3 Omni 是快手可灵的 Kling VIDEO 3.0 Omni 模型。在 Kling v3 的模式之外，`kling-v3-omni` 新增参考图生视频：可在一个视频中组合最多 7 张主体、场景或风格参考图。
+
+- `text-to-video`：省略 `image_urls`。
+- `image-to-video`：1 张图片作为首帧；2 张图片分别作为首帧和尾帧。
+- `reference-to-video`：1–7 张参考图。在提示词中用 `<<<image_1>>>` … `<<<image_N>>>` 引用，编号与 `image_urls` 顺序一致。提示词未引用任何图片时，会自动在开头加上 `<<<image_1>>>`。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本，最多 2,500 个字符 |
+| `type` | 是 | `text-to-video`、`image-to-video` 或 `reference-to-video` |
+| `image_urls` | 图生与参考模式必填 | `image-to-video`：1–2 个公网 HTTP(S) URL；`reference-to-video`：1–7 个；`text-to-video` 不可传 |
+| `resolution` | 否 | `720p`（默认，标准模式）或 `1080p`（专业模式） |
+| `duration` | 否 | `3`–`15` 的整数秒，默认 `5` |
+| `aspect_ratio` | 否 | `16:9`（默认）、`9:16`、`1:1`；有首帧时可能以图片比例为准 |
+| `generate_audio` | 否 | `false`（默认），传 `true` 生成原生音频 |
+| `negative_prompt` | 否 | 最多 2,500 个字符 |
+
+每个请求生成一个不带水印的视频。不提供参考视频、4K、多镜头分镜和主体元素参考。
+
+```json
+{
+  "prompt": "<<<image_1>>> 中的角色走向 <<<image_2>>> 中的场景",
+  "type": "reference-to-video",
+  "image_urls": [
+    "https://example.com/character.jpg",
+    "https://example.com/scene.jpg"
+  ],
+  "resolution": "1080p",
+  "duration": 5
+}
+```
+
+提交到 `POST /api/v1/task/submit/kling-v3-omni`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+Kling v3 Omni 按秒计费，单价由分辨率和是否生成音频决定；参考图不另收费。
+
+| 分辨率 | 无声（积分/秒） | 有声（积分/秒） |
+| --- | --- | --- |
+| 720p | 130 | 173 |
+| 1080p | 173 | 216 |
+
+<Note>
+  示例：5 秒有声 1080p 视频消耗 216 × 5 = 1,080 积分。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Kling v3 Omni API 参考](/zh/api-reference/endpoint/submit-kling-v3-omni)。

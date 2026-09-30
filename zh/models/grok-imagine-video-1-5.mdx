@@ -1,0 +1,52 @@
+---
+title: "Grok Imagine Video 1.5"
+description: "使用 Grok Imagine Video 1.5 从文本或最多 7 张参考图生成 6–15 秒、480p 或 720p 视频"
+icon: "video"
+---
+
+## Grok Imagine Video 1.5
+
+Grok Imagine Video 1.5 是 xAI 的视频生成模型。`grok-imagine-video-1.5` 支持文生视频，以及使用 1–7 张参考图的图生视频，输出 480p 或 720p、6–15 秒。
+
+`type` 可省略。省略时，不带 `image_urls` 的请求按 `text-to-video` 处理，带图片的请求按 `image-to-video` 处理。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本 |
+| `type` | 否 | `text-to-video` 或 `image-to-video`；省略时根据 `image_urls` 推断 |
+| `image_urls` | `image-to-video` 必填 | 1–7 个公网 HTTP(S) URL，不支持 base64 / data URI；`text-to-video` 不可传 |
+| `aspect_ratio` | 否 | `16:9`（默认）、`9:16`、`1:1`、`3:2`、`2:3`；有参考图时输出跟随参考图比例 |
+| `resolution` | 否 | `480p` 或 `720p`（默认），小写 |
+| `duration` | 否 | `6`–`15` 的整数秒，默认 `6` |
+
+每个请求生成一个视频。
+
+```json
+{
+  "prompt": "让画面自然动起来，云朵缓缓飘动",
+  "type": "image-to-video",
+  "image_urls": ["https://example.com/start.png"],
+  "aspect_ratio": "16:9",
+  "resolution": "720p",
+  "duration": 10
+}
+```
+
+提交到 `POST /api/v1/task/submit/grok-imagine-video-1.5`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+Grok Imagine Video 1.5 按秒计费，单价由分辨率决定；参考图不另收费。
+
+| 分辨率 | 积分/秒 |
+| --- | --- |
+| 480p | 20 |
+| 720p | 37 |
+
+<Note>
+  示例：默认 6 秒 720p 视频消耗 37 × 6 = 222 积分。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Grok Imagine Video 1.5 API 参考](/zh/api-reference/endpoint/submit-grok-imagine-video-1-5)。

@@ -1,0 +1,55 @@
+---
+title: "Seedance 2.0 Mini"
+description: "使用 Seedance 2.0 Mini 从文本或首尾帧生成 4–15 秒、480p 或 720p 的有声视频"
+icon: "video"
+---
+
+## Seedance 2.0 Mini
+
+Seedance 2.0 Mini 属于字节跳动 Seedance 2.0 视频系列。`seedance-2.0-mini` 支持 480p 或 720p、4–15 秒的文生视频与图生视频，默认生成音轨且不额外收费。
+
+- `text-to-video`：省略 `image_urls`。
+- `image-to-video`：1 张图片作为首帧；2 张图片分别作为首帧和尾帧。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本，最多 4,000 个字符 |
+| `type` | 是 | `text-to-video` 或 `image-to-video` |
+| `image_urls` | `image-to-video` 必填 | 1–2 个公网 HTTP(S) URL（首帧、尾帧）；`text-to-video` 不可传 |
+| `resolution` | 否 | `480p` 或 `720p`（默认） |
+| `duration` | 否 | `4`–`15` 的整数秒，默认 `5` |
+| `aspect_ratio` | 否 | `16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`21:9`、`adaptive`（`auto` 为别名）。文生视频默认 `16:9`，图生视频默认 `adaptive` |
+| `generate_audio` | 否 | `true`（默认）或 `false`，不影响价格 |
+| `seed` | 否 | `-1`（随机）或 `0`–`4294967295` |
+
+每个请求生成一个视频。不提供参考视频、参考音频、1080p 与 4K。
+
+```json
+{
+  "prompt": "从阳光下的街道过渡到同一条街的夜景",
+  "type": "image-to-video",
+  "image_urls": [
+    "https://example.com/day.jpg",
+    "https://example.com/night.jpg"
+  ],
+  "resolution": "480p",
+  "duration": 8
+}
+```
+
+提交到 `POST /api/v1/task/submit/seedance-2.0-mini`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+| 分辨率 | 积分/秒 |
+| --- | --- |
+| 480p | 21 |
+| 720p | 44 |
+
+<Note>
+  示例：5 秒 720p 视频消耗 44 × 5 = 220 积分，是否生成音频价格相同。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [Seedance 2.0 Mini API 参考](/zh/api-reference/endpoint/submit-seedance-2-0-mini)。

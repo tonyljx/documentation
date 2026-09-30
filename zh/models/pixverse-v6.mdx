@@ -1,0 +1,59 @@
+---
+title: "PixVerse V6"
+description: "使用 PixVerse V6 从文本、单张图片、首尾帧或最多 7 张参考图生成 1–15 秒视频"
+icon: "video"
+---
+
+## PixVerse V6
+
+PixVerse V6 是 PixVerse 的视频模型。`pixverse-v6` 支持文生视频、图生视频、首尾帧过渡和多参考图融合，输出 360p–1080p、1–15 秒，可选音轨。
+
+- `text-to-video`：省略 `image_urls`，可设置 `aspect_ratio`。
+- `image-to-video`：1 张图片让画面动起来；2 张图片生成首尾帧过渡（仅 `5` 或 `8` 秒）。输出比例跟随输入图片，因此**不要传 `aspect_ratio`**，传入会返回 HTTP 422。
+- `reference-to-video`：1–7 张参考图融合为一个视频，可设置 `aspect_ratio`。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本，最多 5,000 个字符 |
+| `type` | 是 | `text-to-video`、`image-to-video` 或 `reference-to-video` |
+| `image_urls` | 图生与参考模式必填 | `image-to-video`：1–2 个公网 HTTP(S) URL；`reference-to-video`：1–7 个；`text-to-video` 不可传 |
+| `aspect_ratio` | 否 | `16:9`（默认）、`4:3`、`1:1`、`3:4`、`9:16`、`2:3`、`3:2`、`21:9`；仅文生视频与参考图生视频 |
+| `resolution` | 否 | `360p`、`540p`（默认）、`720p`、`1080p` |
+| `duration` | 否 | `1`–`15` 的整数秒，默认 `5`；首尾帧过渡仅支持 `5` 或 `8` |
+| `generate_audio` | 否 | `false`（默认）或 `true` |
+| `negative_prompt` | 否 | 最多 2,048 个字符 |
+| `seed` | 否 | `0`–`2147483647` |
+
+每个请求生成一个视频。不提供视频续写、多片段生成与水印控制。
+
+```json
+{
+  "prompt": "雨夜霓虹小巷，变形镜头光晕",
+  "type": "text-to-video",
+  "aspect_ratio": "21:9",
+  "resolution": "720p",
+  "duration": 8,
+  "generate_audio": true
+}
+```
+
+提交到 `POST /api/v1/task/submit/pixverse-v6`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+PixVerse V6 按秒计费，单价由分辨率和是否生成音频决定。
+
+| 分辨率 | 无声（积分/秒） | 有声（积分/秒） |
+| --- | --- | --- |
+| 360p | 31 | 47 |
+| 540p | 47 | 62 |
+| 720p | 62 | 77 |
+| 1080p | 124 | 154 |
+
+<Note>
+  示例：5 秒无声 540p 视频消耗 47 × 5 = 235 积分。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+机器可读 Schema 请查看 [PixVerse V6 API 参考](/zh/api-reference/endpoint/submit-pixverse-v6)。

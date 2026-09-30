@@ -60,14 +60,48 @@ export const publicModels = [
     },
   },
   {
-    modelKey: "runway-gen3",
-    title: "Runway Gen-3",
-    tag: "Video generation",
-    schema: "RunwayGen3SubmitRequest",
+    modelKey: "gpt-image-2.5",
+    title: "GPT Image 2.5",
+    tag: "Image generation",
+    schema: "GPTImage25SubmitRequest",
     example: {
-      prompt: "A paper boat crosses a moonlit lake",
-      type: "text-to-video",
-      duration: 5,
+      prompt: "An orange mechanical keyboard on a dark desk",
+      version: "flare",
+      resolution: "2K",
+    },
+  },
+  {
+    modelKey: "qwen-image-2.0",
+    title: "Qwen Image 2.0",
+    tag: "Image generation",
+    schema: "QwenImage2SubmitRequest",
+    example: {
+      prompt: "A minimalist poster with the headline SUMMER SALE",
+      aspect_ratio: "3:4",
+      resolution: "2K",
+    },
+  },
+  {
+    modelKey: "qwen-image-2.0-pro",
+    title: "Qwen Image 2.0 Pro",
+    tag: "Image generation",
+    schema: "QwenImage2SubmitRequest",
+    example: {
+      prompt: "A bilingual tea shop menu board with clean serif lettering",
+      aspect_ratio: "4:3",
+      resolution: "2K",
+    },
+  },
+  {
+    modelKey: "seedream-5-pro",
+    title: "Seedream 5.0 Pro",
+    tag: "Image generation",
+    schema: "Seedream5ProSubmitRequest",
+    example: {
+      prompt: "A bilingual coffee shop menu board with clean typography",
+      aspect_ratio: "3:4",
+      resolution: "1.5K",
+      output_format: "png",
     },
   },
   {
@@ -119,13 +153,114 @@ export const publicModels = [
       model_name: "kling-v2-1-master",
     },
   },
+  {
+    modelKey: "kling-v3",
+    title: "Kling v3",
+    tag: "Video generation",
+    schema: "KlingV3SubmitRequest",
+    example: {
+      prompt: "Neon lights reflected on a wet Tokyo crossing at night",
+      type: "text-to-video",
+      resolution: "1080p",
+      duration: 5,
+    },
+  },
+  {
+    modelKey: "kling-v3-omni",
+    title: "Kling v3 Omni",
+    tag: "Video generation",
+    schema: "KlingV3OmniSubmitRequest",
+    example: {
+      prompt:
+        "The character in <<<image_1>>> walks into the scene in <<<image_2>>>",
+      type: "reference-to-video",
+      image_urls: [
+        "https://example.com/character.jpg",
+        "https://example.com/scene.jpg",
+      ],
+      duration: 5,
+    },
+  },
+  {
+    modelKey: "seedance-2.0-mini",
+    title: "Seedance 2.0 Mini",
+    tag: "Video generation",
+    schema: "Seedance20MiniSubmitRequest",
+    example: {
+      prompt: "A kitten yawning at the camera, soft morning light",
+      type: "text-to-video",
+      resolution: "720p",
+      duration: 5,
+    },
+  },
+  {
+    modelKey: "pixverse-v6",
+    title: "PixVerse V6",
+    tag: "Video generation",
+    schema: "PixverseV6SubmitRequest",
+    example: {
+      prompt: "A neon-lit alley at night, light rain, slow dolly forward",
+      type: "text-to-video",
+      aspect_ratio: "16:9",
+      resolution: "720p",
+      duration: 5,
+    },
+  },
+  {
+    modelKey: "grok-imagine-video-1.5",
+    title: "Grok Imagine Video 1.5",
+    tag: "Video generation",
+    schema: "GrokImagineVideo15SubmitRequest",
+    example: {
+      prompt: "Waves crash against a lighthouse at golden hour",
+      aspect_ratio: "16:9",
+      resolution: "720p",
+      duration: 6,
+    },
+  },
+  {
+    modelKey: "gemini-omni-flash",
+    title: "Gemini Omni Flash",
+    tag: "Video generation",
+    schema: "GeminiOmniFlashSubmitRequest",
+    example: {
+      prompt: "A paper lantern drifts over a quiet river at dusk",
+      aspect_ratio: "16:9",
+      resolution: "720p",
+      duration: 6,
+    },
+  },
+  {
+    modelKey: "wan-2.6-flash",
+    title: "Wan 2.6 Flash",
+    tag: "Video generation",
+    schema: "Wan26FlashSubmitRequest",
+    example: {
+      prompt: "The person smiles and waves while the camera slowly zooms in",
+      image_urls: ["https://example.com/portrait.jpg"],
+      resolution: "720p",
+      duration: 5,
+    },
+  },
+  {
+    modelKey: "suno",
+    title: "Suno",
+    tag: "Audio generation",
+    schema: "SunoSubmitRequest",
+    example: {
+      prompt: "Late-night city lo-fi piano with the sound of rain",
+      instrumental: true,
+    },
+  },
 ];
 
 // Explicitly retired public models are removed from an existing generated spec.
 // Keep them here until every checked-in OpenAPI source has stopped publishing them.
+// runway-gen3 was taken offline on 2026-09-30: submit returns 503 model_unavailable.
 export const retiredModelKeys = [
   "eleven-labs-tts-v2",
   "eleven-labs-tts-turbo-25",
+  "runway-gen3",
 ];
 
 // Compatibility-only paths that are intentionally retained in the public spec.

@@ -1,0 +1,89 @@
+---
+title: "Suno"
+description: "Generate songs or instrumentals with Suno V6 from a description or your own lyrics; each request usually returns two tracks"
+icon: "music"
+---
+
+## Suno
+
+Suno V6 is Suno's music generation model. Use the `suno` model key to create full songs or instrumentals from a short description, or from your own lyrics and style tags. Each request is one generation and **usually returns two tracks**; all of them are listed in `result_urls`.
+
+Choose a mode with `custom`:
+
+- **Inspiration mode** (`custom: false`, default): `prompt` is a song description of up to 3,000 characters.
+- **Custom mode** (`custom: true`): `prompt` holds the lyrics (up to 5,000 characters), plus optional `title`, `style`, `negative_tags`, `max_mode`, and `duration`.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Conditional | Inspiration mode: required, at most 3,000 characters. Custom mode: lyrics, at most 5,000 characters; required unless `instrumental` is `true` |
+| `custom` | No | `false` (default) or `true` |
+| `instrumental` | No | `false` (default) or `true` for no vocals. A custom instrumental needs `prompt` or `style` |
+| `version` | No | `v6` (default), `v6-wild`, or `v6-mini` (case-insensitive), same price |
+| `title` | No | Custom mode only, at most 80 characters |
+| `style` | No | Custom mode only, style tags, at most 1,000 characters |
+| `negative_tags` | No | Custom mode only, styles to avoid, at most 1,000 characters |
+| `vocal_gender` | No | `Male` or `Female`. Not allowed with `instrumental: true` |
+| `max_mode` | No | Custom mode only. Higher quality at double the price |
+| `duration` | No | Custom mode only. Target length of 10–360 seconds; the actual length may differ. Does not change the price |
+
+Text limits count Unicode characters. Custom-only fields sent in inspiration mode return HTTP 422.
+
+Inspiration mode:
+
+```json
+{
+  "prompt": "Late-night city lo-fi piano with the sound of rain",
+  "instrumental": true
+}
+```
+
+Custom mode:
+
+```json
+{
+  "custom": true,
+  "prompt": "[Verse]\nNeon-lit streets on a rainy night",
+  "title": "Midnight Drive",
+  "style": "synthwave, female vocal, cinematic",
+  "negative_tags": "metal, screaming",
+  "vocal_gender": "Female",
+  "duration": 180
+}
+```
+
+Submit to `POST /api/v1/task/submit/suno`. Save the returned `data.task_id` and poll `/api/v1/task/status`. A successful task returns every generated track in `result_urls`:
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/2026/09/30/track-1.mp3",
+      "https://cdn.wizzx.ai/audio/2026/09/30/track-2.mp3"
+    ],
+    "error": "",
+    "credits_deducted": 60
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+Do not assume exactly two URLs; iterate over `result_urls`. Generation usually takes 30–120 seconds.
+
+### Pricing
+
+| Mode | Credits per request |
+| --- | --- |
+| Standard (any version, inspiration or custom mode) | 60 |
+| `max_mode: true` (custom mode only) | 120 |
+
+<Note>
+  The price covers the whole request, including all returned tracks. `version` and `duration` do not change the price. `/pricing` remains the current source of truth.
+</Note>
+
+See the [Suno API reference](/api-reference/endpoint/submit-suno) for the machine-readable Schema.

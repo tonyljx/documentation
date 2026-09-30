@@ -1,0 +1,54 @@
+---
+title: "Seedream 5.0 Pro"
+description: "使用字节跳动 Seedream 5.0 Pro 以 1K、1.5K 或 2K 生成或编辑一张图片"
+icon: "image"
+---
+
+## Seedream 5.0 Pro
+
+Seedream 5.0 Pro 是字节跳动 Seed 团队推出的多模态图像生成与编辑模型，擅长文字密集排版、信息图、写实场景和精细的局部编辑。同一个 model key 同时处理两种模式：文生图时省略 `image_urls`；图生图编辑时传入 1 张参考图。
+
+每个请求生成一张图片。该模型出图比轻量图像模型慢，请以较宽松的间隔轮询 `/api/v1/task/status`。
+
+### 请求参数
+
+| 参数 | 必填 | 可接受值 |
+| --- | --- | --- |
+| `prompt` | 是 | 非空文本，最多 4,000 个字符 |
+| `image_urls` | 否 | 最多 1 个 HTTP(S) URL 或 base64 data URI（`data:image/jpeg`、`data:image/png`、`data:image/webp`） |
+| `aspect_ratio` | 否 | `auto`（默认）、`1:1`、`4:3`、`3:4`、`16:9`、`9:16`、`3:2`、`2:3`、`2:1`、`1:2`、`21:9` |
+| `resolution` | 否 | `1K`（默认）、`1.5K`、`2K`（不区分大小写） |
+| `output_format` | 否 | `jpeg`（默认）或 `png` |
+
+Seedream 5.0 Pro 不接受 `n`、`batch_size`、`size` 或 `watermark`。传入超过 1 张参考图时请求会被校验拒绝。
+
+```json
+{
+  "prompt": "把外套换成红色羊毛大衣，保持姿势和光线不变",
+  "image_urls": ["https://example.com/person.jpg"],
+  "aspect_ratio": "3:4",
+  "resolution": "1.5K",
+  "output_format": "png"
+}
+```
+
+提交到 `POST /api/v1/task/submit/seedream-5-pro`。保存响应中的 `data.task_id`，再通过 `/api/v1/task/status` 查询。
+
+### 计费
+
+| 分辨率 | 每张积分 |
+| --- | --- |
+| 1K | 44 |
+| 1.5K | 44 |
+| 2K | 89 |
+
+<Note>
+  每个请求生成一张图片。`1.5K` 与 `1K` 价格相同。`aspect_ratio`、`output_format` 与参考图不影响价格。仍应以 `/pricing` 返回值为当前事实依据。
+</Note>
+
+### 来源
+
+- [Seedream 5.0 Pro — 字节跳动 Seed](https://seed.bytedance.com/zh/seedream5_0_pro)
+- [Seedream 5.0 Pro 发布博客 — 字节跳动 Seed](https://seed.bytedance.com/en/blog/beyond-generation-it-understands-design-introducing-seedream-5-0-pro)
+
+机器可读 Schema 请查看 [Seedream 5.0 Pro API 参考](/zh/api-reference/endpoint/submit-seedream-5-pro)。

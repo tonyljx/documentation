@@ -48,3 +48,7 @@
 - Do not commit secrets or tokens; links in `docs.json` should use public destinations only.
 - Align new brand colors with the existing orange palette unless intentionally re-theming, and verify contrast in the preview.
 - Review external embeds or iframes for mixed content and sandboxing needs before inclusion.
+
+## Upstream vendor confidentiality
+
+- Never name upstream providers or channels (KIE / kie.ai, APIMart, yyrouter, ephone, DashScope, Ark/BytePlus endpoints, etc.) in public docs, model pages, pricing copy, changelogs, or UI text. Do not link to their docs or pricing pages, cite their costs, or describe primary/backup routing. Describe only the model (maker, e.g. Google / OpenAI / ByteDance), the Wizzx request contract, and Wizzx credits. Source links should point to the model maker (Google DeepMind, OpenAI, ByteDance Seed, etc.). Admin-only pages are exempt.

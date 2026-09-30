@@ -1,6 +1,6 @@
 ---
-title: "Submit Veo 3.1 Fast or Lite task"
-description: "POST a Veo 3.1 Fast/Lite text, frame, or reference video task"
+title: "Submit Veo 3.1 task"
+description: "POST a Veo 3.1 Fast, Lite, or Quality text, frame, or reference video task"
 openapi: "POST /api/v1/task/submit/veo3"
 ---
 
@@ -24,5 +24,5 @@ curl --fail-with-body --silent --show-error \
 ```
 
 <Note>
-  Public variants are `veo3_fast` and `veo3_lite`; resolution is `720p`, `1080p`, or `4k`. Variant and resolution select a fixed per-video charge, so `4`, `6`, and `8` seconds cost the same. Reference-to-video requires 8 seconds. Save `data.task_id` and poll `/api/v1/task/status`.
+  Public variants are `veo3_fast`, `veo3_lite`, and `veo3_quality`; resolution is `720p`, `1080p`, or `4k`. Variant and resolution select a fixed per-video charge, so duration does not change the price. Fast and Lite accept `4`, `6`, or `8` seconds; Quality accepts `6` or `8` and does not support reference-to-video. Reference-to-video requires 8 seconds. Save `data.task_id` and poll `/api/v1/task/status`.
 </Note>

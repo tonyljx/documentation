@@ -1,0 +1,52 @@
+---
+title: "Wan 2.6 Flash"
+description: "Animate one image into a silent 2-15 second Wan 2.6 Flash video at 720p or 1080p"
+icon: "video"
+---
+
+## Wan 2.6 Flash
+
+Wan 2.6 Flash is part of Alibaba's Wan 2.6 video family. `wan-2.6-flash` is **image-to-video only**: provide exactly one first-frame image and get a **silent** video at 720p or 1080p, from 2 to 15 seconds. The output aspect ratio follows the image.
+
+`prompt` is optional. Use `shot_type: "multi"` for a multi-shot narrative, or leave it at single-shot.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `image_urls` | Yes | Exactly 1 public HTTP(S) URL (the first frame). JPEG, PNG (no transparency), BMP, or WebP, 240–8,000 px per side, up to 10 MB. Data URIs are not accepted |
+| `prompt` | No | At most 1,500 characters. Describe subject, action, camera, and style |
+| `type` | No | Only `image-to-video` |
+| `resolution` | No | `720p` (default) or `1080p` |
+| `duration` | No | Integer seconds from `2` to `15`, default `5` |
+| `shot_type` | No | `single` or `multi`. Requires `prompt_extend` not to be `false` |
+| `prompt_extend` | No | Smart prompt rewriting, enabled unless set to `false` |
+| `negative_prompt` | No | At most 500 characters |
+| `seed` | No | Integer ≥ 0 |
+
+Output is always silent: `audio: true` or any `audio_url` returns HTTP 422. Text-to-video is not offered. Each request produces one video.
+
+```json
+{
+  "prompt": "The person in the image smiles and waves, camera slowly zooms in",
+  "image_urls": ["https://example.com/portrait.jpg"],
+  "resolution": "1080p",
+  "duration": 10,
+  "shot_type": "multi"
+}
+```
+
+Submit to `POST /api/v1/task/submit/wan-2.6-flash`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+| Resolution | Credits per second |
+| --- | --- |
+| 720p | 33 |
+| 1080p | 54 |
+
+<Note>
+  Example: the default 5-second 720p video costs 33 × 5 = 165 credits. `/pricing` remains the current source of truth.
+</Note>
+
+See the [Wan 2.6 Flash API reference](/api-reference/endpoint/submit-wan-2-6-flash) for the machine-readable Schema.

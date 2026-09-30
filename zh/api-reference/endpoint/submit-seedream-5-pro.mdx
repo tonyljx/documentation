@@ -1,0 +1,24 @@
+---
+title: "提交 Seedream 5.0 Pro 任务"
+description: "POST Seedream 5.0 Pro 图片生成或单参考图编辑任务"
+openapi: "POST /api/v1/task/submit/seedream-5-pro"
+---
+
+## 提交任务
+
+`prompt` 必填。图片生成时省略 `image_urls`；图片编辑时传入恰好 1 个 HTTP(S) URL 或 base64 data URI（JPEG、PNG、WebP）。`resolution` 可选 `1K`（默认）、`1.5K`、`2K`；`output_format` 可选 `jpeg`（默认）或 `png`。每个被接受的请求生成一张图片。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/seedream-5-pro \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "中英双语咖啡店菜单板，排版简洁",
+    "aspect_ratio": "3:4",
+    "resolution": "1.5K",
+    "output_format": "png"
+  }'
+```
+
+网关按 `resolution` 每张计费：1K = 44、1.5K = 44、2K = 89 积分。`aspect_ratio`、`output_format` 与参考图不影响价格。具体积分以 `/pricing` 为准。

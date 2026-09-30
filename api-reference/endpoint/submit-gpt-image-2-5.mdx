@@ -1,0 +1,24 @@
+---
+title: "Submit GPT Image 2.5 task"
+description: "POST a GPT Image 2.5 generation or image editing task"
+openapi: "POST /api/v1/task/submit/gpt-image-2.5"
+---
+
+## Submit task
+
+`prompt` is required. Omit `image_urls` for generation, or provide up to 16 HTTP(S) URLs or base64 data URIs (JPEG, PNG, or WebP) for editing. `version` selects `flare` (default) or `sunburst`. Each accepted request produces one image.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/task/submit/gpt-image-2.5 \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "prompt": "An orange mechanical keyboard on a dark desk",
+    "version": "flare",
+    "aspect_ratio": "16:9",
+    "resolution": "2K"
+  }'
+```
+
+The gateway charges per image by `resolution`: 1K = 13, 2K = 21, 4K = 32 credits. `version`, `aspect_ratio`, and reference images do not change the price. Read `/pricing` for the current amount.

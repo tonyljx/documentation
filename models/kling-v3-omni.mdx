@@ -1,0 +1,58 @@
+---
+title: "Kling v3 Omni"
+description: "Generate Kling v3 Omni videos from text, first/last frames, or up to 7 reference images at 720p or 1080p"
+icon: "video"
+---
+
+## Kling v3 Omni
+
+Kling v3 Omni is Kuaishou's Kling VIDEO 3.0 Omni model. On top of the Kling v3 modes, `kling-v3-omni` adds reference-to-video: combine up to 7 images of subjects, scenes, or styles in one video.
+
+- `text-to-video`: omit `image_urls`.
+- `image-to-video`: 1 image sets the first frame; 2 images set the first and last frame.
+- `reference-to-video`: 1–7 reference images. Cite them in the prompt as `<<<image_1>>>` … `<<<image_N>>>`, numbered in `image_urls` order. If the prompt cites none, `<<<image_1>>>` is prepended automatically.
+
+### Request parameters
+
+| Parameter | Required | Accepted values |
+| --- | --- | --- |
+| `prompt` | Yes | Non-blank text, at most 2,500 characters |
+| `type` | Yes | `text-to-video`, `image-to-video`, or `reference-to-video` |
+| `image_urls` | For image and reference modes | `image-to-video`: 1–2 public HTTP(S) URLs. `reference-to-video`: 1–7. Not allowed for `text-to-video` |
+| `resolution` | No | `720p` (default, standard mode) or `1080p` (professional mode) |
+| `duration` | No | Integer seconds from `3` to `15`, default `5` |
+| `aspect_ratio` | No | `16:9` (default), `9:16`, `1:1`. With a first frame, the image's ratio may take precedence |
+| `generate_audio` | No | `false` (default) or `true` for native audio |
+| `negative_prompt` | No | At most 2,500 characters |
+
+Each request produces one video without a watermark. Reference videos, 4K, multi-shot storyboards, and element references are not offered.
+
+```json
+{
+  "prompt": "The character in <<<image_1>>> walks toward the scene in <<<image_2>>>",
+  "type": "reference-to-video",
+  "image_urls": [
+    "https://example.com/character.jpg",
+    "https://example.com/scene.jpg"
+  ],
+  "resolution": "1080p",
+  "duration": 5
+}
+```
+
+Submit to `POST /api/v1/task/submit/kling-v3-omni`. Save the returned `data.task_id` and poll `/api/v1/task/status`.
+
+### Pricing
+
+Kling v3 Omni is billed per second by resolution and audio. Reference images are not billed.
+
+| Resolution | Silent (credits/s) | With audio (credits/s) |
+| --- | --- | --- |
+| 720p | 130 | 173 |
+| 1080p | 173 | 216 |
+
+<Note>
+  Example: a 5-second 1080p video with audio costs 216 × 5 = 1,080 credits. `/pricing` remains the current source of truth.
+</Note>
+
+See the [Kling v3 Omni API reference](/api-reference/endpoint/submit-kling-v3-omni) for the machine-readable Schema.
