@@ -67,10 +67,10 @@ export WIZZX_API_KEY
 3. 使用 Bearer Key 请求 GET /api/v1/credits/balance。
 4. 只构造所选模型 Schema 允许的字段。model_key 放在 URL 路径中，不放进 JSON Body。
 5. 如果用户只要求方案、参数预览或费用估算，停在提交之前。
-6. 仅调用一次 POST /api/v1/task/submit/{model_key}。
+6. 仅调用一次 POST /api/v1/task/submit/{model_key}。Suno 音乐动作改为仅调用一次 POST /api/v1/music/{action}。
 7. 必须同时满足 HTTP 成功、code == 0、data.task_id 非空；立即保存并告知用户 Task ID。
 8. 使用同一个 Bearer Key，通过 {"task_id":"..."} 轮询 POST /api/v1/task/status；采用退避，并遵守 429 的 retry_after。
-9. PENDING、QUEUED、PROCESSING 时继续查询；SUCCEEDED 时返回 result_urls；FAILED 时返回 error；REVIEW_REQUIRED 时停止并报告，禁止重新提交。
+9. PENDING、QUEUED、PROCESSING 时继续查询；SUCCEEDED 时返回 result_urls，若存在 result 对象（音乐任务）一并返回；FAILED 时返回 error；REVIEW_REQUIRED 时停止并报告，禁止重新提交。
 10. 查询超时时返回 Task ID，方便稍后继续；禁止自动创建替代任务。
 
 如果提交请求发生网络超时或结果不明确的 5xx，不得自动重试，因为可能产生第二个付费任务。任何第二次提交都必须先询问用户。
@@ -83,6 +83,7 @@ export WIZZX_API_KEY
 | 获取当前公开模型和价格 | [`GET /pricing`](/zh/api-reference/endpoint/pricing) | 无需鉴权 |
 | 查询积分余额 | [`GET /api/v1/credits/balance`](/zh/api-reference/endpoint/credit-balance) | Bearer API Key |
 | 提交生成任务 | `POST /api/v1/task/submit/{model_key}` | Bearer API Key |
+| 提交 Suno 音乐动作 | [`POST /api/v1/music/{action}`](/zh/api-reference/endpoint/submit-music) | Bearer API Key |
 | 查询任务状态 | [`POST /api/v1/task/status`](/zh/api-reference/endpoint/task-status) | Bearer API Key |
 
 只有当模型仍出现在 `/pricing` 时，才将 `gpt-image-2` 作为通用图片预设、`veo3` 作为通用视频预设。如果用户指定其他模型，必须阅读该模型的 API 参考，不能复用预设 Schema。
@@ -97,7 +98,7 @@ export WIZZX_API_KEY
 
 <AgentMediaRequestSchemas />
 
-上面两份 Schema 是推荐的通用预设。API 参考已经为全部公开文档模型提供机器可读请求 Schema，包括两款 Seedance、Seedance 2.0 Mini、Kling AI、Kling v3、Kling v3 Omni、PixVerse V6、Grok Imagine Video 1.5、Gemini Omni Flash、Wan 2.6 Flash、Seedream 4/4.5、Seedream 5.0 Pro、全部公开 Nano Banana 版本、GPT Image 2、GPT Image 2.5、Qwen Image 2.0 / 2.0 Pro 和 Suno。
+上面两份 Schema 是推荐的通用预设。API 参考已经为全部公开文档模型提供机器可读请求 Schema，包括两款 Seedance、Seedance 2.0 Mini、Kling AI、Kling v3、Kling v3 Omni、PixVerse V6、Grok Imagine Video 1.5、Gemini Omni Flash、Wan 2.6 Flash、Seedream 4/4.5、Seedream 5.0 Pro、全部公开 Nano Banana 版本、GPT Image 2、GPT Image 2.5、Qwen Image 2.0 / 2.0 Pro 和 Suno（含全部音乐动作）。
 
 ### 参数构造规则
 
@@ -110,7 +111,7 @@ export WIZZX_API_KEY
 | 文生视频 | `type` 设为 `text-to-video`，省略 `image_urls`。 |
 | 首尾帧视频 | 只有模型 Schema 明确允许时才传两张图；当前为 Veo、Seedance 1.5 Pro、Seedance 2.0 Mini、Kling v3、Kling v3 Omni 和 PixVerse V6（5 或 8 秒）的图生视频。Kling AI、Seedance Pro Fast 只能传一张。 |
 | Veo 参考图视频 | `type` 设为 `reference-to-video`，传 1–3 张图并使用 8 秒，模型为 `veo3_fast` 或 `veo3_lite`（16:9 或 9:16）。`veo3_quality` 不支持参考图模式，且仅支持 6 或 8 秒。 |
-| 音乐 | 使用 `suno`。任务成功后通常返回两首，请返回 `result_urls` 中的全部 URL，而不只是第一个。 |
+| 音乐 | 使用 `POST /api/v1/music/{action}`，`generate` 用于生成歌曲。generate 任务通常返回两首，请返回全部曲目，而不只是第一首。基于已有曲目操作（续写、翻唱、分轨、下载等）时，传入已完成任务的 Wizzx `task_id`，并把曲目的 `result.tracks[].index` 作为 `audio_index`。只发送该动作接受的字段，其他字段会返回 422。 |
 | 未知模型 | 打开对应 API 参考并重新构造 Payload；禁止混用其他模型字段。 |
 
 ### 图片请求参数

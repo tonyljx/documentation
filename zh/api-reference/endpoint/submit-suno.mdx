@@ -1,12 +1,14 @@
 ---
 title: "提交 Suno 任务"
-description: "POST Suno V6 音乐生成任务（灵感模式或自定义模式）"
+description: "Suno V6 音乐生成的旧版 POST 入口，等同于 generate 音乐动作"
 openapi: "POST /api/v1/task/submit/suno"
 ---
 
 ## 提交任务
 
-灵感模式（`custom: false`，默认）下 `prompt` 为必填的歌曲描述。自定义模式（`custom: true`）下 `prompt` 填写歌词，并可添加 `title`、`style`、`negative_tags`、`max_mode` 与 `duration`。一个请求通常返回两首，任务成功后请从 `result_urls` 读取全部曲目。
+该接口等同于 [`POST /api/v1/music/generate`](/zh/api-reference/endpoint/submit-music)，并继续提供支持。新接入请使用[音乐动作](/zh/api-reference/endpoint/submit-music)：除生成外，还支持续写、翻唱、编辑、分轨、分析与下载。
+
+灵感模式（`custom: false`，默认）下 `prompt` 为必填的歌曲描述。自定义模式（`custom: true`）下 `prompt` 填写歌词，并可添加 `title`、`style`、`negative_tags`、`auto_lyrics`、`persona_task_id`、`max_mode` 与 `duration`。传入 `generate` 不接受的字段会返回 HTTP 422。一个请求通常返回两首，任务成功后请从 `result_urls` 或 `result.tracks` 读取全部曲目。
 
 ```bash
 curl --fail-with-body --silent --show-error \

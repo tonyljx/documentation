@@ -197,13 +197,26 @@ Image-to-video only, silent output, 2–15 seconds.
 
 ## Audio Generation
 
-| Model | Credits | Unit |
-|-------|---------|------|
-| **Suno** (standard) | 60 | per request |
-| **Suno** (`max_mode`) | 120 | per request |
+Suno is billed per call of each [music action](/api-reference/endpoint/submit-music). The price covers the whole task, however many tracks it returns.
+
+| Suno action | Credits per call | With `max_mode` |
+|-------------|------------------|-----------------|
+| `generate`, `extend`, `cover`, `upload-cover`, `upload-extend`, `add-vocals`, `add-instrumental`, `add-stem`, `mashup`, `sample`, `replace-section` | 60 | 120 |
+| `inspo` | 131 | 262 |
+| `remaster`, `midi` | 60 | – |
+| `stems` | 193 | – |
+| `stems-all` | 462 | – |
+| `create-model` | 1,847 | – |
+| `adjust-speed` | 47 | – |
+| `create-voice` | 31 | – |
+| `sounds` | 19 | – |
+| `lyrics`, `crop`, `fade-in`, `fade-out`, `remove-section` | 16 | – |
+| `upload`, `persona`, `concat`, `music-video`, `upsample-tags` | 8 | – |
+| `download` | 3 | – |
+| `aligned-lyrics`, `bpm` | 2 | – |
 
 <Note>
-  A Suno request usually returns two tracks; the price covers all of them. `version` (`v6`, `v6-wild`, `v6-mini`) and `duration` do not change the price. `max_mode` is available in custom mode only.
+  `POST /api/v1/task/submit/suno` is billed as `generate`. `version` (`v6`, `v6-wild`, `v6-mini`) and `duration` do not change the price. `max_mode` requires custom mode on actions that have a mode switch.
 </Note>
 
 ## Cost Calculator

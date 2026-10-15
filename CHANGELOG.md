@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-10-15
+
+### Added
+
+- Documented Suno music actions (`POST /api/v1/music/{action}`, 33 actions) in a new bilingual endpoint page (`api-reference/endpoint/submit-music`, `zh/...`) with shared fields, custom/inspiration mode rules, source-track referencing rules, per-action field tables grouped as Creation / From an existing track / Editing / Analysis and export, worked multi-step examples, and errors. Added it to both API reference navigation groups.
+- Documented the structured `result` object of `POST /api/v1/task/status` for music tasks (tracks, lyrics, style, files, video_url, bpm, persona_id, model_id, midi, aligned_lyrics, data) on both task-status pages, alongside a success-response example; `result_urls` is unchanged.
+- Documented the `music_action_not_found` 404 error code in both languages.
+- OpenAPI: added a `musicActions` list (accepted and required fields, source rule, result, example per action) and `musicStemTypes` to `scripts/openapi-model-manifest.mjs`; the generator now publishes `POST /api/v1/music/{action}` with an `action` enum and per-action examples, the `MusicActionRequest` schema with an `x-wizzx-music-actions` field map, `MusicTaskResult` and its item schemas, `TaskStatusData.result`, and `TaskSubmitData.action`. `scripts/check-openapi-contract.mjs` asserts the action list, field coverage, examples, and the new navigation pages.
+
+### Changed
+
+- Rewrote the bilingual Suno model page around music actions: capability overview, extended `generate` parameters, `result.tracks`, chaining tracks, and per-action credits. The legacy `submit-suno` pages now state that `POST /api/v1/task/submit/suno` equals `generate`, and `SunoSubmitRequest` accepts the new `generate` fields.
+- Replaced the two Suno pricing rows with a per-action table (credits only) on both pricing pages, and updated home cards, agent guides (endpoint table, copyable instruction, music rule), and changelogs.
+
 ## 2026-09-30
 
 ### Added

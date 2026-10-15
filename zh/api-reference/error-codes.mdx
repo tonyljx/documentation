@@ -288,6 +288,21 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 
 **解决方案：** 使用 `/v1/models` 端点列出可用模型。
 
+### `music_action_not_found`
+
+```json
+{
+  "error": {
+    "message": "Music action 'remix' does not exist. Supported: add-instrumental, add-stem, add-vocals, adjust-speed, aligned-lyrics, bpm, concat, cover, create-model, create-voice, crop, download, extend, fade-in, fade-out, generate, inspo, lyrics, mashup, midi, music-video, persona, remaster, remove-section, replace-section, sample, sounds, stems, stems-all, upload, upload-cover, upload-extend, upsample-tags",
+    "type": "not_found_error",
+    "param": null,
+    "code": "music_action_not_found"
+  }
+}
+```
+
+**解决方案：** 使用错误信息中列出的动作之一，详见 [提交音乐动作](/zh/api-reference/endpoint/submit-music)。
+
 ### `resource_not_found`
 
 ```json

@@ -67,10 +67,10 @@ Execution contract:
 3. Read GET /api/v1/credits/balance with the Bearer key.
 4. Build only fields allowed by the selected model schema. model_key belongs in the URL path, not the JSON body.
 5. If the user asked only for a plan, payload preview, or cost estimate, stop before submission.
-6. Submit exactly once with POST /api/v1/task/submit/{model_key}.
+6. Submit exactly once with POST /api/v1/task/submit/{model_key}. For a Suno music action, submit once to POST /api/v1/music/{action} instead.
 7. Require HTTP success, code == 0, and a non-empty data.task_id. Save and report that Task ID immediately.
 8. Poll POST /api/v1/task/status with {"task_id":"..."} and the same Bearer key. Use backoff and honor retry_after on 429.
-9. Continue for PENDING, QUEUED, or PROCESSING. Return result_urls for SUCCEEDED. Return error for FAILED. Stop and report REVIEW_REQUIRED without resubmitting.
+9. Continue for PENDING, QUEUED, or PROCESSING. Return result_urls for SUCCEEDED, plus the result object when present (music tasks). Return error for FAILED. Stop and report REVIEW_REQUIRED without resubmitting.
 10. If polling times out, return the Task ID so polling can resume. Never create a replacement task automatically.
 
 Do not automatically retry a submit request after a network timeout or ambiguous 5xx response; it may create a second paid task. Ask the user before any second submission.
@@ -83,6 +83,7 @@ Do not automatically retry a submit request after a network timeout or ambiguous
 | Discover public models and current pricing | [`GET /pricing`](/api-reference/endpoint/pricing) | None |
 | Check the current credit balance | [`GET /api/v1/credits/balance`](/api-reference/endpoint/credit-balance) | Bearer API key |
 | Submit a generation | `POST /api/v1/task/submit/{model_key}` | Bearer API key |
+| Submit a Suno music action | [`POST /api/v1/music/{action}`](/api-reference/endpoint/submit-music) | Bearer API key |
 | Query a task | [`POST /api/v1/task/status`](/api-reference/endpoint/task-status) | Bearer API key |
 
 Use `gpt-image-2` as the general image preset and `veo3` as the general video preset only while each key appears in `/pricing`. If the user names another model, read that model's API reference and do not reuse a preset schema.
@@ -97,7 +98,7 @@ These strict schemas prevent the agent from inventing fields. Omit optional fiel
 
 <AgentMediaRequestSchemas />
 
-The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every publicly documented model are available in the API reference, including both Seedance models, Seedance 2.0 Mini, Kling AI, Kling v3, Kling v3 Omni, PixVerse V6, Grok Imagine Video 1.5, Gemini Omni Flash, Wan 2.6 Flash, Seedream 4/4.5, Seedream 5.0 Pro, all public Nano Banana variants, GPT Image 2, GPT Image 2.5, Qwen Image 2.0 / 2.0 Pro, and Suno.
+The schemas above are the recommended general-purpose presets. Machine-readable request schemas for every publicly documented model are available in the API reference, including both Seedance models, Seedance 2.0 Mini, Kling AI, Kling v3, Kling v3 Omni, PixVerse V6, Grok Imagine Video 1.5, Gemini Omni Flash, Wan 2.6 Flash, Seedream 4/4.5, Seedream 5.0 Pro, all public Nano Banana variants, GPT Image 2, GPT Image 2.5, Qwen Image 2.0 / 2.0 Pro, and Suno, including every music action.
 
 ### Parameter construction rules
 
@@ -110,7 +111,7 @@ The schemas above are the recommended general-purpose presets. Machine-readable 
 | Text-to-video | Set `type` to `text-to-video` and omit `image_urls`. |
 | First/last-frame video | Use two images only when that model Schema explicitly allows it—currently Veo, Seedance 1.5 Pro, Seedance 2.0 Mini, Kling v3, Kling v3 Omni, and PixVerse V6 (5 or 8 seconds) image-to-video. Kling AI and Seedance Pro Fast accept exactly one image. |
 | Veo reference video | Set `type` to `reference-to-video`, use 1–3 images and 8 seconds with `veo3_fast` or `veo3_lite` (16:9 or 9:16). `veo3_quality` does not support reference mode and accepts 6 or 8 seconds only. |
-| Music | Use `suno`. A successful task usually returns two tracks; return every URL in `result_urls`, not just the first. |
+| Music | Use `POST /api/v1/music/{action}`; `generate` creates songs. A generate task usually returns two tracks; return every track, not just the first. To build on a track (extend, cover, stems, download, and so on), pass the Wizzx `task_id` of a finished task and the track's `result.tracks[].index` as `audio_index`. Send only the fields the action accepts; others return 422. |
 | Unknown model | Open its API reference and construct a new payload; never mix fields from another model. |
 
 ### Image payload

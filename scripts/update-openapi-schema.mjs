@@ -2,6 +2,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import {
   legacyModelKeys,
+  musicActions,
+  musicStemTypes,
   publicModels,
   retiredModelKeys,
 } from "./openapi-model-manifest.mjs";
@@ -191,6 +193,11 @@ Object.assign(api.components.schemas, {
         description: "Wizzx task ID used for status polling.",
       },
       model_key: { type: "string" },
+      action: {
+        type: "string",
+        description:
+          "Music action. Returned only by POST /api/v1/music/{action}.",
+      },
       credits_deducted: {
         type: "integer",
         minimum: 0,
@@ -250,6 +257,8 @@ Object.assign(api.components.schemas, {
         type: "array",
         nullable: true,
         items: { type: "string", format: "uri" },
+        description:
+          "Result media URLs. For music tasks: every track audio_url, then download files, then the music video. Text and analysis results (lyrics, BPM, MIDI, persona, model) have no URL; read result instead.",
       },
       error: { type: "string" },
       credits_deducted: {
@@ -257,6 +266,7 @@ Object.assign(api.components.schemas, {
         minimum: 0,
         description: "Reserved or finally settled credits for this task.",
       },
+      result: ref("MusicTaskResult"),
     },
   },
   TaskStatusResponse: {
@@ -868,6 +878,208 @@ const optionalText = (maxLength, description) => ({
   maxLength,
   ...(description ? { description } : {}),
 });
+const musicTaskId = (description) => ({
+  type: "string",
+  format: "uuid",
+  description,
+});
+const unitWeight = (description) => ({
+  type: "number",
+  minimum: 0,
+  maximum: 1,
+  description,
+});
+const musicAudioUrl = {
+  ...publicUrl,
+  maxLength: 2048,
+  description: "Publicly reachable HTTP(S) audio URL, at most 2048 characters.",
+};
+const musicKeys = [
+  "C",
+  "C#",
+  "D",
+  "D#",
+  "E",
+  "F",
+  "F#",
+  "G",
+  "G#",
+  "A",
+  "A#",
+  "B",
+].flatMap((note) => [note, `${note}m`]);
+
+// Every public field of POST /api/v1/music/{action}; each action accepts the
+// subset listed in musicActions.
+const musicFieldSchemas = {
+  prompt: {
+    type: "string",
+    maxLength: 5000,
+    description:
+      "Lyrics in custom mode (at most 5000 characters). A description (at most 3000 characters) for generate inspiration mode, the lyrics topic, and the sounds description.",
+  },
+  gpt_description: optionalText(
+    3000,
+    "Song description for inspiration mode (custom=false) on actions other than generate.",
+  ),
+  custom: {
+    type: "boolean",
+    description:
+      "Custom (lyrics) mode. generate defaults to false; extend defaults to true; upload-cover requires it; cover, add-vocals, add-instrumental, add-stem, mashup, and sample infer it when omitted (prompt, style, or title means true; gpt_description means false).",
+  },
+  instrumental: {
+    type: "boolean",
+    default: false,
+    description: "No vocals. Cannot be combined with vocal_gender.",
+  },
+  version: enumString(["v6", "v6-wild", "v6-mini"], {
+    default: "v6",
+    description:
+      "Case-insensitive. All versions cost the same. Cannot be combined with custom_model_task_id.",
+  }),
+  custom_model_task_id: musicTaskId(
+    "task_id of your SUCCEEDED create-model task. Replaces version; cannot be combined with version or persona_task_id.",
+  ),
+  persona_task_id: musicTaskId(
+    "task_id of your SUCCEEDED persona task. Custom mode only.",
+  ),
+  title: optionalText(80, "Custom mode only on actions with a mode switch."),
+  style: optionalText(
+    1000,
+    "Style tags. Custom mode only on actions with a mode switch. Required by upsample-tags.",
+  ),
+  negative_tags: optionalText(
+    1000,
+    "Styles to avoid. Custom mode only on actions with a mode switch.",
+  ),
+  style_weight: unitWeight(
+    "How strongly to follow style, 0-1. Custom mode only on actions other than generate.",
+  ),
+  weirdness: unitWeight("How experimental the result is, 0-1."),
+  audio_weight: unitWeight(
+    "How closely to follow the source audio, 0-1. Custom mode only on actions other than generate.",
+  ),
+  vocal_gender: enumString(["Male", "Female"], {
+    description:
+      "Case-insensitive; m and f are accepted. Cannot be combined with instrumental=true.",
+  }),
+  auto_lyrics: {
+    type: "boolean",
+    default: false,
+    description: "Custom mode only.",
+  },
+  variety: enumString(["off", "normal", "high", "extra", "max"]),
+  max_mode: {
+    type: "boolean",
+    default: false,
+    description:
+      "Higher quality at double the price. Requires custom mode on actions with a mode switch.",
+  },
+  audio_format: enumString(["mp3", "m4a", "wav"]),
+  duration: {
+    type: "integer",
+    minimum: 10,
+    maximum: 360,
+    description:
+      "Target length in seconds; actual length may differ. Custom mode only on actions with a mode switch. Does not change the price.",
+  },
+  task_id: musicTaskId(
+    "Source task: one of your SUCCEEDED suno tasks that produced tracks.",
+  ),
+  audio_index: {
+    type: "integer",
+    minimum: 1,
+    maximum: 20,
+    default: 1,
+    description: "1-based result.tracks[].index of the source task.",
+  },
+  task_ids: {
+    type: "array",
+    minItems: 2,
+    maxItems: 2,
+    items: { type: "string", format: "uuid" },
+    description: "mashup: exactly two source tasks.",
+  },
+  audio_indexes: {
+    type: "array",
+    minItems: 2,
+    maxItems: 2,
+    items: { type: "integer", minimum: 1, maximum: 20 },
+    default: [1, 1],
+    description: "mashup: track index for each task_ids entry.",
+  },
+  audio_url: musicAudioUrl,
+  audio_urls: {
+    type: "array",
+    minItems: 1,
+    maxItems: 24,
+    items: musicAudioUrl,
+    description:
+      "inspo: 1-4 reference audio URLs. create-model: 6-24 training audio URLs.",
+  },
+  continue_at: {
+    type: "number",
+    minimum: 1,
+    description:
+      "Seconds into the source audio where the continuation starts. For extend it must be less than the source track duration.",
+  },
+  start_s: {
+    type: "number",
+    minimum: 0,
+    description: "Section start in seconds.",
+  },
+  end_s: {
+    type: "number",
+    minimum: 0,
+    exclusiveMinimum: true,
+    description:
+      "Section end in seconds. Greater than start_s and not beyond the source track duration.",
+  },
+  fade_duration: {
+    type: "number",
+    minimum: 0,
+    exclusiveMinimum: true,
+    description: "Fade length in seconds; not longer than the source track.",
+  },
+  speed: { type: "number", minimum: 0.25, maximum: 4 },
+  keep_pitch: { type: "boolean", default: true },
+  stem_type: enumString(musicStemTypes, {
+    default: "lead_vocal",
+    description: "Case-insensitive.",
+  }),
+  infill_lyrics: optionalText(
+    5000,
+    "replace-section: lyrics for the replaced section.",
+  ),
+  variation_category: enumString(["subtle", "normal", "high"]),
+  sound_type: enumString(["one-shot", "loop"]),
+  bpm: { type: "integer", minimum: 1, maximum: 300 },
+  key: enumString(musicKeys, {
+    description: "Sharp notation; append m for minor.",
+  }),
+  lyrics_model: enumString(["classic", "remi"]),
+  name: optionalText(80, "create-model or persona name."),
+  description: optionalText(1000, "persona description."),
+  formats: {
+    type: "array",
+    minItems: 1,
+    items: enumString(["mp3", "m4a", "wav"]),
+    description: "Duplicates are ignored.",
+  },
+};
+{
+  const accepted = new Set(musicActions.flatMap(({ accepted }) => accepted));
+  const documented = new Set(Object.keys(musicFieldSchemas));
+  for (const field of accepted) {
+    if (!documented.has(field))
+      throw new Error(`Undocumented music field: ${field}`);
+  }
+  for (const field of documented) {
+    if (!accepted.has(field))
+      throw new Error(`Music field accepted by no action: ${field}`);
+  }
+}
+
 const noImages = {
   not: {
     required: ["image_urls"],
@@ -1239,7 +1451,7 @@ Object.assign(api.components.schemas, {
     type: "object",
     additionalProperties: false,
     description:
-      "Music generation. Inspiration mode (custom=false) takes a song description in prompt. Custom mode (custom=true) takes lyrics in prompt plus optional title, style, negative_tags, max_mode, and duration. One request usually returns 2 tracks in result_urls. Billed per request; max_mode doubles the price.",
+      "Legacy entry for Suno music generation; identical to POST /api/v1/music/generate. Inspiration mode (custom=false) takes a song description in prompt. Custom mode (custom=true) takes lyrics in prompt plus optional title, style, negative_tags, auto_lyrics, persona_task_id, max_mode, and duration. One request usually returns 2 tracks. Billed per request; max_mode doubles the price.",
     properties: {
       prompt: {
         type: "string",
@@ -1248,23 +1460,30 @@ Object.assign(api.components.schemas, {
         maxLength: 5000,
       },
       custom: { type: "boolean", default: false },
-      instrumental: { type: "boolean", default: false },
-      version: enumString(["v6", "v6-wild", "v6-mini"], {
-        default: "v6",
-        description: "Case-insensitive. All versions cost the same.",
-      }),
+      instrumental: {
+        type: "boolean",
+        default: false,
+        description:
+          "No vocals. A custom-mode instrumental needs prompt or style.",
+      },
+      version: musicFieldSchemas.version,
+      custom_model_task_id: musicFieldSchemas.custom_model_task_id,
+      persona_task_id: musicFieldSchemas.persona_task_id,
       title: optionalText(80, "Custom mode only."),
       style: optionalText(1000, "Custom mode only. Style tags."),
       negative_tags: optionalText(1000, "Custom mode only. Styles to avoid."),
-      vocal_gender: enumString(["Male", "Female"], {
-        description:
-          "Case-insensitive; m and f are accepted. Cannot be combined with instrumental=true.",
-      }),
+      style_weight: musicFieldSchemas.style_weight,
+      weirdness: musicFieldSchemas.weirdness,
+      audio_weight: musicFieldSchemas.audio_weight,
+      vocal_gender: musicFieldSchemas.vocal_gender,
+      auto_lyrics: musicFieldSchemas.auto_lyrics,
+      variety: musicFieldSchemas.variety,
       max_mode: {
         type: "boolean",
         default: false,
         description: "Custom mode only. Higher quality at double the price.",
       },
+      audio_format: musicFieldSchemas.audio_format,
       duration: {
         type: "integer",
         minimum: 10,
@@ -1282,12 +1501,14 @@ Object.assign(api.components.schemas, {
               custom: { type: "boolean", enum: [false] },
               prompt: { type: "string", minLength: 1, maxLength: 3000 },
               max_mode: { type: "boolean", enum: [false] },
+              auto_lyrics: { type: "boolean", enum: [false] },
             },
             ...forbidProperties([
               "title",
               "style",
               "negative_tags",
               "duration",
+              "persona_task_id",
             ]),
           },
           {
@@ -1302,7 +1523,126 @@ Object.assign(api.components.schemas, {
           properties: { instrumental: { enum: [true] } },
         },
       },
+      { not: { required: ["custom_model_task_id", "version"] } },
+      { not: { required: ["custom_model_task_id", "persona_task_id"] } },
     ],
+  },
+  MusicActionRequest: {
+    type: "object",
+    additionalProperties: false,
+    description:
+      "Request body for POST /api/v1/music/{action}. Each action accepts only its own fields, listed per action in x-wizzx-music-actions; sending a field the action does not accept returns 422. Earlier tasks are referenced by Wizzx task_id only and must be your own SUCCEEDED suno tasks.",
+    properties: musicFieldSchemas,
+    "x-wizzx-music-actions": Object.fromEntries(
+      musicActions.map(
+        ({ action, group, required, accepted, source, result }) => [
+          action,
+          { group, required, accepted, source, result },
+        ],
+      ),
+    ),
+  },
+  MusicTrack: {
+    type: "object",
+    required: ["index"],
+    properties: {
+      index: {
+        type: "integer",
+        minimum: 1,
+        description:
+          "1-based position. Pass it as audio_index (or an audio_indexes entry) to reference this track.",
+      },
+      audio_url: {
+        type: "string",
+        format: "uri",
+        description: "May be absent, for example on upload tasks.",
+      },
+      image_url: { type: "string", format: "uri" },
+      video_url: { type: "string", format: "uri" },
+      title: { type: "string" },
+      style: { type: "string" },
+      lyrics: { type: "string" },
+      duration: { type: "number", description: "Seconds." },
+    },
+  },
+  MusicLyrics: {
+    type: "object",
+    required: ["text"],
+    properties: {
+      title: { type: "string" },
+      text: { type: "string" },
+      style: { type: "string" },
+    },
+  },
+  MusicFile: {
+    type: "object",
+    required: ["format", "url"],
+    properties: {
+      format: enumString(["mp3", "m4a", "wav"]),
+      url: { type: "string", format: "uri" },
+    },
+  },
+  MusicBPM: {
+    type: "object",
+    required: ["avg"],
+    properties: {
+      avg: { type: "number" },
+      min: { type: "number" },
+      max: { type: "number" },
+    },
+  },
+  MusicTaskResult: {
+    type: "object",
+    description:
+      "Structured output of a finished music task. Present only when the task produced structured output; which fields are set depends on the action. Tasks finished before 2026-10-15 have no result.",
+    properties: {
+      tracks: {
+        type: "array",
+        items: ref("MusicTrack"),
+        description:
+          "Audio tracks in order. Set by generate, extend, cover, stems, and every other track-producing action.",
+      },
+      lyrics: {
+        type: "array",
+        items: ref("MusicLyrics"),
+        description: "lyrics action.",
+      },
+      style: { type: "string", description: "upsample-tags: enhanced style." },
+      files: {
+        type: "array",
+        items: ref("MusicFile"),
+        description: "download action, in request order.",
+      },
+      video_url: {
+        type: "string",
+        format: "uri",
+        description: "music-video action: MP4 URL.",
+      },
+      bpm: ref("MusicBPM"),
+      persona_id: {
+        type: "string",
+        description:
+          "persona action. Informational; reference the persona with this task's task_id as persona_task_id.",
+      },
+      model_id: {
+        type: "string",
+        description:
+          "create-model action. Informational; reference the model with this task's task_id as custom_model_task_id.",
+      },
+      midi: {
+        type: "object",
+        additionalProperties: true,
+        description: "midi action: {state, instruments[{name, notes[]}]}.",
+      },
+      aligned_lyrics: {
+        type: "object",
+        additionalProperties: true,
+        description: "aligned-lyrics action: {alignment[], waveform_data}.",
+      },
+      data: {
+        description: "create-voice action. No fixed structure.",
+      },
+    },
   },
 });
 
@@ -1369,6 +1709,49 @@ for (const modelKey of retiredModelKeys) {
 for (const model of publicModels) {
   api.paths[`/api/v1/task/submit/${model.modelKey}`] = submitOperation(model);
 }
+
+const musicActionNames = musicActions.map(({ action }) => action);
+api.paths["/api/v1/music/{action}"] = {
+  post: {
+    operationId: "submitMusicAction",
+    summary: "Submit Suno music action",
+    description:
+      "Creates one asynchronous paid suno task for the action in the path. Each action accepts only its own fields (MusicActionRequest x-wizzx-music-actions). Save data.task_id and poll the status endpoint; finished tasks return result. Do not automatically retry an ambiguous submit.",
+    tags: ["Audio generation"],
+    security: [{ bearerAuth: [] }],
+    parameters: [
+      {
+        name: "action",
+        in: "path",
+        required: true,
+        description:
+          "Music action. Unknown actions return 404 music_action_not_found.",
+        schema: enumString(musicActionNames),
+      },
+    ],
+    requestBody: {
+      required: true,
+      content: {
+        "application/json": {
+          schema: ref("MusicActionRequest"),
+          examples: Object.fromEntries(
+            musicActions.map(({ action, example }) => [
+              action,
+              { summary: action, value: example },
+            ]),
+          ),
+        },
+      },
+    },
+    responses: {
+      ...submitResponses,
+      404: errorResponse("Unknown music action (music_action_not_found)"),
+      422: errorResponse(
+        "Field not accepted by the action, mode or range violation, or unusable source task",
+      ),
+    },
+  },
+};
 
 api.paths["/pricing"] = {
   get: {

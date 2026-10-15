@@ -21,3 +21,85 @@ curl --fail-with-body --silent --show-error \
 客户端可见状态为 `PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。内部 `DISPATCHING` 会以 `PROCESSING` 返回。
 
 非终态继续查询同一个 Task ID。遇到未知状态、`REVIEW_REQUIRED` 或提交结果不明确时，不得自动创建替代任务。
+
+## 响应
+
+成功的任务在 `result_urls` 中列出生成的媒体。所有模型的该字段保持不变。
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": ["https://cdn.wizzx.ai/images/2026/10/15/result.png"],
+    "error": "",
+    "credits_deducted": 9
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+## 音乐结果
+
+已完成的[音乐任务](/zh/api-reference/endpoint/submit-music)还会返回结构化的 `result` 对象。返回哪些字段取决于动作；没有值的字段会被省略。其他模型不返回 `result`。
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/2026/10/15/track-1.mp3",
+      "https://cdn.wizzx.ai/audio/2026/10/15/track-2.mp3"
+    ],
+    "error": "",
+    "credits_deducted": 60,
+    "result": {
+      "tracks": [
+        {
+          "index": 1,
+          "audio_url": "https://cdn.wizzx.ai/audio/2026/10/15/track-1.mp3",
+          "image_url": "https://cdn.wizzx.ai/images/2026/10/15/cover-1.jpg",
+          "title": "Midnight Drive",
+          "style": "synthwave, female vocal",
+          "lyrics": "[Verse]\n雨夜里霓虹闪烁的街道",
+          "duration": 119.8
+        },
+        {
+          "index": 2,
+          "audio_url": "https://cdn.wizzx.ai/audio/2026/10/15/track-2.mp3",
+          "image_url": "https://cdn.wizzx.ai/images/2026/10/15/cover-2.jpg",
+          "title": "Midnight Drive",
+          "style": "synthwave, female vocal",
+          "lyrics": "[Verse]\n雨夜里霓虹闪烁的街道",
+          "duration": 124.1
+        }
+      ]
+    }
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+| 字段 | 由哪些动作返回 | 内容 |
+| --- | --- | --- |
+| `tracks[]` | 所有产出音频的动作 | `index`、`audio_url`、`image_url`、`video_url`、`title`、`style`、`lyrics`、`duration`（秒）。后续动作把 `index` 作为 `audio_index` 引用该曲目 |
+| `lyrics[]` | `lyrics` | `title`、`text`、`style` |
+| `style` | `upsample-tags` | 增强后的风格文本 |
+| `files[]` | `download` | `format` 与 `url`，按请求顺序排列 |
+| `video_url` | `music-video` | MP4 地址 |
+| `bpm` | `bpm` | `avg`、`min`、`max` |
+| `persona_id` | `persona` | 仅供参考。引用该 Persona 时，把本任务的 `task_id` 作为 `persona_task_id` |
+| `model_id` | `create-model` | 仅供参考。引用该模型时，把本任务的 `task_id` 作为 `custom_model_task_id` |
+| `midi` | `midi` | `state` 与 `instruments[]`（含 `name` 和 `notes[]`） |
+| `aligned_lyrics` | `aligned-lyrics` | `alignment[]` 与 `waveform_data` |
+| `data` | `create-voice` | 无固定结构 |
+
+- 曲目保持原有顺序，即使某首曲目没有 `audio_url`（例如 `upload` 之后）。
+- 音乐任务的 `result_urls` 依次列出每首曲目的 `audio_url`、`download` 文件和音乐视频。歌词、BPM、MIDI 等文本与分析结果没有 URL，请从 `result` 读取。
+- 媒体 URL 通常由 `cdn.wizzx.ai` 提供。若复制到 CDN 失败，会返回原始 URL，该地址可能过期，请及时下载需要保留的结果。
+- 2026 年 10 月 15 日之前完成的音乐任务没有 `result`。

@@ -4436,6 +4436,450 @@
           }
         }
       }
+    },
+    "/api/v1/music/{action}": {
+      "post": {
+        "operationId": "submitMusicAction",
+        "summary": "Submit Suno music action",
+        "description": "Creates one asynchronous paid suno task for the action in the path. Each action accepts only its own fields (MusicActionRequest x-wizzx-music-actions). Save data.task_id and poll the status endpoint; finished tasks return result. Do not automatically retry an ambiguous submit.",
+        "tags": [
+          "Audio generation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "action",
+            "in": "path",
+            "required": true,
+            "description": "Music action. Unknown actions return 404 music_action_not_found.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "generate",
+                "inspo",
+                "sounds",
+                "lyrics",
+                "upsample-tags",
+                "upload",
+                "upload-cover",
+                "upload-extend",
+                "create-model",
+                "create-voice",
+                "extend",
+                "concat",
+                "cover",
+                "remaster",
+                "add-vocals",
+                "add-instrumental",
+                "add-stem",
+                "mashup",
+                "sample",
+                "persona",
+                "replace-section",
+                "remove-section",
+                "crop",
+                "fade-in",
+                "fade-out",
+                "adjust-speed",
+                "stems",
+                "stems-all",
+                "midi",
+                "aligned-lyrics",
+                "bpm",
+                "music-video",
+                "download"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MusicActionRequest"
+              },
+              "examples": {
+                "generate": {
+                  "summary": "generate",
+                  "value": {
+                    "custom": true,
+                    "prompt": "[Verse]\nNeon-lit streets on a rainy night",
+                    "title": "Midnight Drive",
+                    "style": "synthwave, female vocal"
+                  }
+                },
+                "inspo": {
+                  "summary": "inspo",
+                  "value": {
+                    "audio_urls": [
+                      "https://example.com/reference.mp3"
+                    ],
+                    "style": "dream pop"
+                  }
+                },
+                "sounds": {
+                  "summary": "sounds",
+                  "value": {
+                    "prompt": "Punchy lo-fi drum loop",
+                    "sound_type": "loop",
+                    "bpm": 90,
+                    "key": "Am"
+                  }
+                },
+                "lyrics": {
+                  "summary": "lyrics",
+                  "value": {
+                    "prompt": "A road trip song about leaving a small town"
+                  }
+                },
+                "upsample-tags": {
+                  "summary": "upsample-tags",
+                  "value": {
+                    "style": "lofi, rainy night"
+                  }
+                },
+                "upload": {
+                  "summary": "upload",
+                  "value": {
+                    "audio_url": "https://example.com/beat.mp3"
+                  }
+                },
+                "upload-cover": {
+                  "summary": "upload-cover",
+                  "value": {
+                    "audio_url": "https://example.com/demo.mp3",
+                    "custom": false,
+                    "gpt_description": "Turn this demo into an upbeat acoustic pop song"
+                  }
+                },
+                "upload-extend": {
+                  "summary": "upload-extend",
+                  "value": {
+                    "audio_url": "https://example.com/intro.mp3",
+                    "continue_at": 30,
+                    "prompt": "[Chorus]\nWe keep on driving"
+                  }
+                },
+                "create-model": {
+                  "summary": "create-model",
+                  "value": {
+                    "name": "My band sound",
+                    "audio_urls": [
+                      "https://example.com/song-1.mp3",
+                      "https://example.com/song-2.mp3",
+                      "https://example.com/song-3.mp3",
+                      "https://example.com/song-4.mp3",
+                      "https://example.com/song-5.mp3",
+                      "https://example.com/song-6.mp3"
+                    ]
+                  }
+                },
+                "create-voice": {
+                  "summary": "create-voice",
+                  "value": {
+                    "audio_url": "https://example.com/voice.wav"
+                  }
+                },
+                "extend": {
+                  "summary": "extend",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "audio_index": 2,
+                    "continue_at": 90,
+                    "prompt": "[Bridge]\nThe city fades behind us"
+                  }
+                },
+                "concat": {
+                  "summary": "concat",
+                  "value": {
+                    "task_id": "8a1d2e44-5b6c-4f70-8e91-a2b3c4d5e6f7"
+                  }
+                },
+                "cover": {
+                  "summary": "cover",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "style": "jazz, upright bass, brushed drums"
+                  }
+                },
+                "remaster": {
+                  "summary": "remaster",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "variation_category": "subtle"
+                  }
+                },
+                "add-vocals": {
+                  "summary": "add-vocals",
+                  "value": {
+                    "task_id": "3c9e7f10-2d4b-4a8e-9f61-7b2c1d0e5a94",
+                    "prompt": "[Verse]\nMorning light on an empty street",
+                    "style": "soul, female vocal"
+                  }
+                },
+                "add-instrumental": {
+                  "summary": "add-instrumental",
+                  "value": {
+                    "task_id": "3c9e7f10-2d4b-4a8e-9f61-7b2c1d0e5a94",
+                    "style": "acoustic guitar, warm pads"
+                  }
+                },
+                "add-stem": {
+                  "summary": "add-stem",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "style": "add a string section"
+                  }
+                },
+                "mashup": {
+                  "summary": "mashup",
+                  "value": {
+                    "task_ids": [
+                      "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                      "9b8a7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d"
+                    ],
+                    "audio_indexes": [
+                      1,
+                      2
+                    ],
+                    "custom": false,
+                    "gpt_description": "Blend both songs into an energetic dance track"
+                  }
+                },
+                "sample": {
+                  "summary": "sample",
+                  "value": {
+                    "task_id": "3c9e7f10-2d4b-4a8e-9f61-7b2c1d0e5a94",
+                    "start_s": 4,
+                    "end_s": 12,
+                    "custom": true,
+                    "instrumental": true,
+                    "style": "boom bap, vinyl crackle"
+                  }
+                },
+                "persona": {
+                  "summary": "persona",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "name": "Night singer",
+                    "start_s": 20,
+                    "end_s": 45
+                  }
+                },
+                "replace-section": {
+                  "summary": "replace-section",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "start_s": 30,
+                    "end_s": 45,
+                    "infill_lyrics": "We ride until the morning comes"
+                  }
+                },
+                "remove-section": {
+                  "summary": "remove-section",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "start_s": 60,
+                    "end_s": 75
+                  }
+                },
+                "crop": {
+                  "summary": "crop",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "start_s": 0,
+                    "end_s": 30
+                  }
+                },
+                "fade-in": {
+                  "summary": "fade-in",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "fade_duration": 3
+                  }
+                },
+                "fade-out": {
+                  "summary": "fade-out",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "fade_duration": 5
+                  }
+                },
+                "adjust-speed": {
+                  "summary": "adjust-speed",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "speed": 1.25
+                  }
+                },
+                "stems": {
+                  "summary": "stems",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "stem_type": "drum_kit"
+                  }
+                },
+                "stems-all": {
+                  "summary": "stems-all",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11"
+                  }
+                },
+                "midi": {
+                  "summary": "midi",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11"
+                  }
+                },
+                "aligned-lyrics": {
+                  "summary": "aligned-lyrics",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11"
+                  }
+                },
+                "bpm": {
+                  "summary": "bpm",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11"
+                  }
+                },
+                "music-video": {
+                  "summary": "music-video",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11"
+                  }
+                },
+                "download": {
+                  "summary": "download",
+                  "value": {
+                    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+                    "formats": [
+                      "wav",
+                      "mp3"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Task accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskSubmitResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed JSON or binding validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or revoked API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Insufficient credits",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown music action (music_action_not_found)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the configured limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Field not accepted by the action, mode or range violation, or unusable source task",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "headers": {
+              "X-Retry-After": {
+                "description": "Retry delay in seconds.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal or upstream submission error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service or model temporarily unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6193,6 +6637,10 @@
           "model_key": {
             "type": "string"
           },
+          "action": {
+            "type": "string",
+            "description": "Music action. Returned only by POST /api/v1/music/{action}."
+          },
           "credits_deducted": {
             "type": "integer",
             "minimum": 0,
@@ -6268,7 +6716,8 @@
             "items": {
               "type": "string",
               "format": "uri"
-            }
+            },
+            "description": "Result media URLs. For music tasks: every track audio_url, then download files, then the music video. Text and analysis results (lyrics, BPM, MIDI, persona, model) have no URL; read result instead."
           },
           "error": {
             "type": "string"
@@ -6277,6 +6726,9 @@
             "type": "integer",
             "minimum": 0,
             "description": "Reserved or finally settled credits for this task."
+          },
+          "result": {
+            "$ref": "#/components/schemas/MusicTaskResult"
           }
         }
       },
@@ -7537,7 +7989,7 @@
       "SunoSubmitRequest": {
         "type": "object",
         "additionalProperties": false,
-        "description": "Music generation. Inspiration mode (custom=false) takes a song description in prompt. Custom mode (custom=true) takes lyrics in prompt plus optional title, style, negative_tags, max_mode, and duration. One request usually returns 2 tracks in result_urls. Billed per request; max_mode doubles the price.",
+        "description": "Legacy entry for Suno music generation; identical to POST /api/v1/music/generate. Inspiration mode (custom=false) takes a song description in prompt. Custom mode (custom=true) takes lyrics in prompt plus optional title, style, negative_tags, auto_lyrics, persona_task_id, max_mode, and duration. One request usually returns 2 tracks. Billed per request; max_mode doubles the price.",
         "properties": {
           "prompt": {
             "type": "string",
@@ -7550,7 +8002,8 @@
           },
           "instrumental": {
             "type": "boolean",
-            "default": false
+            "default": false,
+            "description": "No vocals. A custom-mode instrumental needs prompt or style."
           },
           "version": {
             "type": "string",
@@ -7560,7 +8013,17 @@
               "v6-mini"
             ],
             "default": "v6",
-            "description": "Case-insensitive. All versions cost the same."
+            "description": "Case-insensitive. All versions cost the same. Cannot be combined with custom_model_task_id."
+          },
+          "custom_model_task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "task_id of your SUCCEEDED create-model task. Replaces version; cannot be combined with version or persona_task_id."
+          },
+          "persona_task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "task_id of your SUCCEEDED persona task. Custom mode only."
           },
           "title": {
             "type": "string",
@@ -7577,6 +8040,24 @@
             "maxLength": 1000,
             "description": "Custom mode only. Styles to avoid."
           },
+          "style_weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How strongly to follow style, 0-1. Custom mode only on actions other than generate."
+          },
+          "weirdness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How experimental the result is, 0-1."
+          },
+          "audio_weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How closely to follow the source audio, 0-1. Custom mode only on actions other than generate."
+          },
           "vocal_gender": {
             "type": "string",
             "enum": [
@@ -7585,10 +8066,33 @@
             ],
             "description": "Case-insensitive; m and f are accepted. Cannot be combined with instrumental=true."
           },
+          "auto_lyrics": {
+            "type": "boolean",
+            "default": false,
+            "description": "Custom mode only."
+          },
+          "variety": {
+            "type": "string",
+            "enum": [
+              "off",
+              "normal",
+              "high",
+              "extra",
+              "max"
+            ]
+          },
           "max_mode": {
             "type": "boolean",
             "default": false,
             "description": "Custom mode only. Higher quality at double the price."
+          },
+          "audio_format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "m4a",
+              "wav"
+            ]
           },
           "duration": {
             "type": "integer",
@@ -7617,6 +8121,12 @@
                     "maxLength": 3000
                   },
                   "max_mode": {
+                    "type": "boolean",
+                    "enum": [
+                      false
+                    ]
+                  },
+                  "auto_lyrics": {
                     "type": "boolean",
                     "enum": [
                       false
@@ -7656,6 +8166,14 @@
                       "properties": {
                         "duration": {}
                       }
+                    },
+                    {
+                      "required": [
+                        "persona_task_id"
+                      ],
+                      "properties": {
+                        "persona_task_id": {}
+                      }
                     }
                   ]
                 }
@@ -7688,6 +8206,22 @@
                   ]
                 }
               }
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "custom_model_task_id",
+                "version"
+              ]
+            }
+          },
+          {
+            "not": {
+              "required": [
+                "custom_model_task_id",
+                "persona_task_id"
+              ]
             }
           }
         ]
@@ -7749,6 +8283,1189 @@
               "png"
             ],
             "default": "jpeg"
+          }
+        }
+      },
+      "MusicActionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Request body for POST /api/v1/music/{action}. Each action accepts only its own fields, listed per action in x-wizzx-music-actions; sending a field the action does not accept returns 422. Earlier tasks are referenced by Wizzx task_id only and must be your own SUCCEEDED suno tasks.",
+        "properties": {
+          "prompt": {
+            "type": "string",
+            "maxLength": 5000,
+            "description": "Lyrics in custom mode (at most 5000 characters). A description (at most 3000 characters) for generate inspiration mode, the lyrics topic, and the sounds description."
+          },
+          "gpt_description": {
+            "type": "string",
+            "maxLength": 3000,
+            "description": "Song description for inspiration mode (custom=false) on actions other than generate."
+          },
+          "custom": {
+            "type": "boolean",
+            "description": "Custom (lyrics) mode. generate defaults to false; extend defaults to true; upload-cover requires it; cover, add-vocals, add-instrumental, add-stem, mashup, and sample infer it when omitted (prompt, style, or title means true; gpt_description means false)."
+          },
+          "instrumental": {
+            "type": "boolean",
+            "default": false,
+            "description": "No vocals. Cannot be combined with vocal_gender."
+          },
+          "version": {
+            "type": "string",
+            "enum": [
+              "v6",
+              "v6-wild",
+              "v6-mini"
+            ],
+            "default": "v6",
+            "description": "Case-insensitive. All versions cost the same. Cannot be combined with custom_model_task_id."
+          },
+          "custom_model_task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "task_id of your SUCCEEDED create-model task. Replaces version; cannot be combined with version or persona_task_id."
+          },
+          "persona_task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "task_id of your SUCCEEDED persona task. Custom mode only."
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "Custom mode only on actions with a mode switch."
+          },
+          "style": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Style tags. Custom mode only on actions with a mode switch. Required by upsample-tags."
+          },
+          "negative_tags": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Styles to avoid. Custom mode only on actions with a mode switch."
+          },
+          "style_weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How strongly to follow style, 0-1. Custom mode only on actions other than generate."
+          },
+          "weirdness": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How experimental the result is, 0-1."
+          },
+          "audio_weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "How closely to follow the source audio, 0-1. Custom mode only on actions other than generate."
+          },
+          "vocal_gender": {
+            "type": "string",
+            "enum": [
+              "Male",
+              "Female"
+            ],
+            "description": "Case-insensitive; m and f are accepted. Cannot be combined with instrumental=true."
+          },
+          "auto_lyrics": {
+            "type": "boolean",
+            "default": false,
+            "description": "Custom mode only."
+          },
+          "variety": {
+            "type": "string",
+            "enum": [
+              "off",
+              "normal",
+              "high",
+              "extra",
+              "max"
+            ]
+          },
+          "max_mode": {
+            "type": "boolean",
+            "default": false,
+            "description": "Higher quality at double the price. Requires custom mode on actions with a mode switch."
+          },
+          "audio_format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "m4a",
+              "wav"
+            ]
+          },
+          "duration": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 360,
+            "description": "Target length in seconds; actual length may differ. Custom mode only on actions with a mode switch. Does not change the price."
+          },
+          "task_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Source task: one of your SUCCEEDED suno tasks that produced tracks."
+          },
+          "audio_index": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 1,
+            "description": "1-based result.tracks[].index of the source task."
+          },
+          "task_ids": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "mashup: exactly two source tasks."
+          },
+          "audio_indexes": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20
+            },
+            "default": [
+              1,
+              1
+            ],
+            "description": "mashup: track index for each task_ids entry."
+          },
+          "audio_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://",
+            "description": "Publicly reachable HTTP(S) audio URL, at most 2048 characters.",
+            "maxLength": 2048
+          },
+          "audio_urls": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 24,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "Publicly reachable HTTP(S) audio URL, at most 2048 characters.",
+              "maxLength": 2048
+            },
+            "description": "inspo: 1-4 reference audio URLs. create-model: 6-24 training audio URLs."
+          },
+          "continue_at": {
+            "type": "number",
+            "minimum": 1,
+            "description": "Seconds into the source audio where the continuation starts. For extend it must be less than the source track duration."
+          },
+          "start_s": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Section start in seconds."
+          },
+          "end_s": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Section end in seconds. Greater than start_s and not beyond the source track duration."
+          },
+          "fade_duration": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Fade length in seconds; not longer than the source track."
+          },
+          "speed": {
+            "type": "number",
+            "minimum": 0.25,
+            "maximum": 4
+          },
+          "keep_pitch": {
+            "type": "boolean",
+            "default": true
+          },
+          "stem_type": {
+            "type": "string",
+            "enum": [
+              "lead_vocal",
+              "drum_kit",
+              "bass",
+              "backing_vocals",
+              "piano",
+              "electric_guitar",
+              "percussion",
+              "string_section",
+              "synth",
+              "acoustic_guitar",
+              "sound_effects",
+              "synth_pad",
+              "synth_bass",
+              "guitar",
+              "brass_section",
+              "organ",
+              "electronic_drum_kit",
+              "lead_electric_guitar",
+              "synth_keys",
+              "rhythm_electric_guitar",
+              "electric_piano",
+              "upright_bass",
+              "keyboards",
+              "distorted_electric_guitar",
+              "kick",
+              "snare",
+              "risers",
+              "synth_strings",
+              "synth_lead",
+              "woodwinds",
+              "flute",
+              "harp",
+              "tambourine",
+              "trumpet",
+              "arpeggiator",
+              "accordion",
+              "fiddle",
+              "pedal_steel_guitar",
+              "synth_voice",
+              "violin",
+              "digital_piano",
+              "synth_brass",
+              "mandolin",
+              "choir",
+              "banjo",
+              "bells",
+              "clarinet",
+              "tenor_saxophone",
+              "trombone",
+              "shaker",
+              "french_horn",
+              "glockenspiel",
+              "electric_bass",
+              "cello",
+              "timpani",
+              "harmonica",
+              "marimba",
+              "vibraphone",
+              "lap_steel_guitar",
+              "saxophone",
+              "orchestra",
+              "horns",
+              "cymbals",
+              "hand_clap",
+              "oboe",
+              "celesta",
+              "congas",
+              "drone",
+              "alto_saxophone",
+              "double_bass",
+              "ukulele",
+              "harpsichord",
+              "baritone_saxophone",
+              "xylophone",
+              "tuba",
+              "bass_guitar",
+              "whistle",
+              "lead_guitar",
+              "rhodes",
+              "808",
+              "bongos",
+              "bassoon",
+              "cowbell",
+              "viola",
+              "sitar",
+              "steel_drums",
+              "piccolo",
+              "theremin",
+              "bagpipes",
+              "hi_hat",
+              "music_box",
+              "melodica",
+              "tabla",
+              "koto",
+              "djembe",
+              "taiko",
+              "didgeridoo"
+            ],
+            "default": "lead_vocal",
+            "description": "Case-insensitive."
+          },
+          "infill_lyrics": {
+            "type": "string",
+            "maxLength": 5000,
+            "description": "replace-section: lyrics for the replaced section."
+          },
+          "variation_category": {
+            "type": "string",
+            "enum": [
+              "subtle",
+              "normal",
+              "high"
+            ]
+          },
+          "sound_type": {
+            "type": "string",
+            "enum": [
+              "one-shot",
+              "loop"
+            ]
+          },
+          "bpm": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300
+          },
+          "key": {
+            "type": "string",
+            "enum": [
+              "C",
+              "Cm",
+              "C#",
+              "C#m",
+              "D",
+              "Dm",
+              "D#",
+              "D#m",
+              "E",
+              "Em",
+              "F",
+              "Fm",
+              "F#",
+              "F#m",
+              "G",
+              "Gm",
+              "G#",
+              "G#m",
+              "A",
+              "Am",
+              "A#",
+              "A#m",
+              "B",
+              "Bm"
+            ],
+            "description": "Sharp notation; append m for minor."
+          },
+          "lyrics_model": {
+            "type": "string",
+            "enum": [
+              "classic",
+              "remi"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "create-model or persona name."
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "persona description."
+          },
+          "formats": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "mp3",
+                "m4a",
+                "wav"
+              ]
+            },
+            "description": "Duplicates are ignored."
+          }
+        },
+        "x-wizzx-music-actions": {
+          "generate": {
+            "group": "Creation",
+            "required": [
+              "prompt"
+            ],
+            "accepted": [
+              "prompt",
+              "custom",
+              "instrumental",
+              "version",
+              "custom_model_task_id",
+              "persona_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode",
+              "duration"
+            ],
+            "source": "none",
+            "result": "tracks"
+          },
+          "inspo": {
+            "group": "Creation",
+            "required": [
+              "audio_urls"
+            ],
+            "accepted": [
+              "audio_urls",
+              "prompt",
+              "version",
+              "custom_model_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode"
+            ],
+            "source": "none",
+            "result": "tracks"
+          },
+          "sounds": {
+            "group": "Creation",
+            "required": [
+              "prompt"
+            ],
+            "accepted": [
+              "prompt",
+              "version",
+              "sound_type",
+              "bpm",
+              "key",
+              "audio_format"
+            ],
+            "source": "none",
+            "result": "tracks"
+          },
+          "lyrics": {
+            "group": "Creation",
+            "required": [
+              "prompt"
+            ],
+            "accepted": [
+              "prompt",
+              "lyrics_model"
+            ],
+            "source": "none",
+            "result": "lyrics"
+          },
+          "upsample-tags": {
+            "group": "Creation",
+            "required": [
+              "style"
+            ],
+            "accepted": [
+              "style"
+            ],
+            "source": "none",
+            "result": "style"
+          },
+          "upload": {
+            "group": "Creation",
+            "required": [
+              "audio_url"
+            ],
+            "accepted": [
+              "audio_url"
+            ],
+            "source": "none",
+            "result": "tracks"
+          },
+          "upload-cover": {
+            "group": "Creation",
+            "required": [
+              "audio_url",
+              "custom"
+            ],
+            "accepted": [
+              "audio_url",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "instrumental",
+              "version",
+              "custom_model_task_id",
+              "persona_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode",
+              "duration"
+            ],
+            "source": "none",
+            "result": "tracks"
+          },
+          "upload-extend": {
+            "group": "Creation",
+            "required": [
+              "audio_url",
+              "continue_at"
+            ],
+            "accepted": [
+              "audio_url",
+              "continue_at",
+              "prompt",
+              "version",
+              "custom_model_task_id",
+              "persona_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode",
+              "duration"
+            ],
+            "source": "none",
+            "result": "tracks"
+          },
+          "create-model": {
+            "group": "Creation",
+            "required": [
+              "name",
+              "audio_urls"
+            ],
+            "accepted": [
+              "name",
+              "audio_urls"
+            ],
+            "source": "none",
+            "result": "model_id"
+          },
+          "create-voice": {
+            "group": "Creation",
+            "required": [
+              "audio_url"
+            ],
+            "accepted": [
+              "audio_url"
+            ],
+            "source": "none",
+            "result": "data"
+          },
+          "extend": {
+            "group": "From an existing track",
+            "required": [
+              "task_id",
+              "continue_at"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "continue_at",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "version",
+              "custom_model_task_id",
+              "persona_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode",
+              "duration"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "concat": {
+            "group": "From an existing track",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "audio_format"
+            ],
+            "source": "extend or upload-extend task",
+            "result": "tracks"
+          },
+          "cover": {
+            "group": "From an existing track",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "version",
+              "custom_model_task_id",
+              "persona_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "max_mode",
+              "duration"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "remaster": {
+            "group": "From an existing track",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "variation_category",
+              "audio_format"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "add-vocals": {
+            "group": "From an existing track",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "version",
+              "custom_model_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "max_mode"
+            ],
+            "source": "upload task",
+            "result": "tracks"
+          },
+          "add-instrumental": {
+            "group": "From an existing track",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "version",
+              "custom_model_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "max_mode"
+            ],
+            "source": "upload task",
+            "result": "tracks"
+          },
+          "add-stem": {
+            "group": "From an existing track",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "version",
+              "custom_model_task_id",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "variety",
+              "audio_format",
+              "max_mode"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "mashup": {
+            "group": "From an existing track",
+            "required": [
+              "task_ids"
+            ],
+            "accepted": [
+              "task_ids",
+              "audio_indexes",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "instrumental",
+              "version",
+              "custom_model_task_id",
+              "persona_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode"
+            ],
+            "source": "two tracks",
+            "result": "tracks"
+          },
+          "sample": {
+            "group": "From an existing track",
+            "required": [
+              "task_id",
+              "start_s",
+              "end_s"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "start_s",
+              "end_s",
+              "custom",
+              "prompt",
+              "gpt_description",
+              "instrumental",
+              "version",
+              "custom_model_task_id",
+              "vocal_gender",
+              "variety",
+              "audio_format",
+              "style_weight",
+              "weirdness",
+              "audio_weight",
+              "title",
+              "style",
+              "negative_tags",
+              "auto_lyrics",
+              "max_mode"
+            ],
+            "source": "upload task",
+            "result": "tracks"
+          },
+          "persona": {
+            "group": "From an existing track",
+            "required": [
+              "task_id",
+              "name"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "name",
+              "description",
+              "style",
+              "start_s",
+              "end_s"
+            ],
+            "source": "any track",
+            "result": "persona_id"
+          },
+          "replace-section": {
+            "group": "Editing",
+            "required": [
+              "task_id",
+              "start_s",
+              "end_s"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "start_s",
+              "end_s",
+              "infill_lyrics",
+              "prompt",
+              "version",
+              "custom_model_task_id",
+              "title",
+              "style",
+              "negative_tags",
+              "variety",
+              "max_mode",
+              "audio_format"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "remove-section": {
+            "group": "Editing",
+            "required": [
+              "task_id",
+              "start_s",
+              "end_s"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "start_s",
+              "end_s"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "crop": {
+            "group": "Editing",
+            "required": [
+              "task_id",
+              "start_s",
+              "end_s"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "start_s",
+              "end_s"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "fade-in": {
+            "group": "Editing",
+            "required": [
+              "task_id",
+              "fade_duration"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "fade_duration",
+              "title"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "fade-out": {
+            "group": "Editing",
+            "required": [
+              "task_id",
+              "fade_duration"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "fade_duration",
+              "title"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "adjust-speed": {
+            "group": "Editing",
+            "required": [
+              "task_id",
+              "speed"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "speed",
+              "keep_pitch",
+              "title"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "stems": {
+            "group": "Editing",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "stem_type",
+              "audio_format"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "stems-all": {
+            "group": "Editing",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "audio_format"
+            ],
+            "source": "any track",
+            "result": "tracks"
+          },
+          "midi": {
+            "group": "Analysis & export",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index"
+            ],
+            "source": "any track",
+            "result": "midi"
+          },
+          "aligned-lyrics": {
+            "group": "Analysis & export",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index"
+            ],
+            "source": "any track",
+            "result": "aligned_lyrics"
+          },
+          "bpm": {
+            "group": "Analysis & export",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index"
+            ],
+            "source": "any track",
+            "result": "bpm"
+          },
+          "music-video": {
+            "group": "Analysis & export",
+            "required": [
+              "task_id"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index"
+            ],
+            "source": "any track",
+            "result": "video_url"
+          },
+          "download": {
+            "group": "Analysis & export",
+            "required": [
+              "task_id",
+              "formats"
+            ],
+            "accepted": [
+              "task_id",
+              "audio_index",
+              "formats"
+            ],
+            "source": "any track",
+            "result": "files"
+          }
+        }
+      },
+      "MusicTrack": {
+        "type": "object",
+        "required": [
+          "index"
+        ],
+        "properties": {
+          "index": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "1-based position. Pass it as audio_index (or an audio_indexes entry) to reference this track."
+          },
+          "audio_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "May be absent, for example on upload tasks."
+          },
+          "image_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "video_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "lyrics": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number",
+            "description": "Seconds."
+          }
+        }
+      },
+      "MusicLyrics": {
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          }
+        }
+      },
+      "MusicFile": {
+        "type": "object",
+        "required": [
+          "format",
+          "url"
+        ],
+        "properties": {
+          "format": {
+            "type": "string",
+            "enum": [
+              "mp3",
+              "m4a",
+              "wav"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "MusicBPM": {
+        "type": "object",
+        "required": [
+          "avg"
+        ],
+        "properties": {
+          "avg": {
+            "type": "number"
+          },
+          "min": {
+            "type": "number"
+          },
+          "max": {
+            "type": "number"
+          }
+        }
+      },
+      "MusicTaskResult": {
+        "type": "object",
+        "description": "Structured output of a finished music task. Present only when the task produced structured output; which fields are set depends on the action. Tasks finished before 2026-10-15 have no result.",
+        "properties": {
+          "tracks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MusicTrack"
+            },
+            "description": "Audio tracks in order. Set by generate, extend, cover, stems, and every other track-producing action."
+          },
+          "lyrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MusicLyrics"
+            },
+            "description": "lyrics action."
+          },
+          "style": {
+            "type": "string",
+            "description": "upsample-tags: enhanced style."
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MusicFile"
+            },
+            "description": "download action, in request order."
+          },
+          "video_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "music-video action: MP4 URL."
+          },
+          "bpm": {
+            "$ref": "#/components/schemas/MusicBPM"
+          },
+          "persona_id": {
+            "type": "string",
+            "description": "persona action. Informational; reference the persona with this task's task_id as persona_task_id."
+          },
+          "model_id": {
+            "type": "string",
+            "description": "create-model action. Informational; reference the model with this task's task_id as custom_model_task_id."
+          },
+          "midi": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "midi action: {state, instruments[{name, notes[]}]}."
+          },
+          "aligned_lyrics": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "aligned-lyrics action: {alignment[], waveform_data}."
+          },
+          "data": {
+            "description": "create-voice action. No fixed structure."
           }
         }
       }

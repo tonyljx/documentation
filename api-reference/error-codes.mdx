@@ -288,6 +288,21 @@ These errors indicate the requested resource doesn't exist.
 
 **Solution:** Use the `/v1/models` endpoint to list available models.
 
+### `music_action_not_found`
+
+```json
+{
+  "error": {
+    "message": "Music action 'remix' does not exist. Supported: add-instrumental, add-stem, add-vocals, adjust-speed, aligned-lyrics, bpm, concat, cover, create-model, create-voice, crop, download, extend, fade-in, fade-out, generate, inspo, lyrics, mashup, midi, music-video, persona, remaster, remove-section, replace-section, sample, sounds, stems, stems-all, upload, upload-cover, upload-extend, upsample-tags",
+    "type": "not_found_error",
+    "param": null,
+    "code": "music_action_not_found"
+  }
+}
+```
+
+**Solution:** Use one of the actions listed in the message. See [Submit music action](/api-reference/endpoint/submit-music).
+
 ### `resource_not_found`
 
 ```json

@@ -125,7 +125,10 @@
               },
               {
                 "group": "Audio Generation",
-                "pages": ["api-reference/endpoint/submit-suno"]
+                "pages": [
+                  "api-reference/endpoint/submit-music",
+                  "api-reference/endpoint/submit-suno"
+                ]
               },
               {
                 "group": "Task Management",
@@ -249,7 +252,10 @@
               },
               {
                 "group": "音频生成",
-                "pages": ["zh/api-reference/endpoint/submit-suno"]
+                "pages": [
+                  "zh/api-reference/endpoint/submit-music",
+                  "zh/api-reference/endpoint/submit-suno"
+                ]
               },
               {
                 "group": "任务管理",

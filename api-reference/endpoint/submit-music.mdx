@@ -1,0 +1,274 @@
+---
+title: "Submit music action"
+description: "POST a Suno music action to create, extend, edit, separate, analyze, or export tracks"
+openapi: "POST /api/v1/music/{action}"
+---
+
+## Overview
+
+`POST /api/v1/music/{action}` is the main entry point for [Suno](/models/suno) music. The path names one of 33 actions. Every action creates one asynchronous task of the `suno` model: save `data.task_id`, then poll [`POST /api/v1/task/status`](/api-reference/endpoint/task-status) until the task finishes. Each call is billed once; see [credits per action](/models/suno#pricing).
+
+`POST /api/v1/task/submit/suno` still works and is identical to the `generate` action.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST https://api.wizzx.ai/api/v1/music/generate \
+  -H "Authorization: Bearer <api_key>" \
+  -H "Content-Type: application/json" \
+  --data '{
+    "custom": true,
+    "prompt": "[Verse]\nNeon-lit streets on a rainy night",
+    "title": "Midnight Drive",
+    "style": "synthwave, female vocal"
+  }'
+```
+
+The response uses the usual submit envelope and adds `action`:
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+    "model_key": "suno",
+    "action": "generate",
+    "credits_deducted": 60
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+## Rules for every action
+
+- **Strict fields.** Each action accepts only the fields listed for it below. Sending a music field that the action does not accept returns HTTP 422 `validation_failed`, for example `music action bpm does not accept version`. Omit fields you do not need.
+- An unknown action returns HTTP 404 `music_action_not_found`.
+- Text limits count Unicode characters. Audio URLs must be public HTTP(S) URLs of at most 2,048 characters.
+- Earlier tasks are referenced only by their Wizzx `task_id`. See [Referencing earlier tasks](#referencing-earlier-tasks).
+- Music actions share the submit rate limit. Validation and source-task errors are returned before any credits are reserved.
+
+## Shared fields
+
+These fields mean the same thing in every action that accepts them.
+
+| Field | Type | Rules |
+| --- | --- | --- |
+| `prompt` | string | Lyrics in custom mode, at most 5,000 characters. A description of at most 3,000 characters for `generate` inspiration mode, the `lyrics` topic, and the `sounds` description |
+| `gpt_description` | string | Song description for inspiration mode (`custom: false`) on actions other than `generate`, at most 3,000 characters |
+| `custom` | boolean | Custom (lyrics) mode switch. See [Custom and inspiration mode](#custom-and-inspiration-mode) |
+| `instrumental` | boolean | `true` for no vocals. Cannot be combined with `vocal_gender` |
+| `version` | string | `v6` (default), `v6-wild`, or `v6-mini`, case-insensitive, same price |
+| `custom_model_task_id` | string | `task_id` of your finished `create-model` task. Use it instead of `version`; cannot be combined with `version` or `persona_task_id` |
+| `persona_task_id` | string | `task_id` of your finished `persona` task. Custom mode only |
+| `title` | string | At most 80 characters |
+| `style` | string | Style tags, at most 1,000 characters |
+| `negative_tags` | string | Styles to avoid, at most 1,000 characters |
+| `style_weight`, `weirdness`, `audio_weight` | number | 0–1; `0` is a valid value |
+| `vocal_gender` | string | `Male` or `Female` (`m` and `f` are accepted). Not allowed with `instrumental: true` |
+| `auto_lyrics` | boolean | Custom mode only |
+| `variety` | string | `off`, `normal`, `high`, `extra`, or `max` |
+| `max_mode` | boolean | Higher quality at double the price. Requires custom mode on actions that have a mode switch |
+| `audio_format` | string | `mp3`, `m4a`, or `wav` |
+| `duration` | integer | Target length of 10–360 seconds; the actual length may differ. Does not change the price |
+| `task_id` | string | Source task. See [Referencing earlier tasks](#referencing-earlier-tasks) |
+| `audio_index` | integer | 1–20, default `1`: the `result.tracks[].index` of the source track |
+
+The action tables below use these shorthands:
+
+- **Model choice**: `version` or `custom_model_task_id`
+- **Style fields**: `title`, `style`, `negative_tags`
+- **Weights**: `style_weight`, `weirdness`, `audio_weight`
+- **Mode fields**: `custom`, `prompt`, `gpt_description`
+
+## Custom and inspiration mode
+
+Some actions switch between custom mode, where you write lyrics and style, and inspiration mode, where Suno works from a description.
+
+| Action | How the mode is chosen |
+| --- | --- |
+| `generate` | `custom` defaults to `false`. Inspiration mode: `prompt` is a required song description. Custom mode: `prompt` holds lyrics and is required unless `instrumental` is `true`; a custom instrumental needs `prompt` or `style` |
+| `upload-cover` | `custom` is **required**. `false` needs `gpt_description`; `true` needs `prompt` unless `instrumental` is `true` |
+| `extend` | `custom` defaults to `true`. `false` needs `gpt_description` |
+| `cover`, `add-vocals`, `add-instrumental`, `add-stem`, `mashup`, `sample` | When `custom` is omitted it is inferred: `prompt` means custom; otherwise `gpt_description` means inspiration; otherwise `style` or `title` means custom; with none of them the request returns 422. `mashup` and `sample` in custom mode need `prompt` unless `instrumental` is `true` |
+| `upload-extend` | Always custom mode; there is no `custom` field |
+
+In inspiration mode, `generate` rejects `title`, `style`, `negative_tags`, `auto_lyrics`, `persona_task_id`, `duration`, and `max_mode`. The other actions reject `prompt`, `title`, `style`, `negative_tags`, `auto_lyrics`, `persona_task_id`, `duration`, `max_mode`, `style_weight`, and `audio_weight`. In custom mode, `gpt_description` is rejected.
+
+## Referencing earlier tasks
+
+Many actions build on a track you already generated:
+
+- `task_id` + `audio_index` select one track. `audio_index` is the 1-based `index` of the track in the source task's `result.tracks` and defaults to `1`.
+- `mashup` uses `task_ids` (exactly two tasks) and `audio_indexes` (two entries, default `[1, 1]`) instead.
+- `custom_model_task_id` must point to a finished `create-model` task, and `persona_task_id` to a finished `persona` task.
+
+Every referenced task must be your own `suno` task with status `SUCCEEDED`. Only actions that produce tracks can be a track source: `generate`, `inspo`, `sounds`, `upload`, `upload-cover`, `upload-extend`, `extend`, `cover`, `remaster`, `stems`, `stems-all`, `add-vocals`, `add-instrumental`, `add-stem`, `replace-section`, `remove-section`, `crop`, `fade-in`, `fade-out`, `adjust-speed`, `concat`, `mashup`, and `sample`. Lyrics, style, analysis, persona, model, voice, video, and download results cannot.
+
+Some actions need a specific kind of source:
+
+| Action | Source task must be |
+| --- | --- |
+| `add-vocals`, `add-instrumental`, `sample` | An `upload` task |
+| `concat` | An `extend` or `upload-extend` task |
+
+Before charging, the gateway also checks that `audio_index` exists in the source task and that `continue_at`, `end_s`, and `fade_duration` fit the source track's duration. Any failed check returns HTTP 422 and no credits are reserved.
+
+<Note>
+  Tasks that finished before October 15, 2026 have no `result` object. They can still be used as sources, but the track index and times cannot be checked in advance; an out-of-range value then fails the task and its credits are refunded.
+</Note>
+
+## Actions
+
+All actions return their output in the task status [`result`](/api-reference/endpoint/task-status#music-results) object.
+
+### Creation
+
+| Action | Required | Optional | Result |
+| --- | --- | --- | --- |
+| `generate` | `prompt`, except for a custom-mode instrumental ([modes](#custom-and-inspiration-mode)) | `custom`, `instrumental`, model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | `tracks`, usually two |
+| `inspo` | `audio_urls`: 1–4 public reference audio URLs | `prompt` (lyrics), model choice, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format` | `tracks` |
+| `sounds` | `prompt`: sound description | `version`, `sound_type` (`one-shot` or `loop`), `bpm` (integer 1–300), `key` (`C` to `B` in sharp notation such as `F#`, add `m` for minor such as `C#m`), `audio_format` | `tracks` |
+| `lyrics` | `prompt`: topic | `lyrics_model` (`classic` or `remi`) | `lyrics` |
+| `upsample-tags` | `style` | – | `style` (enhanced) |
+| `upload` | `audio_url` | – | `tracks`; a track may have no `audio_url`. Use the task as the source for `add-vocals`, `add-instrumental`, and `sample` |
+| `upload-cover` | `audio_url` (shorter than 8 minutes), `custom` | mode fields, `instrumental`, model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | `tracks` |
+| `upload-extend` | `audio_url`, `continue_at` (at least 1 second) | `prompt` (lyrics), model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | `tracks` |
+| `create-model` | `name` (at most 80 characters), `audio_urls`: 6–24 public audio URLs | – | `model_id`. Use this task's `task_id` as `custom_model_task_id`. Can take about 20 minutes |
+| `create-voice` | `audio_url` (MP3 or WAV) | – | `data`, no fixed structure |
+
+### From an existing track
+
+These actions take `task_id` (required) and `audio_index` (optional) unless noted.
+
+| Action | Required besides `task_id` | Optional | Source | Result |
+| --- | --- | --- | --- | --- |
+| `extend` | `continue_at`: at least 1 second and less than the track duration | mode fields (`custom` defaults to `true`), model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | Any track | `tracks` |
+| `concat` | – | `audio_format` | `extend` or `upload-extend` task | `tracks`: the full joined song |
+| `cover` | Mode ([inferred](#custom-and-inspiration-mode)) | mode fields, model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `variety`, `max_mode`, `audio_format`, `duration` | Any track | `tracks` |
+| `remaster` | – | `variation_category` (`subtle`, `normal`, or `high`), `audio_format` | Any track | `tracks` |
+| `add-vocals` | Mode ([inferred](#custom-and-inspiration-mode)) | mode fields, model choice, style fields, weights, `vocal_gender`, `variety`, `max_mode`, `audio_format` | `upload` task | `tracks` |
+| `add-instrumental` | Mode ([inferred](#custom-and-inspiration-mode)) | Same as `add-vocals` | `upload` task | `tracks` |
+| `add-stem` | Mode ([inferred](#custom-and-inspiration-mode)) | mode fields, model choice, style fields, weights, `variety`, `max_mode`, `audio_format` | Any track | `tracks` |
+| `mashup` | `task_ids`: exactly two tasks, instead of `task_id`; mode ([inferred](#custom-and-inspiration-mode)) | `audio_indexes` (two entries, default `[1, 1]`), mode fields, `instrumental`, model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format` | Two tracks | `tracks` |
+| `sample` | `start_s`, `end_s`; mode ([inferred](#custom-and-inspiration-mode)) | mode fields, `instrumental`, model choice, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format` | `upload` task | `tracks` |
+| `persona` | `name` (at most 80 characters) | `description` (at most 1,000 characters), `style`, `start_s` / `end_s` (vocal clip) | Any track | `persona_id`. Use this task's `task_id` as `persona_task_id` |
+
+### Editing
+
+All editing actions take `task_id` (required) and `audio_index` (optional) and accept any track as the source.
+
+| Action | Required besides `task_id` | Optional | Result |
+| --- | --- | --- | --- |
+| `replace-section` | `start_s`, `end_s` | `infill_lyrics` (new lyrics for the section, at most 5,000 characters), `prompt` (surrounding lyrics for context), model choice, style fields, `variety`, `max_mode`, `audio_format` | `tracks` |
+| `remove-section` | `start_s`, `end_s` | – | `tracks` |
+| `crop` | `start_s`, `end_s`: the part to keep | – | `tracks` |
+| `fade-in`, `fade-out` | `fade_duration`: greater than 0 and not longer than the track | `title` | `tracks` |
+| `adjust-speed` | `speed`: 0.25–4 | `keep_pitch` (default `true`), `title` | `tracks` |
+| `stems` | – | `stem_type` (default `lead_vocal`; more than 90 values such as `drum_kit`, `bass`, `piano`, `808`; see the API schema for the full list), `audio_format` | `tracks` |
+| `stems-all` | – | `audio_format` | `tracks`, one per stem |
+
+Time ranges are in seconds and must satisfy `0 ≤ start_s < end_s ≤ track duration`.
+
+### Analysis and export
+
+These actions take `task_id` (required) and `audio_index` (optional) and accept any track as the source.
+
+| Action | Required besides `task_id` | Result |
+| --- | --- | --- |
+| `midi` | – | `midi` |
+| `aligned-lyrics` | – | `aligned_lyrics`: lyrics with timing |
+| `bpm` | – | `bpm`: `{avg, min, max}` |
+| `music-video` | – | `video_url`: MP4 |
+| `download` | `formats`: one or more of `mp3`, `m4a`, `wav`; duplicates are ignored | `files` |
+
+## Worked examples
+
+Each step is a separate paid task. Wait until a task is `SUCCEEDED` before you reference it.
+
+### Generate, extend, and join into one song
+
+**Step 1.** Generate with `POST /api/v1/music/generate`:
+
+```json
+{
+  "custom": true,
+  "prompt": "[Verse]\nNeon-lit streets on a rainy night",
+  "title": "Midnight Drive",
+  "style": "synthwave, female vocal"
+}
+```
+
+Poll the task and pick a track from `result.tracks`, for example the one with `"index": 2`.
+
+**Step 2.** Extend that track from 1:30 with `POST /api/v1/music/extend`:
+
+```json
+{
+  "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+  "audio_index": 2,
+  "continue_at": 90,
+  "prompt": "[Bridge]\nThe city fades behind us"
+}
+```
+
+**Step 3.** Join the continuation into a full song with `POST /api/v1/music/concat`, using the `task_id` of the `extend` task:
+
+```json
+{
+  "task_id": "8a1d2e44-5b6c-4f70-8e91-a2b3c4d5e6f7"
+}
+```
+
+### Add vocals to your own audio
+
+**Step 1.** Upload the audio with `POST /api/v1/music/upload`:
+
+```json
+{
+  "audio_url": "https://example.com/beat.mp3"
+}
+```
+
+**Step 2.** Add vocals with `POST /api/v1/music/add-vocals`, using the `task_id` of the `upload` task:
+
+```json
+{
+  "task_id": "3c9e7f10-2d4b-4a8e-9f61-7b2c1d0e5a94",
+  "prompt": "[Verse]\nMorning light on an empty street",
+  "style": "soul, female vocal"
+}
+```
+
+### Separate stems and download files
+
+Extract one stem from a finished song with `POST /api/v1/music/stems`:
+
+```json
+{
+  "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+  "stem_type": "drum_kit"
+}
+```
+
+Use `stems-all` instead to split the track into every stem. To get WAV and MP3 files of a track, call `POST /api/v1/music/download`:
+
+```json
+{
+  "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+  "formats": ["wav", "mp3"]
+}
+```
+
+The finished task lists the files in `result.files`, in request order.
+
+## Errors
+
+| HTTP | Meaning |
+| --- | --- |
+| 402 | Insufficient credits |
+| 404 | `music_action_not_found`: unknown action |
+| 422 | `validation_failed`: a field the action does not accept, a mode rule, a length, range, or enum violation, or an unusable source task (not found, not yours, not finished, wrong action, or index or time out of range) |
+| 429 | Rate limited |
+| 503 | `model_unavailable`: Suno is not accepting new tasks |
+
+See [Error codes](/api-reference/error-codes) for the error format and retry guidance.

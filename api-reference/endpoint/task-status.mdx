@@ -21,3 +21,85 @@ curl --fail-with-body --silent --show-error \
 Client-visible states are `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`. Internal `DISPATCHING` is returned as `PROCESSING`.
 
 Continue polling the same Task ID for non-terminal states. Do not automatically create a replacement task for an unknown state, `REVIEW_REQUIRED`, or an ambiguous submit response.
+
+## Response
+
+A successful task lists its media in `result_urls`. The field is unchanged for every model.
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "status": "SUCCEEDED",
+    "result_urls": ["https://cdn.wizzx.ai/images/2026/10/15/result.png"],
+    "error": "",
+    "credits_deducted": 9
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+## Music results
+
+Finished [music tasks](/api-reference/endpoint/submit-music) also return a structured `result` object. Which fields are present depends on the action; fields without a value are omitted. Other models do not return `result`.
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "6f0c1c52-2a4b-4d53-9a5e-3c0f2f7d9e11",
+    "status": "SUCCEEDED",
+    "result_urls": [
+      "https://cdn.wizzx.ai/audio/2026/10/15/track-1.mp3",
+      "https://cdn.wizzx.ai/audio/2026/10/15/track-2.mp3"
+    ],
+    "error": "",
+    "credits_deducted": 60,
+    "result": {
+      "tracks": [
+        {
+          "index": 1,
+          "audio_url": "https://cdn.wizzx.ai/audio/2026/10/15/track-1.mp3",
+          "image_url": "https://cdn.wizzx.ai/images/2026/10/15/cover-1.jpg",
+          "title": "Midnight Drive",
+          "style": "synthwave, female vocal",
+          "lyrics": "[Verse]\nNeon-lit streets on a rainy night",
+          "duration": 119.8
+        },
+        {
+          "index": 2,
+          "audio_url": "https://cdn.wizzx.ai/audio/2026/10/15/track-2.mp3",
+          "image_url": "https://cdn.wizzx.ai/images/2026/10/15/cover-2.jpg",
+          "title": "Midnight Drive",
+          "style": "synthwave, female vocal",
+          "lyrics": "[Verse]\nNeon-lit streets on a rainy night",
+          "duration": 124.1
+        }
+      ]
+    }
+  },
+  "request_id": "0d9d7b8e-51f6-4a1e-8d0e-9b7c2a6f4c33"
+}
+```
+
+| Field | Set by | Content |
+| --- | --- | --- |
+| `tracks[]` | Every action that produces audio | `index`, `audio_url`, `image_url`, `video_url`, `title`, `style`, `lyrics`, `duration` (seconds). Pass `index` as `audio_index` to use the track in a later action |
+| `lyrics[]` | `lyrics` | `title`, `text`, `style` |
+| `style` | `upsample-tags` | Enhanced style text |
+| `files[]` | `download` | `format` and `url`, in request order |
+| `video_url` | `music-video` | MP4 URL |
+| `bpm` | `bpm` | `avg`, `min`, `max` |
+| `persona_id` | `persona` | Informational. Reference the persona with this task's `task_id` as `persona_task_id` |
+| `model_id` | `create-model` | Informational. Reference the model with this task's `task_id` as `custom_model_task_id` |
+| `midi` | `midi` | `state` and `instruments[]` with `name` and `notes[]` |
+| `aligned_lyrics` | `aligned-lyrics` | `alignment[]` and `waveform_data` |
+| `data` | `create-voice` | No fixed structure |
+
+- Tracks keep their order, even when a track has no `audio_url` (for example after `upload`).
+- For music tasks, `result_urls` lists every track `audio_url`, then the `download` files, then the music video. Text and analysis results such as lyrics, BPM, and MIDI have no URL; read them from `result`.
+- Media URLs are normally served from `cdn.wizzx.ai`. If copying a file to the CDN fails, the original URL is returned instead and may expire, so download results you want to keep.
+- Music tasks that finished before October 15, 2026 have no `result`.

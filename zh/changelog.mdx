@@ -4,6 +4,23 @@ description: "产品更新与新模型发布"
 rss: true
 ---
 
+<Update label="2026年10月15日">
+
+### Suno 音乐动作
+
+- 新增接口 `POST /api/v1/music/{action}`，提供 33 个 Suno 动作，每个动作都是一个按次计费的异步 `suno` 任务：
+  - **创作**：`generate`、`inspo`（基于参考音频）、`sounds`、`lyrics`、`upsample-tags`、`upload`、`upload-cover`、`upload-extend`、`create-model`、`create-voice`
+  - **基于已有曲目**：`extend`、`concat`、`cover`、`remaster`、`add-vocals`、`add-instrumental`、`add-stem`、`mashup`、`sample`、`persona`
+  - **编辑**：`replace-section`、`remove-section`、`crop`、`fade-in`、`fade-out`、`adjust-speed`、`stems`、`stems-all`
+  - **分析与导出**：`midi`、`aligned-lyrics`、`bpm`、`music-video`、`download`
+- 使用你自己已完成 Suno 任务的 Wizzx `task_id` 与曲目的 `audio_index` 引用已有曲目。无效引用会在预扣积分前以 HTTP 422 拒绝。
+- 每个动作只接受自己的字段，其他字段返回 HTTP 422。
+- `POST /api/v1/task/status` 现在会为已完成的音乐任务返回结构化 `result` 对象：包含曲目的序号、封面、标题、歌词与时长，以及歌词、增强风格、下载文件、视频、BPM、MIDI、带时间轴的歌词、Persona 与模型 ID。`result_urls` 保持不变。
+- `generate` 新增可选字段 `custom_model_task_id`、`persona_task_id`、`style_weight`、`weirdness`、`audio_weight`、`auto_lyrics`、`variety` 与 `audio_format`。`POST /api/v1/task/submit/suno` 继续可用，等同于 `generate`。
+- 每次调用计费：生成类动作 60 积分（`max_mode` 为 120），`remaster` 与 `midi` 60 积分，`inspo` 131（262），`stems` 193，`stems-all` 462，`create-model` 1,847，其余动作 2–47 积分。详见[价格](/zh/pricing)。
+
+</Update>
+
 <Update label="2026年9月30日">
 
 ### 新模型：GPT Image 2.5

@@ -197,13 +197,26 @@ Kling v3 Omni 的参考图不计费。
 
 ## 音频生成
 
-| 模型 | 积分 | 计费单位 |
-|------|------|----------|
-| **Suno**（标准） | 60 | 每次请求 |
-| **Suno**（`max_mode`） | 120 | 每次请求 |
+Suno 按每个[音乐动作](/zh/api-reference/endpoint/submit-music)的调用次数计费，价格覆盖整个任务，与返回多少首曲目无关。
+
+| Suno 动作 | 每次调用积分 | 开启 `max_mode` |
+|-----------|--------------|-----------------|
+| `generate`、`extend`、`cover`、`upload-cover`、`upload-extend`、`add-vocals`、`add-instrumental`、`add-stem`、`mashup`、`sample`、`replace-section` | 60 | 120 |
+| `inspo` | 131 | 262 |
+| `remaster`、`midi` | 60 | – |
+| `stems` | 193 | – |
+| `stems-all` | 462 | – |
+| `create-model` | 1,847 | – |
+| `adjust-speed` | 47 | – |
+| `create-voice` | 31 | – |
+| `sounds` | 19 | – |
+| `lyrics`、`crop`、`fade-in`、`fade-out`、`remove-section` | 16 | – |
+| `upload`、`persona`、`concat`、`music-video`、`upsample-tags` | 8 | – |
+| `download` | 3 | – |
+| `aligned-lyrics`、`bpm` | 2 | – |
 
 <Note>
-  一次 Suno 请求通常返回两首，价格覆盖全部曲目。`version`（`v6`、`v6-wild`、`v6-mini`）与 `duration` 不影响价格。`max_mode` 仅在自定义模式下可用。
+  `POST /api/v1/task/submit/suno` 按 `generate` 计费。`version`（`v6`、`v6-wild`、`v6-mini`）与 `duration` 不影响价格。在有模式开关的动作上，`max_mode` 需要自定义模式。
 </Note>
 
 ## 费用计算器

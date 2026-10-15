@@ -1,12 +1,14 @@
 ---
 title: "Submit Suno task"
-description: "POST a Suno V6 music generation task in inspiration or custom mode"
+description: "Legacy POST entry for Suno V6 music generation, identical to the generate music action"
 openapi: "POST /api/v1/task/submit/suno"
 ---
 
 ## Submit task
 
-In inspiration mode (`custom: false`, default) `prompt` is a required song description. In custom mode (`custom: true`) `prompt` holds the lyrics and you can add `title`, `style`, `negative_tags`, `max_mode`, and `duration`. One request usually returns two tracks; read all of them from `result_urls` when the task succeeds.
+This endpoint is identical to [`POST /api/v1/music/generate`](/api-reference/endpoint/submit-music) and remains supported. Use [music actions](/api-reference/endpoint/submit-music) for new integrations: they cover generation plus extending, covering, editing, stem separation, analysis, and downloads.
+
+In inspiration mode (`custom: false`, default) `prompt` is a required song description. In custom mode (`custom: true`) `prompt` holds the lyrics and you can add `title`, `style`, `negative_tags`, `auto_lyrics`, `persona_task_id`, `max_mode`, and `duration`. Fields that `generate` does not accept return HTTP 422. One request usually returns two tracks; when the task succeeds, read all of them from `result_urls` or `result.tracks`.
 
 ```bash
 curl --fail-with-body --silent --show-error \

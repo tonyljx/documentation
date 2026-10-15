@@ -3,6 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import {
   legacyModelKeys,
+  musicActions,
   publicModels,
   retiredModelKeys,
 } from "./openapi-model-manifest.mjs";
@@ -189,6 +190,74 @@ for (const field of ["audio", "audio_url"]) {
 const suno = schemas.SunoSubmitRequest;
 assert.deepEqual(suno.properties.version.enum, ["v6", "v6-wild", "v6-mini"]);
 assert.equal(suno.allOf[0].oneOf.length, 2);
+assert.ok(
+  suno.properties.custom_model_task_id && suno.properties.persona_task_id,
+  "legacy suno submit must accept every generate field",
+);
+
+const musicOperation = openapi.paths["/api/v1/music/{action}"]?.post;
+assert.ok(musicOperation, "missing POST /api/v1/music/{action}");
+const musicActionNames = musicActions.map(({ action }) => action);
+assert.equal(musicActionNames.length, 33);
+assert.deepEqual(musicOperation.parameters[0].schema.enum, musicActionNames);
+for (const hidden of ["vox", "wav"]) {
+  assert.equal(
+    musicActionNames.includes(hidden),
+    false,
+    `deprecated music action ${hidden} must not be public`,
+  );
+}
+assert.ok(
+  musicOperation.responses["404"],
+  "music actions must document 404 music_action_not_found",
+);
+assert.equal(
+  musicOperation.responses["200"].content["application/json"].schema.$ref,
+  "#/components/schemas/TaskSubmitResponse",
+);
+const musicRequest = schemas.MusicActionRequest;
+assert.equal(musicRequest.additionalProperties, false);
+const musicExamples =
+  musicOperation.requestBody.content["application/json"].examples;
+for (const { action, required, accepted } of musicActions) {
+  const spec = musicRequest["x-wizzx-music-actions"][action];
+  assert.ok(spec, `missing x-wizzx-music-actions entry for ${action}`);
+  for (const field of accepted) {
+    assert.ok(
+      musicRequest.properties[field],
+      `music field ${field} (${action}) is not in MusicActionRequest`,
+    );
+  }
+  for (const field of required) {
+    assert.ok(
+      accepted.includes(field),
+      `${action} requires ${field} but does not accept it`,
+    );
+  }
+  const example = musicExamples[action]?.value;
+  assert.ok(example, `missing request example for music action ${action}`);
+  for (const field of Object.keys(example)) {
+    assert.ok(
+      accepted.includes(field),
+      `${action} example sends unaccepted field ${field}`,
+    );
+  }
+  for (const field of required) {
+    assert.ok(field in example, `${action} example lacks required ${field}`);
+  }
+}
+assert.equal(
+  schemas.TaskStatusData.properties.result.$ref,
+  "#/components/schemas/MusicTaskResult",
+);
+assert.ok(
+  schemas.MusicTaskResult.properties.tracks,
+  "music result must document tracks",
+);
+assert.ok(
+  schemas.TaskSubmitData.properties.action,
+  "submit data must document the music action",
+);
 const qwenImage2 = schemas.QwenImage2SubmitRequest;
 assert.equal(qwenImage2.properties.image_urls.maxItems, 3);
 assert.deepEqual(qwenImage2.properties.resolution.enum, ["1K", "2K"]);
@@ -252,6 +321,7 @@ for (const page of [
   "api-reference/endpoint/submit-gemini-omni-flash",
   "api-reference/endpoint/submit-wan-2-6-flash",
   "api-reference/endpoint/submit-suno",
+  "api-reference/endpoint/submit-music",
   "api-reference/endpoint/submit-qwen-image-2-0",
   "api-reference/endpoint/submit-qwen-image-2-0-pro",
   "api-reference/endpoint/submit-seedream-5-pro",
@@ -269,6 +339,7 @@ for (const page of [
   "zh/api-reference/endpoint/submit-gemini-omni-flash",
   "zh/api-reference/endpoint/submit-wan-2-6-flash",
   "zh/api-reference/endpoint/submit-suno",
+  "zh/api-reference/endpoint/submit-music",
   "zh/api-reference/endpoint/submit-qwen-image-2-0",
   "zh/api-reference/endpoint/submit-qwen-image-2-0-pro",
   "zh/api-reference/endpoint/submit-seedream-5-pro",

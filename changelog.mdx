@@ -4,6 +4,23 @@ description: "Product updates and new model releases"
 rss: true
 ---
 
+<Update label="October 15, 2026">
+
+### Suno music actions
+
+- New endpoint `POST /api/v1/music/{action}` with 33 Suno actions, each billed per call as one asynchronous `suno` task:
+  - **Creation**: `generate`, `inspo` (from reference audio), `sounds`, `lyrics`, `upsample-tags`, `upload`, `upload-cover`, `upload-extend`, `create-model`, `create-voice`
+  - **From an existing track**: `extend`, `concat`, `cover`, `remaster`, `add-vocals`, `add-instrumental`, `add-stem`, `mashup`, `sample`, `persona`
+  - **Editing**: `replace-section`, `remove-section`, `crop`, `fade-in`, `fade-out`, `adjust-speed`, `stems`, `stems-all`
+  - **Analysis and export**: `midi`, `aligned-lyrics`, `bpm`, `music-video`, `download`
+- Reference earlier tracks with the Wizzx `task_id` of your own finished Suno task and the track's `audio_index`. Invalid references are rejected with HTTP 422 before any credits are reserved.
+- Each action accepts only its own fields; other fields return HTTP 422.
+- `POST /api/v1/task/status` now returns a structured `result` object for finished music tasks: tracks with their index, cover image, title, lyrics, and duration, plus lyrics, enhanced style, download files, video, BPM, MIDI, timed lyrics, persona, and model IDs. `result_urls` is unchanged.
+- `generate` also accepts `custom_model_task_id`, `persona_task_id`, `style_weight`, `weirdness`, `audio_weight`, `auto_lyrics`, `variety`, and `audio_format`. `POST /api/v1/task/submit/suno` keeps working and equals `generate`.
+- Pricing per call: 60 credits for generation-class actions (120 with `max_mode`) and for `remaster` and `midi`, `inspo` 131 (262), `stems` 193, `stems-all` 462, `create-model` 1,847, and 2–47 credits for every other action. See [Pricing](/pricing).
+
+</Update>
+
 <Update label="September 30, 2026">
 
 ### New Model: GPT Image 2.5
