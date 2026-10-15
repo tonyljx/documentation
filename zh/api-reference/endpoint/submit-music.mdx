@@ -59,7 +59,7 @@ curl --fail-with-body --silent --show-error \
 | `instrumental` | boolean | `true` 表示无人声。不能与 `vocal_gender` 同时使用 |
 | `version` | string | `v6`（默认）、`v6-wild` 或 `v6-mini`，不区分大小写，价格相同 |
 | `custom_model_task_id` | string | 你已完成的 `create-model` 任务的 `task_id`。用于替代 `version`；不能与 `version` 或 `persona_task_id` 同时使用 |
-| `persona_task_id` | string | 你已完成的 `persona` 任务的 `task_id`。仅自定义模式 |
+| `persona_task_id` | string | 你已完成的 `persona` 或 `create-voice` 任务的 `task_id`。仅自定义模式 |
 | `title` | string | 最多 80 个字符 |
 | `style` | string | 风格标签，最多 1,000 个字符 |
 | `negative_tags` | string | 需要避开的风格，最多 1,000 个字符 |
@@ -100,7 +100,7 @@ curl --fail-with-body --silent --show-error \
 
 - `task_id` + `audio_index` 选择一首曲目。`audio_index` 是该曲目在来源任务 `result.tracks` 中从 1 开始的 `index`，默认 `1`。
 - `mashup` 改用 `task_ids`（正好两个任务）与 `audio_indexes`（两个元素，默认 `[1, 1]`）。
-- `custom_model_task_id` 必须指向已完成的 `create-model` 任务，`persona_task_id` 必须指向已完成的 `persona` 任务。
+- `custom_model_task_id` 必须指向已完成的 `create-model` 任务，`persona_task_id` 必须指向已完成的 `persona` 或 `create-voice` 任务。
 
 被引用的任务必须是你自己的、状态为 `SUCCEEDED` 的 `suno` 任务。只有产出曲目的动作才能作为曲目来源：`generate`、`inspo`、`sounds`、`upload`、`upload-cover`、`upload-extend`、`extend`、`cover`、`remaster`、`stems`、`stems-all`、`add-vocals`、`add-instrumental`、`add-stem`、`replace-section`、`remove-section`、`crop`、`fade-in`、`fade-out`、`adjust-speed`、`concat`、`mashup` 与 `sample`。歌词、风格、分析、Persona、模型、声音、视频与下载结果不能作为来源。
 
@@ -109,7 +109,7 @@ curl --fail-with-body --silent --show-error \
 | 动作 | 来源任务必须是 |
 | --- | --- |
 | `add-vocals`、`add-instrumental`、`sample` | `upload` 任务 |
-| `concat` | `extend` 或 `upload-extend` 任务 |
+| `concat` | `extend` 任务 |
 
 扣费前，网关还会检查 `audio_index` 在来源任务中存在，且 `continue_at`、`end_s`、`fade_duration` 不超出来源曲目时长。任一检查失败都会返回 HTTP 422，不会预扣积分。
 
@@ -134,7 +134,7 @@ curl --fail-with-body --silent --show-error \
 | `upload-cover` | `audio_url`（短于 8 分钟）、`custom` | 模式字段、`instrumental`、模型选择、`persona_task_id`、风格字段、权重、`vocal_gender`、`auto_lyrics`、`variety`、`max_mode`、`audio_format`、`duration` | `tracks` |
 | `upload-extend` | `audio_url`、`continue_at`（至少 1 秒） | `prompt`（歌词）、模型选择、`persona_task_id`、风格字段、权重、`vocal_gender`、`auto_lyrics`、`variety`、`max_mode`、`audio_format`、`duration` | `tracks` |
 | `create-model` | `name`（最多 80 个字符）、`audio_urls`：6–24 个公网音频 URL | – | `model_id`。把本任务的 `task_id` 作为 `custom_model_task_id` 使用。可能需要约 20 分钟 |
-| `create-voice` | `audio_url`（MP3 或 WAV） | – | `data`，无固定结构 |
+| `create-voice` | `audio_url`（MP3 或 WAV）：不带伴奏的干净人声录音 | – | `persona_id`；把本任务的 `task_id` 作为 `persona_task_id` 使用 |
 
 ### 基于已有曲目
 
@@ -143,7 +143,7 @@ curl --fail-with-body --silent --show-error \
 | 动作 | 除 `task_id` 外必填 | 可选 | 来源 | 结果 |
 | --- | --- | --- | --- | --- |
 | `extend` | `continue_at`：至少 1 秒且小于曲目时长 | 模式字段（`custom` 默认 `true`）、模型选择、`persona_task_id`、风格字段、权重、`vocal_gender`、`auto_lyrics`、`variety`、`max_mode`、`audio_format`、`duration` | 任意曲目 | `tracks` |
-| `concat` | – | `audio_format` | `extend` 或 `upload-extend` 任务 | `tracks`：拼接后的完整歌曲 |
+| `concat` | – | `audio_format` | `extend` 任务 | `tracks`：拼接后的完整歌曲 |
 | `cover` | 模式（自动推断，见模式规则） | 模式字段、模型选择、`persona_task_id`、风格字段、权重、`vocal_gender`、`variety`、`max_mode`、`audio_format`、`duration` | 任意曲目 | `tracks` |
 | `remaster` | – | `variation_category`（`subtle`、`normal` 或 `high`）、`audio_format` | 任意曲目 | `tracks` |
 | `add-vocals` | 模式（自动推断，见模式规则） | 模式字段、模型选择、风格字段、权重、`vocal_gender`、`variety`、`max_mode`、`audio_format` | `upload` 任务 | `tracks` |

@@ -8023,7 +8023,7 @@
           "persona_task_id": {
             "type": "string",
             "format": "uuid",
-            "description": "task_id of your SUCCEEDED persona task. Custom mode only."
+            "description": "task_id of your SUCCEEDED persona or create-voice task. Custom mode only."
           },
           "title": {
             "type": "string",
@@ -8328,7 +8328,7 @@
           "persona_task_id": {
             "type": "string",
             "format": "uuid",
-            "description": "task_id of your SUCCEEDED persona task. Custom mode only."
+            "description": "task_id of your SUCCEEDED persona or create-voice task. Custom mode only."
           },
           "title": {
             "type": "string",
@@ -8869,7 +8869,7 @@
               "audio_url"
             ],
             "source": "none",
-            "result": "data"
+            "result": "persona_id"
           },
           "extend": {
             "group": "From an existing track",
@@ -8913,7 +8913,7 @@
               "audio_index",
               "audio_format"
             ],
-            "source": "extend or upload-extend task",
+            "source": "extend task",
             "result": "tracks"
           },
           "cover": {
@@ -9448,7 +9448,7 @@
           },
           "persona_id": {
             "type": "string",
-            "description": "persona action. Informational; reference the persona with this task's task_id as persona_task_id."
+            "description": "persona and create-voice actions. Informational; reference the persona with this task's task_id as persona_task_id."
           },
           "model_id": {
             "type": "string",
@@ -9465,7 +9465,7 @@
             "description": "aligned-lyrics action: {alignment[], waveform_data}."
           },
           "data": {
-            "description": "create-voice action. No fixed structure."
+            "description": "Raw result for an action whose output has no documented structure."
           }
         }
       }

@@ -449,7 +449,7 @@ export const musicActions = [
     required: ["audio_url"],
     accepted: ["audio_url"],
     source: "none",
-    result: "data",
+    result: "persona_id",
     example: { audio_url: "https://example.com/voice.wav" },
   },
   {
@@ -481,7 +481,7 @@ export const musicActions = [
     group: "From an existing track",
     required: ["task_id"],
     accepted: [...trackSource, "audio_format"],
-    source: "extend or upload-extend task",
+    source: "extend task",
     result: "tracks",
     example: { task_id: "8a1d2e44-5b6c-4f70-8e91-a2b3c4d5e6f7" },
   },

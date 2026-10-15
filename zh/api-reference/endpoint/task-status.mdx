@@ -93,11 +93,11 @@ curl --fail-with-body --silent --show-error \
 | `files[]` | `download` | `format` 与 `url`，按请求顺序排列 |
 | `video_url` | `music-video` | MP4 地址 |
 | `bpm` | `bpm` | `avg`、`min`、`max` |
-| `persona_id` | `persona` | 仅供参考。引用该 Persona 时，把本任务的 `task_id` 作为 `persona_task_id` |
+| `persona_id` | `persona`、`create-voice` | 仅供参考。引用该 Persona 时，把本任务的 `task_id` 作为 `persona_task_id` |
 | `model_id` | `create-model` | 仅供参考。引用该模型时，把本任务的 `task_id` 作为 `custom_model_task_id` |
 | `midi` | `midi` | `state` 与 `instruments[]`（含 `name` 和 `notes[]`） |
 | `aligned_lyrics` | `aligned-lyrics` | `alignment[]` 与 `waveform_data` |
-| `data` | `create-voice` | 无固定结构 |
+| `data` | – | 输出没有已知结构时的原始结果 |
 
 - 曲目保持原有顺序，即使某首曲目没有 `audio_url`（例如 `upload` 之后）。
 - 音乐任务的 `result_urls` 依次列出每首曲目的 `audio_url`、`download` 文件和音乐视频。歌词、BPM、MIDI 等文本与分析结果没有 URL，请从 `result` 读取。

@@ -941,7 +941,7 @@ const musicFieldSchemas = {
     "task_id of your SUCCEEDED create-model task. Replaces version; cannot be combined with version or persona_task_id.",
   ),
   persona_task_id: musicTaskId(
-    "task_id of your SUCCEEDED persona task. Custom mode only.",
+    "task_id of your SUCCEEDED persona or create-voice task. Custom mode only.",
   ),
   title: optionalText(80, "Custom mode only on actions with a mode switch."),
   style: optionalText(
@@ -1622,7 +1622,7 @@ Object.assign(api.components.schemas, {
       persona_id: {
         type: "string",
         description:
-          "persona action. Informational; reference the persona with this task's task_id as persona_task_id.",
+          "persona and create-voice actions. Informational; reference the persona with this task's task_id as persona_task_id.",
       },
       model_id: {
         type: "string",
@@ -1640,7 +1640,7 @@ Object.assign(api.components.schemas, {
         description: "aligned-lyrics action: {alignment[], waveform_data}.",
       },
       data: {
-        description: "create-voice action. No fixed structure.",
+        description: "Raw result for an action whose output has no documented structure.",
       },
     },
   },

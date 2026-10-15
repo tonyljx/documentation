@@ -129,7 +129,7 @@ Suno V6 是 Suno 的音乐模型。在 Wizzx 上它使用 `suno` model key，并
 }
 ```
 
-之后用 `concat` 把续写拼接为完整歌曲。只能引用你自己的、状态为 `SUCCEEDED` 的 Suno 任务。`add-vocals`、`add-instrumental` 与 `sample` 需要 `upload` 任务作为来源，`concat` 需要 `extend` 或 `upload-extend` 任务。详见 [提交音乐动作](/zh/api-reference/endpoint/submit-music) 中的「引用已有任务」。
+之后用 `concat` 把续写拼接为完整歌曲。只能引用你自己的、状态为 `SUCCEEDED` 的 Suno 任务。`add-vocals`、`add-instrumental` 与 `sample` 需要 `upload` 任务作为来源，`concat` 需要 `extend` 任务。详见 [提交音乐动作](/zh/api-reference/endpoint/submit-music) 中的「引用已有任务」。
 
 ### 计费
 

@@ -93,11 +93,11 @@ Finished [music tasks](/api-reference/endpoint/submit-music) also return a struc
 | `files[]` | `download` | `format` and `url`, in request order |
 | `video_url` | `music-video` | MP4 URL |
 | `bpm` | `bpm` | `avg`, `min`, `max` |
-| `persona_id` | `persona` | Informational. Reference the persona with this task's `task_id` as `persona_task_id` |
+| `persona_id` | `persona`, `create-voice` | Informational. Reference the persona with this task's `task_id` as `persona_task_id` |
 | `model_id` | `create-model` | Informational. Reference the model with this task's `task_id` as `custom_model_task_id` |
 | `midi` | `midi` | `state` and `instruments[]` with `name` and `notes[]` |
 | `aligned_lyrics` | `aligned-lyrics` | `alignment[]` and `waveform_data` |
-| `data` | `create-voice` | No fixed structure |
+| `data` | – | Raw result when the output has no documented structure |
 
 - Tracks keep their order, even when a track has no `audio_url` (for example after `upload`).
 - For music tasks, `result_urls` lists every track `audio_url`, then the `download` files, then the music video. Text and analysis results such as lyrics, BPM, and MIDI have no URL; read them from `result`.

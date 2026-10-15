@@ -59,7 +59,7 @@ These fields mean the same thing in every action that accepts them.
 | `instrumental` | boolean | `true` for no vocals. Cannot be combined with `vocal_gender` |
 | `version` | string | `v6` (default), `v6-wild`, or `v6-mini`, case-insensitive, same price |
 | `custom_model_task_id` | string | `task_id` of your finished `create-model` task. Use it instead of `version`; cannot be combined with `version` or `persona_task_id` |
-| `persona_task_id` | string | `task_id` of your finished `persona` task. Custom mode only |
+| `persona_task_id` | string | `task_id` of your finished `persona` or `create-voice` task. Custom mode only |
 | `title` | string | At most 80 characters |
 | `style` | string | Style tags, at most 1,000 characters |
 | `negative_tags` | string | Styles to avoid, at most 1,000 characters |
@@ -100,7 +100,7 @@ Many actions build on a track you already generated:
 
 - `task_id` + `audio_index` select one track. `audio_index` is the 1-based `index` of the track in the source task's `result.tracks` and defaults to `1`.
 - `mashup` uses `task_ids` (exactly two tasks) and `audio_indexes` (two entries, default `[1, 1]`) instead.
-- `custom_model_task_id` must point to a finished `create-model` task, and `persona_task_id` to a finished `persona` task.
+- `custom_model_task_id` must point to a finished `create-model` task, and `persona_task_id` to a finished `persona` or `create-voice` task.
 
 Every referenced task must be your own `suno` task with status `SUCCEEDED`. Only actions that produce tracks can be a track source: `generate`, `inspo`, `sounds`, `upload`, `upload-cover`, `upload-extend`, `extend`, `cover`, `remaster`, `stems`, `stems-all`, `add-vocals`, `add-instrumental`, `add-stem`, `replace-section`, `remove-section`, `crop`, `fade-in`, `fade-out`, `adjust-speed`, `concat`, `mashup`, and `sample`. Lyrics, style, analysis, persona, model, voice, video, and download results cannot.
 
@@ -109,7 +109,7 @@ Some actions need a specific kind of source:
 | Action | Source task must be |
 | --- | --- |
 | `add-vocals`, `add-instrumental`, `sample` | An `upload` task |
-| `concat` | An `extend` or `upload-extend` task |
+| `concat` | An `extend` task |
 
 Before charging, the gateway also checks that `audio_index` exists in the source task and that `continue_at`, `end_s`, and `fade_duration` fit the source track's duration. Any failed check returns HTTP 422 and no credits are reserved.
 
@@ -134,7 +134,7 @@ All actions return their output in the task status [`result`](/api-reference/end
 | `upload-cover` | `audio_url` (shorter than 8 minutes), `custom` | mode fields, `instrumental`, model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | `tracks` |
 | `upload-extend` | `audio_url`, `continue_at` (at least 1 second) | `prompt` (lyrics), model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | `tracks` |
 | `create-model` | `name` (at most 80 characters), `audio_urls`: 6–24 public audio URLs | – | `model_id`. Use this task's `task_id` as `custom_model_task_id`. Can take about 20 minutes |
-| `create-voice` | `audio_url` (MP3 or WAV) | – | `data`, no fixed structure |
+| `create-voice` | `audio_url` (MP3 or WAV): a clean vocal recording without music | – | `persona_id`; use this task's `task_id` as `persona_task_id` |
 
 ### From an existing track
 
@@ -143,7 +143,7 @@ These actions take `task_id` (required) and `audio_index` (optional) unless note
 | Action | Required besides `task_id` | Optional | Source | Result |
 | --- | --- | --- | --- | --- |
 | `extend` | `continue_at`: at least 1 second and less than the track duration | mode fields (`custom` defaults to `true`), model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `auto_lyrics`, `variety`, `max_mode`, `audio_format`, `duration` | Any track | `tracks` |
-| `concat` | – | `audio_format` | `extend` or `upload-extend` task | `tracks`: the full joined song |
+| `concat` | – | `audio_format` | `extend` task | `tracks`: the full joined song |
 | `cover` | Mode ([inferred](#custom-and-inspiration-mode)) | mode fields, model choice, `persona_task_id`, style fields, weights, `vocal_gender`, `variety`, `max_mode`, `audio_format`, `duration` | Any track | `tracks` |
 | `remaster` | – | `variation_category` (`subtle`, `normal`, or `high`), `audio_format` | Any track | `tracks` |
 | `add-vocals` | Mode ([inferred](#custom-and-inspiration-mode)) | mode fields, model choice, style fields, weights, `vocal_gender`, `variety`, `max_mode`, `audio_format` | `upload` task | `tracks` |
