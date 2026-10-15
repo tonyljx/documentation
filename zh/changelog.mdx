@@ -19,6 +19,12 @@ rss: true
 - `generate` 新增可选字段 `custom_model_task_id`、`persona_task_id`、`style_weight`、`weirdness`、`audio_weight`、`auto_lyrics`、`variety` 与 `audio_format`。`POST /api/v1/task/submit/suno` 继续可用，等同于 `generate`。
 - 每次调用计费：生成类动作 60 积分（`max_mode` 为 120），`remaster` 与 `midi` 60 积分，`inspo` 131（262），`stems` 193，`stems-all` 462，`create-model` 1,847，其余动作 2–47 积分。详见[价格](/zh/pricing)。
 
+**当日修复**
+- `lyrics` 的结果现在放在 `result.lyrics` 中，每份草稿包含 `title`、`text` 与 `style`。
+- `concat` 只接受 `extend` 任务作为来源，其他来源会在预扣积分前返回 HTTP 422。
+- `create-voice` 返回 `persona_id`，与 `persona` 任务一样，把该任务的 `task_id` 作为 `persona_task_id` 使用。请使用不带伴奏的干净人声录音。
+- `POST /api/v1/task/status` 的 `error` 字段现在对所有模型的失败任务都返回可读的说明。
+
 </Update>
 
 <Update label="2026年9月30日">

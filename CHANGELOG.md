@@ -2,6 +2,10 @@
 
 ## 2026-10-15
 
+### Fixed
+
+- After a production smoke test: `concat` sources are `extend` tasks only (submit-music EN/ZH, model pages, OpenAPI manifest); `create-voice` returns `persona_id` and can be referenced as `persona_task_id` (submit-music, task-status, OpenAPI `persona_task_id` / `result.persona_id`); `result.data` is now described as a raw fallback. Public changelogs list the same-day fixes, including lyrics results and readable task errors.
+
 ### Added
 
 - Documented Suno music actions (`POST /api/v1/music/{action}`, 33 actions) in a new bilingual endpoint page (`api-reference/endpoint/submit-music`, `zh/...`) with shared fields, custom/inspiration mode rules, source-track referencing rules, per-action field tables grouped as Creation / From an existing track / Editing / Analysis and export, worked multi-step examples, and errors. Added it to both API reference navigation groups.

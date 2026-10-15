@@ -19,6 +19,12 @@ rss: true
 - `generate` also accepts `custom_model_task_id`, `persona_task_id`, `style_weight`, `weirdness`, `audio_weight`, `auto_lyrics`, `variety`, and `audio_format`. `POST /api/v1/task/submit/suno` keeps working and equals `generate`.
 - Pricing per call: 60 credits for generation-class actions (120 with `max_mode`) and for `remaster` and `midi`, `inspo` 131 (262), `stems` 193, `stems-all` 462, `create-model` 1,847, and 2–47 credits for every other action. See [Pricing](/pricing).
 
+**Fixes (same day)**
+- `lyrics` results are now returned in `result.lyrics` with `title`, `text`, and `style` for each draft.
+- `concat` only accepts an `extend` task as its source; other sources return HTTP 422 before credits are reserved.
+- `create-voice` returns a `persona_id`. Pass the task's `task_id` as `persona_task_id`, the same as a `persona` task. Use a clean vocal recording without music.
+- The `error` field of `POST /api/v1/task/status` now always returns a readable message for failed tasks, for every model.
+
 </Update>
 
 <Update label="September 30, 2026">
