@@ -1,16 +1,23 @@
 ---
 title: "获取公开模型和价格"
-description: "GET 当前公开模型目录和积分档位"
+description: "GET 当前公开模型目录、积分档位、OpenAI 兼容模型列表与 24 小时可靠性指标"
 openapi: "GET /pricing"
 ---
 
 ## 获取公开模型和价格
 
-该接口无需鉴权。构造付费请求前，应以返回的 `model_key`、可用性和 `tiers` 作为当前事实依据。
+该接口无需鉴权并内置浏览器 CORS 支持。构造付费请求前，应以返回的 `model_key`、可用性和 `tiers` 作为当前事实依据。
 
 ```bash
 curl --fail-with-body --silent --show-error \
-  https://api.wizzx.ai/pricing
+  "https://api.wizzx.ai/pricing?locale=zh"
 ```
 
+默认返回英文计费说明（`note`）；传入 `?locale=zh` 时返回简体中文计费说明。
+
 Hidden 兼容模型不会出现在结果中。对于结果中不存在的模型，智能体不得自动选择并创建新任务。
+
+## 配套服务发现接口
+
+- **公开模型列表（`GET /v1/models`）**：返回 `data.object: "list"` 与 `data.models`，包含每个公开模型的 `model_key`、`provider`、`category`、`unit`、`tiers` 与 `credit_to_usd`（`0.001`），同时支持 `GET /api/v1/models`。
+- **24 小时可靠性与耗时指标（`GET /pricing/metrics`）**：返回各公开 `model_key` 过去 24 小时已结算任务的真实指标（`sufficient_sample`、`settled_count`、`success_rate`、`avg_latency_ms`），同时支持 `GET /api/v1/models/metrics`。

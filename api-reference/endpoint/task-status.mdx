@@ -6,7 +6,15 @@ openapi: "POST /api/v1/task/status"
 
 ## Query task
 
-Send the Wizzx `task_id` returned by submit with the same API key. This endpoint reads the stored task state and does not submit work to the provider.
+Poll the Wizzx `task_id` returned by submit with the same API key. You can query via RESTful `GET /api/v1/task/{task_id}` (recommended), `GET /api/v1/task/status?task_id={task_id}`, or `POST /api/v1/task/status`. All three read stored task state without re-submitting work to the provider.
+
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.wizzx.ai/api/v1/task/4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a \
+  -H "Authorization: Bearer <api_key>"
+```
+
+Or via `POST`:
 
 ```bash
 curl --fail-with-body --silent --show-error \
@@ -20,7 +28,7 @@ curl --fail-with-body --silent --show-error \
 
 Client-visible states are `PENDING`, `QUEUED`, `PROCESSING`, `REVIEW_REQUIRED`, `SUCCEEDED`, and `FAILED`. Internal `DISPATCHING` is returned as `PROCESSING`.
 
-Continue polling the same Task ID for non-terminal states. Do not automatically create a replacement task for an unknown state, `REVIEW_REQUIRED`, or an ambiguous submit response.
+Continue polling the same Task ID for non-terminal states. Do not automatically create a replacement task for an unknown state, `REVIEW_REQUIRED`, or an ambiguous submit response. If a task fails and its reserved credits are refunded (or was never charged), `credits_deducted` is `0`.
 
 ## Response
 

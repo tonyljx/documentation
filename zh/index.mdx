@@ -24,14 +24,22 @@ description: "统一的 AI 图像和视频生成 API - 比官方价格最高节�
 
 ## 快速开始
 
-<Card
-  title="查看价格"
-  icon="tag"
-  href="/zh/pricing"
-  horizontal
->
-  查看所有模型的详细定价并计算您的成本。
-</Card>
+<CardGroup cols={2}>
+  <Card
+    title="API 概览与快速开始"
+    icon="rocket"
+    href="/zh/introduction"
+  >
+    60 秒内完成首次鉴权请求与异步结果轮询。
+  </Card>
+  <Card
+    title="查看价格"
+    icon="tag"
+    href="/zh/pricing"
+  >
+    查看所有公开模型的详细积分档位（`1,000 积分 = $1`）。
+  </Card>
+</CardGroup>
 
 ## 图像生成
 
@@ -52,6 +60,12 @@ description: "统一的 AI 图像和视频生成 API - 比官方价格最高节�
   </Card>
   <Card title="Nano Banana 2 Lite" icon="feather" href="/zh/models/nano-banana-2-lite">
     经济型生成，固定 24 积分/张。
+  </Card>
+  <Card title="GPT Image 2" icon="image" href="/zh/models/gpt-image-2">
+    OpenAI 文生图与多参考图编辑，固定 9 积分/次。
+  </Card>
+  <Card title="GPT Image 2.5" icon="image" href="/zh/models/gpt-image-2-5">
+    OpenAI 1K/2K/4K 生成与编辑，支持最多 16 张参考图。
   </Card>
   <Card title="Qwen Image 2.0" icon="image" href="/zh/models/qwen-image-2">
     Qwen Image 2.0 与 2.0 Pro，1K/2K 输出。

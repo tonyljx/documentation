@@ -20,6 +20,7 @@ import AgentMediaRequestSchemas from '/snippets/agent-media-request-schemas.mdx'
 | --- | --- |
 | [本指南的 Markdown 版本](https://docs.wizzx.ai/zh/ai-tools/media-generation-agents.md) | 不经过网页界面的中文智能体工作流。 |
 | [`llms.txt`](https://docs.wizzx.ai/llms.txt) | 自动更新的精简文档索引，用于发现模型与 API 页面；如果索引尚未列出所需语言，直接使用对应页面的 `.md` 链接。 |
+| [`wizzx.ai/llms.txt`](https://wizzx.ai/llms.txt) | 实时公开模型目录索引，附带单模型 `llms.txt` 简报与 JSON Schema 地址。 |
 | [`llms-full.txt`](https://docs.wizzx.ai/llms-full.txt) | 全站文档上下文。只在智能体能容纳完整内容、且不会挤占用户需求上下文时使用。 |
 | [OpenAPI JSON](https://docs.wizzx.ai/api-reference/openapi.json) | 机器可读的请求、响应、枚举和条件参数 Schema。 |
 
@@ -67,24 +68,25 @@ export WIZZX_API_KEY
 3. 使用 Bearer Key 请求 GET /api/v1/credits/balance。
 4. 只构造所选模型 Schema 允许的字段。model_key 放在 URL 路径中，不放进 JSON Body。
 5. 如果用户只要求方案、参数预览或费用估算，停在提交之前。
-6. 仅调用一次 POST /api/v1/task/submit/{model_key}。Suno 音乐动作改为仅调用一次 POST /api/v1/music/{action}。
+6. 调用一次 POST /api/v1/task/submit/{model_key}（Suno 音乐动作改为 POST /api/v1/music/{action}），并附带唯一的 Idempotency-Key 请求头。
 7. 必须同时满足 HTTP 成功、code == 0、data.task_id 非空；立即保存并告知用户 Task ID。
-8. 使用同一个 Bearer Key，通过 {"task_id":"..."} 轮询 POST /api/v1/task/status；采用退避，并遵守 429 的 retry_after。
+8. 使用同一个 Bearer Key 轮询 GET /api/v1/task/{task_id}（或通过 {"task_id":"..."} 调用 POST /api/v1/task/status）；采用退避，并遵守 429 的 Retry-After / retry_after。
 9. PENDING、QUEUED、PROCESSING 时继续查询；SUCCEEDED 时返回 result_urls，若存在 result 对象（音乐任务）一并返回；FAILED 时返回 error；REVIEW_REQUIRED 时停止并报告，禁止重新提交。
 10. 查询超时时返回 Task ID，方便稍后继续；禁止自动创建替代任务。
 
-如果提交请求发生网络超时或结果不明确的 5xx，不得自动重试，因为可能产生第二个付费任务。任何第二次提交都必须先询问用户。
+如果提交请求发生网络超时或结果不明确的 5xx，不得自动更换 Idempotency-Key 重试，任何第二个付费任务都必须先询问用户。
 ```
 
 ## 接口一览
 
 | 用途 | 方法和路径 | 鉴权 |
 | --- | --- | --- |
-| 获取当前公开模型和价格 | [`GET /pricing`](/zh/api-reference/endpoint/pricing) | 无需鉴权 |
+| 获取当前公开模型和价格 | [`GET /pricing`](/zh/api-reference/endpoint/pricing) / `GET /v1/models` | 无需鉴权 |
+| 查询 24 小时真实成功率与耗时 | `GET /pricing/metrics` | 无需鉴权 |
 | 查询积分余额 | [`GET /api/v1/credits/balance`](/zh/api-reference/endpoint/credit-balance) | Bearer API Key |
 | 提交生成任务 | `POST /api/v1/task/submit/{model_key}` | Bearer API Key |
 | 提交 Suno 音乐动作 | [`POST /api/v1/music/{action}`](/zh/api-reference/endpoint/submit-music) | Bearer API Key |
-| 查询任务状态 | [`POST /api/v1/task/status`](/zh/api-reference/endpoint/task-status) | Bearer API Key |
+| 查询任务状态 | `GET /api/v1/task/{task_id}` 或 [`POST /api/v1/task/status`](/zh/api-reference/endpoint/task-status) | Bearer API Key |
 
 只有当模型仍出现在 `/pricing` 时，才将 `gpt-image-2` 作为通用图片预设、`veo3` 作为通用视频预设。如果用户指定其他模型，必须阅读该模型的 API 参考，不能复用预设 Schema。
 
@@ -234,9 +236,10 @@ curl --fail-with-body --silent --show-error \
 | --- | --- |
 | `400` / `422` | 根据 `error.param` 和 `error.message` 修正参数，禁止原样重试。 |
 | `401` | 停止并索要有效 Key；不要显示被拒绝的 Key。 |
-| `402` | 停止并报告积分不足。 |
+| `402` | 停止并报告积分不足（可读取响应中的 `balance`、`required`、`shortfall` 与 `billing_url`）。 |
 | 查询返回 `404` | 检查 Task ID 和账号；任务按用户隔离。 |
-| `429` | 按 `retry_after` 或 `X-Retry-After` 等待，然后重试同一个状态查询。 |
+| 提交返回 `409` | 若为 `idempotency_key_in_progress`，稍等后用相同 `Idempotency-Key` 重试；若为 `idempotency_key_conflict`，仅在提交新参数时更换 `Idempotency-Key`。 |
+| `429` | 按 `Retry-After`、`retry_after` 或 `X-Retry-After` 等待，然后重试同一个状态查询。 |
 | 状态查询返回 `500` / `503` | 使用退避重试同一个 Task ID。 |
 | 提交时网络超时或结果不明确的 `5xx` | 禁止自动再次提交；说明结果不明确，第二次付费尝试前必须询问用户。 |
 

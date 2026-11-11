@@ -1,6 +1,6 @@
 ---
 title: "Get credit balance"
-description: "GET the authenticated API key's current credit balance"
+description: "GET the authenticated API key's current credit balance and USD equivalent"
 openapi: "GET /api/v1/credits/balance"
 ---
 
@@ -14,4 +14,20 @@ curl --fail-with-body --silent --show-error \
   -H "Authorization: Bearer <api_key>"
 ```
 
-The response returns `data.balance`. A successful balance check does not reserve credits; credits are reserved only after a task submission is accepted.
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "balance": 15200,
+    "free_credits": 200,
+    "paid_credits": 15000,
+    "usd_equivalent": 15.2
+  },
+  "request_id": "2c8d3b9e-4f1a-4c62-9e77-8a1b5c4d2e90"
+}
+```
+
+- `data.balance` is the total spendable credit balance (`free_credits + paid_credits`).
+- `data.usd_equivalent` converts `balance` at the fixed `1,000 credits = $1.00 USD` rate.
+- Checking your balance never reserves credits; credits are reserved atomically only when a task submission is accepted.

@@ -19,6 +19,7 @@ Give an agent the smallest useful source first. Use the index to discover a page
 | Resource | Use it for |
 | --- | --- |
 | [`llms.txt`](https://docs.wizzx.ai/llms.txt) | Compact, automatically updated documentation index. Start here when the model or page is unknown. |
+| [`wizzx.ai/llms.txt`](https://wizzx.ai/llms.txt) | Live public catalog index with direct per-model `llms.txt` briefs and JSON Schema links. |
 | [`llms-full.txt`](https://docs.wizzx.ai/llms-full.txt) | Full documentation context. Use only when the agent can load the whole site without crowding out the user's request. |
 | [This guide as Markdown](https://docs.wizzx.ai/ai-tools/media-generation-agents.md) | Agent-readable version of this workflow without the web interface. |
 | [OpenAPI JSON](https://docs.wizzx.ai/api-reference/openapi.json) | Machine-readable request, response, enum, and conditional parameter schemas. |
@@ -67,24 +68,25 @@ Execution contract:
 3. Read GET /api/v1/credits/balance with the Bearer key.
 4. Build only fields allowed by the selected model schema. model_key belongs in the URL path, not the JSON body.
 5. If the user asked only for a plan, payload preview, or cost estimate, stop before submission.
-6. Submit exactly once with POST /api/v1/task/submit/{model_key}. For a Suno music action, submit once to POST /api/v1/music/{action} instead.
+6. Submit once with POST /api/v1/task/submit/{model_key} (or POST /api/v1/music/{action} for Suno) and include a unique Idempotency-Key header.
 7. Require HTTP success, code == 0, and a non-empty data.task_id. Save and report that Task ID immediately.
-8. Poll POST /api/v1/task/status with {"task_id":"..."} and the same Bearer key. Use backoff and honor retry_after on 429.
+8. Poll GET /api/v1/task/{task_id} (or POST /api/v1/task/status with {"task_id":"..."}) and the same Bearer key. Use backoff and honor Retry-After / retry_after on 429.
 9. Continue for PENDING, QUEUED, or PROCESSING. Return result_urls for SUCCEEDED, plus the result object when present (music tasks). Return error for FAILED. Stop and report REVIEW_REQUIRED without resubmitting.
 10. If polling times out, return the Task ID so polling can resume. Never create a replacement task automatically.
 
-Do not automatically retry a submit request after a network timeout or ambiguous 5xx response; it may create a second paid task. Ask the user before any second submission.
+Do not submit a new Idempotency-Key automatically after a network timeout or ambiguous 5xx response; ask the user before any second paid task.
 ```
 
 ## Endpoints
 
 | Purpose | Method and path | Authentication |
 | --- | --- | --- |
-| Discover public models and current pricing | [`GET /pricing`](/api-reference/endpoint/pricing) | None |
+| Discover public models and current pricing | [`GET /pricing`](/api-reference/endpoint/pricing) / `GET /v1/models` | None |
+| Check rolling 24h model reliability & latency | `GET /pricing/metrics` | None |
 | Check the current credit balance | [`GET /api/v1/credits/balance`](/api-reference/endpoint/credit-balance) | Bearer API key |
 | Submit a generation | `POST /api/v1/task/submit/{model_key}` | Bearer API key |
 | Submit a Suno music action | [`POST /api/v1/music/{action}`](/api-reference/endpoint/submit-music) | Bearer API key |
-| Query a task | [`POST /api/v1/task/status`](/api-reference/endpoint/task-status) | Bearer API key |
+| Query a task | `GET /api/v1/task/{task_id}` or [`POST /api/v1/task/status`](/api-reference/endpoint/task-status) | Bearer API key |
 
 Use `gpt-image-2` as the general image preset and `veo3` as the general video preset only while each key appears in `/pricing`. If the user names another model, read that model's API reference and do not reuse a preset schema.
 
@@ -234,9 +236,10 @@ Errors use a different envelope:
 | --- | --- |
 | `400` / `422` | Fix the payload from `error.param` and `error.message`; do not retry unchanged. |
 | `401` | Stop and ask for an active key. Never display the rejected key. |
-| `402` | Stop and report insufficient credits. |
+| `402` | Stop and report insufficient credits (`balance`, `required`, `shortfall`, and `billing_url`). |
 | `404` on status | Check the Task ID and account; tasks are isolated by owner. |
-| `429` | Wait for `retry_after` or `X-Retry-After`, then retry the same status query. |
+| `409` on submit | If `idempotency_key_in_progress`, wait briefly and retry with the same `Idempotency-Key`; if `idempotency_key_conflict`, generate a new `Idempotency-Key` only for a genuinely new payload. |
+| `429` | Wait for `Retry-After`, `retry_after`, or `X-Retry-After`, then retry the same status query. |
 | `500` / `503` on status | Retry the same Task ID with backoff. |
 | Network timeout or ambiguous `5xx` on submit | Do not submit again automatically; report the ambiguity and ask before a second paid attempt. |
 

@@ -1,16 +1,23 @@
 ---
 title: "List public models and pricing"
-description: "GET the current public model catalog and credit tiers"
+description: "GET the current public model catalog, credit tiers, OpenAI-compatible model list, and 24h reliability metrics"
 openapi: "GET /pricing"
 ---
 
 ## List public models and pricing
 
-This endpoint does not require authentication. Treat its `model_key`, availability, and `tiers` as the current source of truth before constructing a paid request.
+This endpoint does not require authentication and supports browser CORS. Treat its `model_key`, availability, and `tiers` as the current source of truth before constructing a paid request.
 
 ```bash
 curl --fail-with-body --silent --show-error \
   https://api.wizzx.ai/pricing
 ```
 
+By default, model billing `note` fields are returned in English. Pass `?locale=zh` when presenting localized Simplified Chinese pricing notes.
+
 Hidden compatibility models are intentionally omitted. A model absent from this response must not be selected automatically for a new Agent task.
+
+## Companion discovery endpoints
+
+- **Public model list (`GET /v1/models`)**: Returns `data.object: "list"` and `data.models` with each public `model_key`, `provider`, `category`, `unit`, `tiers`, and `credit_to_usd` (`0.001`). Also aliased at `GET /api/v1/models`.
+- **24h reliability & latency metrics (`GET /pricing/metrics`)**: Returns rolling 24-hour settled task telemetry (`sufficient_sample`, `settled_count`, `success_rate`, `avg_latency_ms`) per public `model_key`. Also aliased at `GET /api/v1/models/metrics`.

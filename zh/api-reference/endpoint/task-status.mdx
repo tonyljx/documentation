@@ -6,7 +6,15 @@ openapi: "POST /api/v1/task/status"
 
 ## 查询任务
 
-使用提交响应中的 Wizzx `task_id`，并携带同一个 API Key。该接口只读取已保存的任务状态，不会再次向 Provider 提交任务。
+使用提交响应中的 Wizzx `task_id`，并携带同一个 API Key。推荐使用 RESTful `GET /api/v1/task/{task_id}`（也支持 `GET /api/v1/task/status?task_id={task_id}` 或 `POST /api/v1/task/status`）。三种方式都只读取已保存的任务状态，不会再次向 Provider 提交任务。
+
+```bash
+curl --fail-with-body --silent --show-error \
+  https://api.wizzx.ai/api/v1/task/4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a \
+  -H "Authorization: Bearer <api_key>"
+```
+
+或使用 `POST`：
 
 ```bash
 curl --fail-with-body --silent --show-error \
@@ -20,7 +28,7 @@ curl --fail-with-body --silent --show-error \
 
 客户端可见状态为 `PENDING`、`QUEUED`、`PROCESSING`、`REVIEW_REQUIRED`、`SUCCEEDED`、`FAILED`。内部 `DISPATCHING` 会以 `PROCESSING` 返回。
 
-非终态继续查询同一个 Task ID。遇到未知状态、`REVIEW_REQUIRED` 或提交结果不明确时，不得自动创建替代任务。
+非终态继续查询同一个 Task ID。遇到未知状态、`REVIEW_REQUIRED` 或提交结果不明确时，不得自动创建替代任务。若任务失败且预留积分已退回（或未实际扣费），`credits_deducted` 返回 `0`。
 
 ## 响应
 

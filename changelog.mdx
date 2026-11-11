@@ -4,6 +4,18 @@ description: "Product updates and new model releases"
 rss: true
 ---
 
+<Update label="November 12, 2026">
+
+### Developer experience, model discovery, and idempotency
+
+- **RESTful task status**: Poll tasks via `GET /api/v1/task/{task_id}` (or `GET /api/v1/task/status?task_id=...`) alongside `POST /api/v1/task/status`. Uncharged or refunded tasks report `credits_deducted: 0`.
+- **Idempotent paid submissions**: Pass an optional `Idempotency-Key` header on `POST /api/v1/task/submit/{model_key}` and `POST /api/v1/music/{action}` to safely deduplicate network retries for 24 hours (`409 idempotency_key_conflict` / `409 idempotency_key_in_progress`).
+- **Model discovery & 24h telemetry**: Added `GET /v1/models` (OpenAI-compatible model list with Wizzx tier metadata), `GET /pricing?locale=zh` (English notes by default, Chinese when requested), and `GET /pricing/metrics` (rolling 24-hour settled reliability and average latency).
+- **Richer balance & error diagnostics**: `GET /api/v1/credits/balance` now includes `free_credits`, `paid_credits`, and `usd_equivalent`. `402 insufficient_credits` rolls back atomically before queuing and returns `balance`, `required`, `shortfall`, and `billing_url`. `429` responses include the standard `Retry-After` HTTP header.
+- **Pricing sync**: Updated **GPT Image 2.5** documentation to match the live `GET /pricing` catalog (`1K = 15`, `2K = 24`, `4K = 35` credits per image).
+
+</Update>
+
 <Update label="October 15, 2026">
 
 ### Suno music actions

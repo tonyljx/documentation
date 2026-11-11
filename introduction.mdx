@@ -1,33 +1,88 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Overview & Quickstart"
+description: "Authenticate once and run asynchronous image, video, and music tasks on https://api.wizzx.ai"
 ---
 
+## Architecture overview
+
+Every public model on Wizzx shares one production gateway (`https://api.wizzx.ai`), one API key, and one asynchronous task lifecycle:
+
+1. **Discover** public models and live credit tiers via [`GET /pricing`](/api-reference/endpoint/pricing) or `GET /v1/models` (no authentication required).
+2. **Submit** a generation job to `POST /api/v1/task/submit/{model_key}` (or [`POST /api/v1/music/{action}`](/api-reference/endpoint/submit-music) for Suno) with an optional `Idempotency-Key` header.
+3. **Poll** `GET /api/v1/task/{task_id}` (or [`POST /api/v1/task/status`](/api-reference/endpoint/task-status)) until `status` reaches `SUCCEEDED` or `FAILED`.
+
 <Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
+  New accounts receive **200 free credits ($0.20)** after sign-in (`1,000 credits = $1.00 USD`). Generate or rotate your key anytime in the [API Keys dashboard](https://wizzx.ai/dashboard/api-keys).
 </Note>
-
-## Welcome
-
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Pass your Wizzx API key in the HTTP `Authorization` header on every authenticated request:
+
+```bash
+Authorization: Bearer wzk_live_...
+```
+
+Keep keys in environment variables (`WIZZX_API_KEY`) rather than client-side bundles or source control. Public discovery endpoints (`GET /pricing`, `GET /v1/models`, and `GET /pricing/metrics`) do not require authentication and include browser CORS headers.
+
+## 60-second quickstart
+
+### 1. Submit an image task
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST "https://api.wizzx.ai/api/v1/task/submit/nano-banana-2" \
+  -H "Authorization: Bearer $WIZZX_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: quickstart-001" \
+  --data '{
+    "prompt": "Studio product shot of an anodized aluminum camera on warm slate, soft rim lighting",
+    "aspect_ratio": "16:9",
+    "resolution": "1K",
+    "output_format": "jpg"
+  }'
+```
+
+The gateway validates parameters and atomically reserves credits before queuing the job:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "nano-banana-2",
+    "credits_deducted": 48
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
+}
 ```
+
+### 2. Poll the task by ID
+
+```bash
+curl --fail-with-body --silent --show-error \
+  "https://api.wizzx.ai/api/v1/task/4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a" \
+  -H "Authorization: Bearer $WIZZX_API_KEY"
+```
+
+When `data.status` reaches `SUCCEEDED`, read your generated asset URLs from `data.result_urls` (and `data.result` for Suno music actions). If a task fails upstream, reserved credits are automatically refunded and `data.credits_deducted` reports `0`.
+
+## Discovery & AI agent entrypoints
+
+| Entrypoint | Purpose |
+| --- | --- |
+| [`GET https://api.wizzx.ai/pricing`](/api-reference/endpoint/pricing) | Live public model catalog, billing units, and credit tiers (`?locale=zh` for Simplified Chinese notes). |
+| `GET https://api.wizzx.ai/v1/models` | Public model list discovery endpoint (`data.object: "list"`, `data.models`) with embedded Wizzx pricing metadata. |
+| `GET https://api.wizzx.ai/pricing/metrics` | Rolling 24-hour settled success rate and average latency per public model. |
+| [`https://docs.wizzx.ai/api-reference/openapi.json`](https://docs.wizzx.ai/api-reference/openapi.json) | Complete OpenAPI 3.1 specification for SDKs, validators, and agent tools. |
+| [`https://docs.wizzx.ai/llms.txt`](https://docs.wizzx.ai/llms.txt) & [`https://wizzx.ai/llms.txt`](https://wizzx.ai/llms.txt) | Compact Markdown indexes for Claude Code, Codex, Cursor, and MCP agents. |
+
+<CardGroup cols={2}>
+  <Card title="Generate Media with AI Agents" icon="wand-magic-sparkles" href="/ai-tools/media-generation-agents">
+    Copy a deterministic execution contract for Claude Code, Codex, or custom agent skills.
+  </Card>
+  <Card title="Error Codes & Idempotency" icon="shield-halved" href="/api-reference/error-codes">
+    Handle 402 credit shortfalls, 409 idempotency locks, and 429 Retry-After headers safely.
+  </Card>
+</CardGroup>

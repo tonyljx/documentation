@@ -49,9 +49,32 @@ for (const path of Object.keys(openapi.paths)) {
 }
 
 assert.ok(openapi.paths["/pricing"]?.get, "missing GET /pricing");
+assert.ok(openapi.paths["/v1/models"]?.get, "missing GET /v1/models");
+assert.ok(
+  openapi.paths["/pricing/metrics"]?.get,
+  "missing GET /pricing/metrics",
+);
 assert.ok(
   openapi.paths["/api/v1/credits/balance"]?.get,
   "missing GET /api/v1/credits/balance",
+);
+assert.ok(
+  openapi.paths["/api/v1/task/{task_id}"]?.get,
+  "missing GET /api/v1/task/{task_id}",
+);
+assert.equal(
+  openapi.components.schemas.TaskSubmitData.properties.provider_key,
+  undefined,
+  "upstream provider_key must not be exposed in OpenAPI",
+);
+assert.equal(
+  openapi.components.schemas.TaskSubmitData.properties.provider_task_id,
+  undefined,
+  "upstream provider_task_id must not be exposed in OpenAPI",
+);
+assert.ok(
+  openapi.paths["/api/v1/task/submit/veo3"].post.responses["409"],
+  "submit operations must document 409 idempotency responses",
 );
 assert.deepEqual(openapi.components.schemas.TaskSubmitResponse.required, [
   "code",

@@ -99,7 +99,7 @@ const seedanceRatios = [
 
 api.info = {
   ...api.info,
-  version: "1.2.0",
+  version: "1.3.0",
   license: {
     name: "MIT",
     url: "https://github.com/tonyljx/documentation/blob/main/LICENSE",
@@ -107,8 +107,9 @@ api.info = {
   description:
     "Wizzx asynchronous image, video, and audio generation API. " +
     "Model keys are placed in the submit URL. Submit returns a Wizzx task_id; " +
-    "poll that ID through /api/v1/task/status. Authentication uses a Wizzx " +
-    "API key in the Authorization: Bearer <key> header.",
+    "poll that ID through GET /api/v1/task/{task_id} or POST /api/v1/task/status. " +
+    "Pass an optional Idempotency-Key header on paid submissions to prevent duplicate billing. " +
+    "Authentication uses a Wizzx API key in the Authorization: Bearer <key> header.",
 };
 api.servers = [
   {
@@ -181,6 +182,26 @@ Object.assign(api.components.schemas, {
         minimum: 0,
         description: "Retry delay in seconds. Present for rate-limit errors.",
       },
+      balance: {
+        type: "integer",
+        minimum: 0,
+        description: "Current credit balance. Present on 402 insufficient_credits.",
+      },
+      required: {
+        type: "integer",
+        minimum: 0,
+        description: "Credits required by the rejected request. Present on 402 insufficient_credits.",
+      },
+      shortfall: {
+        type: "integer",
+        minimum: 0,
+        description: "Additional credits needed (required - balance). Present on 402 insufficient_credits.",
+      },
+      billing_url: {
+        type: "string",
+        format: "uri",
+        description: "Direct top-up URL. Present on 402 insufficient_credits.",
+      },
     },
   },
   TaskSubmitData: {
@@ -202,14 +223,6 @@ Object.assign(api.components.schemas, {
         type: "integer",
         minimum: 0,
         description: "Credits reserved when the task is accepted.",
-      },
-      provider_task_id: {
-        type: "string",
-        description: "Diagnostic field returned only when debug=1.",
-      },
-      provider_key: {
-        type: "string",
-        description: "Diagnostic field returned only when debug=1.",
       },
     },
   },
@@ -335,6 +348,74 @@ Object.assign(api.components.schemas, {
     required: ["balance"],
     properties: {
       balance: { type: "integer", minimum: 0 },
+      free_credits: { type: "integer", minimum: 0 },
+      paid_credits: { type: "integer", minimum: 0 },
+      usd_equivalent: { type: "number", format: "double", minimum: 0 },
+    },
+  },
+  OpenAIModelListData: {
+    type: "object",
+    required: ["object", "count", "credit_to_usd", "models"],
+    properties: {
+      object: { type: "string", enum: ["list"] },
+      locale: enumString(["en", "zh"]),
+      count: { type: "integer", minimum: 0 },
+      credit_to_usd: { type: "number", format: "double", example: 0.001 },
+      models: { type: "array", items: ref("ModelPricing") },
+    },
+  },
+  OpenAIModelListResponse: {
+    type: "object",
+    required: ["code", "message", "data", "request_id"],
+    properties: {
+      code: { type: "integer", enum: [0] },
+      message: { type: "string", example: "success" },
+      data: ref("OpenAIModelListData"),
+      request_id: { type: "string", format: "uuid" },
+    },
+  },
+  ModelMetricItem: {
+    type: "object",
+    required: ["model_key", "sufficient_sample"],
+    properties: {
+      model_key: { type: "string" },
+      sufficient_sample: { type: "boolean" },
+      settled_count: { type: "integer", minimum: 0 },
+      success_rate: {
+        type: "number",
+        format: "double",
+        minimum: 0,
+        maximum: 100,
+        description: "Percentage (0-100) when sufficient_sample is true.",
+      },
+      avg_latency_ms: {
+        type: "integer",
+        minimum: 0,
+        description: "Mean latency in milliseconds across settled succeeded tasks.",
+      },
+    },
+  },
+  PricingMetricsData: {
+    type: "object",
+    required: ["window_hours", "min_sample", "updated_at", "models"],
+    properties: {
+      window_hours: { type: "integer", example: 24 },
+      min_sample: { type: "integer", example: 5 },
+      updated_at: { type: "string", format: "date-time" },
+      models: {
+        type: "object",
+        additionalProperties: ref("ModelMetricItem"),
+      },
+    },
+  },
+  PricingMetricsResponse: {
+    type: "object",
+    required: ["code", "message", "data", "request_id"],
+    properties: {
+      code: { type: "integer", enum: [0] },
+      message: { type: "string", example: "success" },
+      data: ref("PricingMetricsData"),
+      request_id: { type: "string", format: "uuid" },
     },
   },
   CreditBalanceResponse: {
@@ -1653,11 +1734,23 @@ const errorResponse = (description) => ({
 const rateLimitResponse = {
   ...errorResponse("Rate limited"),
   headers: {
+    "Retry-After": {
+      description: "Retry delay in seconds (standard HTTP header).",
+      schema: { type: "integer", minimum: 0 },
+    },
     "X-Retry-After": {
       description: "Retry delay in seconds.",
       schema: { type: "integer", minimum: 0 },
     },
   },
+};
+const idempotencyKeyParameter = {
+  name: "Idempotency-Key",
+  in: "header",
+  required: false,
+  description:
+    "Optional unique key (max 128 chars) to safely deduplicate retries for 24 hours without double-charging.",
+  schema: { type: "string", maxLength: 128 },
 };
 const submitResponses = {
   200: {
@@ -1667,8 +1760,11 @@ const submitResponses = {
   400: errorResponse("Malformed JSON or binding validation error"),
   401: errorResponse("Missing, invalid, or revoked API key"),
   402: errorResponse("Insufficient credits"),
+  409: errorResponse(
+    "Idempotency-Key conflict or concurrent request with the same key in progress",
+  ),
   413: errorResponse("Request body exceeds the configured limit"),
-  422: errorResponse("Model-specific validation error"),
+  422: errorResponse("Model-specific validation or safety policy error"),
   429: rateLimitResponse,
   500: errorResponse("Internal or upstream submission error"),
   503: errorResponse("Service or model temporarily unavailable"),
@@ -1686,9 +1782,10 @@ const submitOperation = ({ modelKey, title, tag, schema, example }) => ({
     operationId: operationIdForModel(modelKey),
     summary: `Submit ${title} task`,
     description:
-      "Creates one asynchronous paid task. Save data.task_id and poll the status endpoint. Do not automatically retry an ambiguous submit.",
+      "Creates one asynchronous paid task. Save data.task_id and poll GET /api/v1/task/{task_id} or POST /api/v1/task/status. Include Idempotency-Key to safely deduplicate retries.",
     tags: [tag],
     security: [{ bearerAuth: [] }],
+    parameters: [idempotencyKeyParameter],
     requestBody: {
       required: true,
       content: {
@@ -1728,6 +1825,7 @@ api.paths["/api/v1/music/{action}"] = {
           "Music action. Unknown actions return 404 music_action_not_found.",
         schema: enumString(musicActionNames),
       },
+      idempotencyKeyParameter,
     ],
     requestBody: {
       required: true,
@@ -1759,10 +1857,60 @@ api.paths["/pricing"] = {
     summary: "List public models and current pricing",
     tags: ["Discovery"],
     security: [],
+    parameters: [
+      {
+        name: "locale",
+        in: "query",
+        required: false,
+        description:
+          "Optional locale for billing notes ('en' by default, 'zh' for Simplified Chinese).",
+        schema: enumString(["en", "zh"], { default: "en" }),
+      },
+    ],
     responses: {
       200: {
         description: "Current public pricing catalog",
         content: jsonContent(ref("PricingResponse")),
+      },
+      500: errorResponse("Internal server error"),
+    },
+  },
+};
+
+api.paths["/v1/models"] = {
+  get: {
+    operationId: "listPublicModels",
+    summary: "List public models (OpenAI-compatible)",
+    tags: ["Discovery"],
+    security: [],
+    parameters: [
+      {
+        name: "locale",
+        in: "query",
+        required: false,
+        schema: enumString(["en", "zh"], { default: "en" }),
+      },
+    ],
+    responses: {
+      200: {
+        description: "OpenAI-compatible list of public Wizzx models",
+        content: jsonContent(ref("OpenAIModelListResponse")),
+      },
+      500: errorResponse("Internal server error"),
+    },
+  },
+};
+
+api.paths["/pricing/metrics"] = {
+  get: {
+    operationId: "getPublicPricingMetrics",
+    summary: "Get rolling 24h public model reliability and latency metrics",
+    tags: ["Discovery"],
+    security: [],
+    responses: {
+      200: {
+        description: "24-hour settled task reliability and average latency per model",
+        content: jsonContent(ref("PricingMetricsResponse")),
       },
       500: errorResponse("Internal server error"),
     },
@@ -1783,6 +1931,38 @@ api.paths["/api/v1/credits/balance"] = {
       401: errorResponse("Missing, invalid, or revoked API key"),
       429: rateLimitResponse,
       500: errorResponse("Internal server error"),
+    },
+  },
+};
+
+api.paths["/api/v1/task/{task_id}"] = {
+  get: {
+    operationId: "getTaskById",
+    summary: "Get task status by ID",
+    description:
+      "RESTful read of task state for the authenticated task owner. Poll the same task_id; never create a replacement task automatically.",
+    tags: ["Tasks"],
+    security: [{ bearerAuth: [] }],
+    parameters: [
+      {
+        name: "task_id",
+        in: "path",
+        required: true,
+        description: "Wizzx task ID returned by submit.",
+        schema: { type: "string", format: "uuid" },
+      },
+    ],
+    responses: {
+      200: {
+        description: "Current task state",
+        content: jsonContent(ref("TaskStatusResponse")),
+      },
+      400: errorResponse("Missing task_id"),
+      401: errorResponse("Missing, invalid, or revoked API key"),
+      404: errorResponse("Task not found for the authenticated owner"),
+      429: rateLimitResponse,
+      500: errorResponse("Internal server error"),
+      503: errorResponse("Service temporarily unavailable"),
     },
   },
 };

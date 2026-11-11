@@ -274,6 +274,14 @@
   "navbar": {
     "links": [
       {
+        "label": "Models",
+        "href": "https://wizzx.ai/model"
+      },
+      {
+        "label": "Playground",
+        "href": "https://wizzx.ai/playground"
+      },
+      {
         "label": "Support",
         "href": "mailto:support@wizzx.ai"
       }
@@ -281,7 +289,7 @@
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://wizzx.ai"
+      "href": "https://wizzx.ai/dashboard"
     }
   },
   "contextual": {
@@ -295,12 +303,5 @@
       "cursor",
       "vscode"
     ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
   }
 }

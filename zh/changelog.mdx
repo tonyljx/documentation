@@ -4,6 +4,18 @@ description: "产品更新与新模型发布"
 rss: true
 ---
 
+<Update label="2026年11月12日">
+
+### 开发者体验、服务发现与幂等保护
+
+- **RESTful 任务状态查询**：除 `POST /api/v1/task/status` 外，新增支持 `GET /api/v1/task/{task_id}`（及 `GET /api/v1/task/status?task_id=...`）。未实际扣费或已自动退款的失败任务在响应中返回 `credits_deducted: 0`。
+- **付费提交幂等保护**：`POST /api/v1/task/submit/{model_key}` 与 `POST /api/v1/music/{action}` 支持可选 `Idempotency-Key` 请求头，24 小时内安全去重网络重试（冲突返回 `409 idempotency_key_conflict` 或 `409 idempotency_key_in_progress`）。
+- **模型发现与 24 小时指标**：新增 OpenAI 兼容模型列表 `GET /v1/models`、`GET /pricing?locale=zh` 中英文计费说明切换，以及过去 24 小时已结算成功率与平均耗时接口 `GET /pricing/metrics`。
+- **余额明细与结构化错误码**：`GET /api/v1/credits/balance` 新增 `free_credits`、`paid_credits` 与 `usd_equivalent`；`402 insufficient_credits` 在入队前原子回滚并返回 `balance`、`required`、`shortfall` 与 `billing_url`；`429` 响应附带标准 `Retry-After` 头。
+- **价格文档同步**：将 **GPT Image 2.5** 文档价格与实时 `GET /pricing` 目录对齐（`1K = 15`、`2K = 24`、`4K = 35` 积分/张）。
+
+</Update>
+
 <Update label="2026年10月15日">
 
 ### Suno 音乐动作

@@ -1,34 +1,88 @@
 ---
-title: "API 介绍"
-description: "如何在 Wizzx 文档中查看与测试 API 端点"
+title: "API 概览与快速开始"
+description: "使用同一个 API Key 调用 https://api.wizzx.ai 的异步图像、视频与音乐生成接口"
 ---
 
-## 欢迎
+## 架构概览
 
-在 Mintlify 中有两种构建 API 文档的方式：
-- 基于 OpenAPI 规范的自动生成
-- 基于 MDX 组件的手动编写
+Wizzx 所有公开模型共用同一个生产网关（`https://api.wizzx.ai`）、同一个 API Key 与同一套异步任务生命周期：
 
-本项目的示例使用一份 OpenAPI 规范文件，你可以在下方查看。
+1. **发现模型与实时价格**：调用 [`GET /pricing`](/zh/api-reference/endpoint/pricing)（支持 `?locale=zh`）或 `GET /v1/models`，无需鉴权。
+2. **提交生成任务**：向 `POST /api/v1/task/submit/{model_key}`（Suno 音乐动作为 [`POST /api/v1/music/{action}`](/zh/api-reference/endpoint/submit-music)）发送 JSON，支持可选 `Idempotency-Key` 防重请求头。
+3. **轮询任务结果**：请求 `GET /api/v1/task/{task_id}`（或 [`POST /api/v1/task/status`](/zh/api-reference/endpoint/task-status)），直到 `status` 进入 `SUCCEEDED` 或 `FAILED`。
 
-<Card
-  title="Plant Store 接口"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  查看 OpenAPI 规范文件
-</Card>
+<Note>
+  新注册账号登录后自动获赠 **200 免费积分（$0.20）**，换算比例固定为 **1,000 积分 = $1.00 美元**。可随时前往 [API 密钥控制台](https://wizzx.ai/zh/dashboard/api-keys) 创建或轮换密钥。
+</Note>
 
 ## 认证方式
 
-所有 API 端点均使用 Bearer Token 认证，示例片段：
+在所有需要鉴权的请求中添加标准 `Authorization: Bearer` 请求头：
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+```bash
+Authorization: Bearer wzk_live_...
 ```
 
-在请求头添加 `Authorization: Bearer <token>` 即可。
+请将密钥保存在服务端环境变量（如 `WIZZX_API_KEY`）中，切勿暴露在前端打包代码或版本库中。公开目录接口（`GET /pricing`、`GET /v1/models`、`GET /pricing/metrics`）无需鉴权且内置浏览器 CORS 支持。
+
+## 60 秒快速开始
+
+### 1. 提交图像生成任务
+
+```bash
+curl --fail-with-body --silent --show-error \
+  -X POST "https://api.wizzx.ai/api/v1/task/submit/nano-banana-2" \
+  -H "Authorization: Bearer $WIZZX_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: quickstart-001" \
+  --data '{
+    "prompt": "深色板岩台面上的阳极氧化铝相机产品摄影，柔和轮廓光",
+    "aspect_ratio": "16:9",
+    "resolution": "1K",
+    "output_format": "jpg"
+  }'
+```
+
+网关会先完成参数校验并原子预留积分，随后返回任务 ID：
+
+```json
+{
+  "code": 0,
+  "message": "success",
+  "data": {
+    "task_id": "4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a",
+    "model_key": "nano-banana-2",
+    "credits_deducted": 48
+  },
+  "request_id": "d54c66a8-0f0f-439c-bd3a-36f3fd275881"
+}
+```
+
+### 2. 根据 Task ID 查询结果
+
+```bash
+curl --fail-with-body --silent --show-error \
+  "https://api.wizzx.ai/api/v1/task/4bbbc9e0-8de8-4f35-a31e-8596c1a6d18a" \
+  -H "Authorization: Bearer $WIZZX_API_KEY"
+```
+
+当 `data.status` 变为 `SUCCEEDED` 时，从 `data.result_urls` 读取生成文件地址（Suno 音乐任务同时返回结构化 `data.result`）。若任务在生成阶段失败，预留积分会自动退回，`data.credits_deducted` 返回 `0`。
+
+## 服务发现与 AI 智能体入口
+
+| 入口 | 用途 |
+| --- | --- |
+| [`GET https://api.wizzx.ai/pricing?locale=zh`](/zh/api-reference/endpoint/pricing) | 实时公开模型目录、计费单位、档位积分与中文计费说明。 |
+| `GET https://api.wizzx.ai/v1/models` | 公开模型列表发现接口（`data.object: "list"`、`data.models`），附带 Wizzx 定价元数据。 |
+| `GET https://api.wizzx.ai/pricing/metrics` | 过去 24 小时已结算任务的真实成功率与平均耗时指标。 |
+| [`https://docs.wizzx.ai/api-reference/openapi.json`](https://docs.wizzx.ai/api-reference/openapi.json) | 完整 OpenAPI 3.1 机器可读规范，适用于代码生成与参数校验。 |
+| [`https://docs.wizzx.ai/llms.txt`](https://docs.wizzx.ai/llms.txt) 与 [`https://wizzx.ai/llms.txt`](https://wizzx.ai/llms.txt) | 面向 Claude Code、Codex、Cursor 等智能体的精简索引。 |
+
+<CardGroup cols={2}>
+  <Card title="在 AI 智能体中生成媒体" icon="wand-magic-sparkles" href="/zh/ai-tools/media-generation-agents">
+    复制可直接用于 Claude Code、Codex 或项目级 Skill 的确定性调用契约。
+  </Card>
+  <Card title="错误码与幂等保护" icon="shield-halved" href="/zh/api-reference/error-codes">
+    处理 402 余额差额、409 幂等冲突锁与 429 Retry-After 退避策略。
+  </Card>
+</CardGroup>

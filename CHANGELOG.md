@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-12
+
+### Added
+
+- Rewrote `/introduction` and `/zh/introduction` into a bilingual API Overview & 60-second Quickstart, replacing leftover Mintlify starter boilerplate.
+- Documented `GET /v1/models`, `GET /pricing?locale=zh`, `GET /pricing/metrics`, `GET /api/v1/task/{task_id}`, `Idempotency-Key` submit headers, enriched `GET /api/v1/credits/balance` fields (`free_credits`, `paid_credits`, `usd_equivalent`), structured `402 insufficient_credits` fields (`balance`, `required`, `shortfall`, `billing_url`), `409` idempotency codes, `422 content_policy_violation`, `503 moderation_unavailable`, and `Retry-After` headers across EN/ZH pages and `api-reference/openapi.json` (`v1.3.0`).
+
+### Fixed
+
+- Synced **GPT Image 2.5** documented tiers from `13 / 21 / 32` to live `/pricing` catalog values (`15 / 24 / 35` credits per image) across pricing, model, and submit endpoint pages in both languages, and added missing `GPT Image 2` / `GPT Image 2.5` cards to `index.mdx` and `zh/index.mdx`.
+- Replaced dead `https://dashboard.wizzx.ai` links with `https://wizzx.ai/dashboard/api-keys` and `https://wizzx.ai/dashboard/billing`, removed Mintlify starter social links from `docs.json`, and removed internal `provider_key` / `provider_task_id` fields from OpenAPI `TaskSubmitData`.
+
 ## 2026-10-15
 
 ### Fixed

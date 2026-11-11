@@ -82,7 +82,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 }
 ```
 
-**Solution:** Verify your API key is correct. You can find your API keys in the [Dashboard](https://dashboard.wizzx.ai).
+**Solution:** Verify your API key is correct. You can manage your API keys in the [API Keys Dashboard](https://wizzx.ai/dashboard/api-keys).
 
 ### `api_key_revoked`
 
@@ -176,15 +176,19 @@ These errors indicate billing or credit issues.
 ```json
 {
   "error": {
-    "message": "You have insufficient credits. Your balance is 50 credits, but this request requires 100 credits. Top up your account to continue.",
+    "message": "Insufficient credits: balance is 50 credits, but this request requires 100 credits (shortfall: 50 credits). Top up at https://wizzx.ai/dashboard/billing",
     "type": "insufficient_quota",
     "param": null,
     "code": "insufficient_credits"
-  }
+  },
+  "balance": 50,
+  "required": 100,
+  "shortfall": 50,
+  "billing_url": "https://wizzx.ai/dashboard/billing"
 }
 ```
 
-**Solution:** Add more credits to your account from the [Dashboard](https://dashboard.wizzx.ai).
+**Solution:** Add more credits to your account from [Billing](https://wizzx.ai/dashboard/billing). Insufficient-credit rejections roll back atomically before queuing—no failed task record is created and zero credits are deducted.
 
 ### `billing_not_active`
 
@@ -369,6 +373,36 @@ These errors indicate conflicts with the current resource state.
 
 **Solution:** Fetch the latest version and retry your update.
 
+### `idempotency_key_conflict`
+
+```json
+{
+  "error": {
+    "message": "Idempotency-Key was already used with a different request payload or endpoint. Generate a new Idempotency-Key for a new task.",
+    "type": "conflict_error",
+    "param": "Idempotency-Key",
+    "code": "idempotency_key_conflict"
+  }
+}
+```
+
+**Solution:** Use a fresh `Idempotency-Key` whenever you change the submit endpoint or request JSON body.
+
+### `idempotency_key_in_progress`
+
+```json
+{
+  "error": {
+    "message": "A request with this Idempotency-Key is currently being processed. Wait briefly before retrying.",
+    "type": "conflict_error",
+    "param": "Idempotency-Key",
+    "code": "idempotency_key_in_progress"
+  }
+}
+```
+
+**Solution:** Wait a moment for the original submission to finish, then retry with the same `Idempotency-Key` to receive the cached response without double-billing.
+
 ---
 
 ## Unprocessable Entity Errors (422)
@@ -435,6 +469,21 @@ These errors indicate the request was well-formed but cannot be processed.
 
 **Solution:** Convert your image to JPEG, PNG, or WebP format.
 
+### `content_policy_violation`
+
+```json
+{
+  "error": {
+    "message": "Request blocked by content safety policy.",
+    "type": "unprocessable_entity_error",
+    "param": "prompt",
+    "code": "content_policy_violation"
+  }
+}
+```
+
+**Solution:** Revise the prompt or reference inputs to comply with safety guidelines. No task is created and zero credits are deducted.
+
 ---
 
 ## Rate Limit Errors (429)
@@ -455,7 +504,7 @@ These errors indicate you're sending requests too quickly.
 }
 ```
 
-**Solution:** Implement exponential backoff in your code. The `retry_after` field indicates when you can retry.
+**Solution:** Implement exponential backoff in your code. Both the `retry_after` JSON field and the standard HTTP `Retry-After` (plus `X-Retry-After`) response header indicate how many seconds to wait before retrying.
 
 ```python
 import time
@@ -588,6 +637,21 @@ The model is not accepting new submissions. No task is created and no credits ar
 ```
 
 **Solution:** Wait for maintenance to complete. Check our status page for updates.
+
+### `moderation_unavailable`
+
+```json
+{
+  "error": {
+    "message": "Content moderation is temporarily unavailable. Retry after a brief wait.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "moderation_unavailable"
+  }
+}
+```
+
+**Solution:** Retry after a brief wait with exponential backoff. No credits were reserved.
 
 ---
 

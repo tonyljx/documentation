@@ -82,7 +82,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 }
 ```
 
-**解决方案：** 确认 API 密钥正确无误。您可以在 [控制台](https://dashboard.wizzx.ai) 查看您的 API 密钥。
+**解决方案：** 确认 API 密钥正确无误。您可以在 [API 密钥控制台](https://wizzx.ai/zh/dashboard/api-keys) 查看或轮换密钥。
 
 ### `api_key_revoked`
 
@@ -176,15 +176,19 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 ```json
 {
   "error": {
-    "message": "You have insufficient credits. Your balance is 50 credits, but this request requires 100 credits. Top up your account to continue.",
+    "message": "Insufficient credits: balance is 50 credits, but this request requires 100 credits (shortfall: 50 credits). Top up at https://wizzx.ai/dashboard/billing",
     "type": "insufficient_quota",
     "param": null,
     "code": "insufficient_credits"
-  }
+  },
+  "balance": 50,
+  "required": 100,
+  "shortfall": 50,
+  "billing_url": "https://wizzx.ai/dashboard/billing"
 }
 ```
 
-**解决方案：** 在 [控制台](https://dashboard.wizzx.ai) 为账户充值。
+**解决方案：** 前往 [账单充值](https://wizzx.ai/zh/dashboard/billing) 为账户充值。余额不足会在入队前原子回滚，不会创建脏失败任务记录，也不会扣除任何积分。
 
 ### `billing_not_active`
 
@@ -369,6 +373,36 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 
 **解决方案：** 获取最新版本后重试更新。
 
+### `idempotency_key_conflict`
+
+```json
+{
+  "error": {
+    "message": "Idempotency-Key was already used with a different request payload or endpoint. Generate a new Idempotency-Key for a new task.",
+    "type": "conflict_error",
+    "param": "Idempotency-Key",
+    "code": "idempotency_key_conflict"
+  }
+}
+```
+
+**解决方案：** 当提交路径或 JSON 请求体发生变化时，必须生成新的 `Idempotency-Key`。
+
+### `idempotency_key_in_progress`
+
+```json
+{
+  "error": {
+    "message": "A request with this Idempotency-Key is currently being processed. Wait briefly before retrying.",
+    "type": "conflict_error",
+    "param": "Idempotency-Key",
+    "code": "idempotency_key_in_progress"
+  }
+}
+```
+
+**解决方案：** 同一 `Idempotency-Key` 的首个提交正在处理中；稍候片刻再用相同 `Idempotency-Key` 重试即可拿到缓存响应，不会重复扣费。
+
 ---
 
 ## 无法处理实体错误 (422)
@@ -435,6 +469,21 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 
 **解决方案：** 将图片转换为 JPEG、PNG 或 WebP 格式。
 
+### `content_policy_violation`
+
+```json
+{
+  "error": {
+    "message": "Request blocked by content safety policy.",
+    "type": "unprocessable_entity_error",
+    "param": "prompt",
+    "code": "content_policy_violation"
+  }
+}
+```
+
+**解决方案：** 调整提示词或参考素材以符合安全策略。该拒绝发生在入队前，不会创建任务也不会扣除积分。
+
 ---
 
 ## 速率限制错误 (429)
@@ -455,7 +504,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" ...
 }
 ```
 
-**解决方案：** 在代码中实现指数退避重试。`retry_after` 字段指示何时可以重试。
+**解决方案：** 在代码中实现指数退避重试。响应体中的 `retry_after` 字段以及标准 HTTP `Retry-After`（及 `X-Retry-After`）响应头均指示建议等待的秒数。
 
 ```python
 import time
@@ -588,6 +637,21 @@ def call_api_with_retry(func, max_retries=3):
 ```
 
 **解决方案：** 等待维护完成。查看我们的状态页面了解最新动态。
+
+### `moderation_unavailable`
+
+```json
+{
+  "error": {
+    "message": "Content moderation is temporarily unavailable. Retry after a brief wait.",
+    "type": "service_unavailable",
+    "param": null,
+    "code": "moderation_unavailable"
+  }
+}
+```
+
+**解决方案：** 使用指数退避稍后重试；本次请求未预留或扣除任何积分。
 
 ---
 
