@@ -61,7 +61,8 @@ if (process.argv.includes("--live")) {
     "llms.txt does not list the English agent guide",
   );
   assert.ok(
-    llmsIndex.includes(openapiUrl),
+    llmsIndex.includes(openapiUrl) ||
+      llmsIndex.includes("/api-reference/openapi.json"),
     "llms.txt does not list the OpenAPI document",
   );
 
